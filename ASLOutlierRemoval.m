@@ -4,7 +4,7 @@ outputmap = [SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/'];
 if ~exist(outputmap,'dir')
 mkdir(outputmap)
 end
-disp('TESTING TESTING')
+
 DIMS = size(SUBJECT.(prefix).ASL_label1label2_allPLD);
 
 if ~exist([outputmap 'DYNAMIC_1'],'dir')
