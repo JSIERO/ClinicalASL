@@ -1,4 +1,5 @@
 function SUBJECT = ASLT1fromM0Processing(SUBJECT, prefix)
+% ClinicalASL toolbox 2023, JCWSiero
 % Construct T1w image from multi PLD M0 image
 
 % brain extraction on M0 image

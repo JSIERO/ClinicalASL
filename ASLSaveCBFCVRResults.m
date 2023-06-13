@@ -1,4 +1,5 @@
 function SUBJECT = ASLSaveCBFCVRResults(SUBJECT, ORprefix)
+% ClinicalASL toolbox 2023, JCWSiero
 % save BASIl results: NIFTI and PNG - loops over smoothed BASIl data
 % load BASIL output data : %% CBF Arrival transit time (AAT), aCBV, arterial transit artefact (ATA) for spatial COV computation, allPLD for another CBF map using all PLD
 

@@ -1,4 +1,5 @@
 function output=ASLInterleaveControlTag(CTRL,TAG)
+% ClinicalASL toolbox 2023, JCWSiero
 % interleave CTRL and TAG data; CTRL1..TAG1..CTRL2..TAG2..
 CTRLTAG=[];
 dims = size(CTRL);% xdim y xim zdim tdim asl_label

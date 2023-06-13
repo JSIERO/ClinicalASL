@@ -1,5 +1,6 @@
 function SaveFIGUREtoPNG(data, mask, datarange, outputloc, suffix, label, COLORMAP, blackfont)
-% JCW SIERO, JAN 2023
+% ClinicalASL toolbox 2023, JCWSiero
+
 % CBF or CVR map for different COLORMAPS: Crameri et al, "Misuse of colour in science communication' Nat. Comm 2020
 % options are for example 'Viridis' (blue to yellow, converging map for CBF), 'vik' (Blue to Red) (VIK) (diverging map for CVR)
 % please refrian from JET (non-scientific use only!)

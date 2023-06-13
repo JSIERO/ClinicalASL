@@ -1,6 +1,7 @@
 function output = ASLSmoothImage(data, spatialdim, FWHM, voxelsize)
-% written by JCW  SIERO, 2023
-% can handle NaNs, 2D and 3D
+% ClinicalASL toolbox 2023, JCWSiero
+% can handle NaNs, 2D and 3D gaussian smoothing
+
 sigma = FWHM/2.355;
 inplanevoxelsize = voxelsize(1);
 data_smooth = zeros(size(data));

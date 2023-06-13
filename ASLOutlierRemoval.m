@@ -1,5 +1,5 @@
 function SUBJECT = ASLOutlierRemoval(SUBJECT, prefix)
-
+% ClinicalASL toolbox 2023, JCWSiero
 outputmap = [SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/']; 
 if ~exist(outputmap,'dir')
 mkdir(outputmap)
