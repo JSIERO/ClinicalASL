@@ -131,8 +131,8 @@ for i=1:length(session)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%  7. Generate resulting CBF/CVR/AAT/aCBV .png images %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-SUBJECT = ASLSaveCBFCVRResults_prepostACZ(SUBJECT, '');
-SUBJECT = ASLSaveCBFCVRResults_prepostACZ(SUBJECT, '_OR'); % save outlier removed data
+SUBJECT = ASLSaveResultsCBFAATCVR(SUBJECT, '');
+SUBJECT = ASLSaveResultsCBFAATCVR(SUBJECT, '_OR'); % save outlier removed data
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% 8. Save workspace %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Workspace_ClinicalASL = [SUBJECT.ASLdir '/Workspace_ClinicalASL.mat'];

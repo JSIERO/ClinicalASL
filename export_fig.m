@@ -1,4 +1,5 @@
 function [imageData, alpha] = export_fig(varargin) %#ok<*STRCL1>
+% Copyright (C) Oliver Woodford 2008-2014, Yair Altman 2015-
 %EXPORT_FIG  Exports figures in a publication-quality format
 %
 % Examples:
