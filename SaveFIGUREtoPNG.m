@@ -45,11 +45,12 @@ if isempty(mask)
 end
 data_masked=data.*mask;
 data_masked(isnan(data_masked))=0;
-image_data=mmontage(rot90(data_masked),[ceil(size(data,3)/4),4],'noimage');
+image_data=immontage(rot90(data_masked),[ceil(size(data,3)/4),4],'noimage');
 
 image_data((image_data<datarange(1) & image_data~=0))=0;
 image_data(image_data>=datarange(2))=datarange(2);
 Igz=find(image_data==0);
+
 image_scaled=zeros(size(image_data));
 image_scaled=255*(image_data - datarange(1))/(datarange(2) - datarange(1)) + 1;
 image_scaled(Igz)=0;
@@ -59,7 +60,7 @@ f1 = figure; imagesc(RGB,datarange)
 axis equal;
 axis off;
 colormap(COLORMAP_black);
-h= colorbar('SouthOutside');
+h = colorbar('SouthOutside');
 t=get(h,'Limits');
 set(h,'Ticks',linspace(t(1),t(2),5))
 set(get(h,'label'),'string',label2);

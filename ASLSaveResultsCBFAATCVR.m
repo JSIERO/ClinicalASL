@@ -43,8 +43,7 @@ SUBJECT.postACZ.nanmask_2preACZ = SUBJECT.postACZ.brainmask_2preACZ;
 SUBJECT.postACZ.nanmask_2preACZ(SUBJECT.postACZ.nanmask_2preACZ==0) = NaN;
 
 % make combined mask from registered pre/post ACZ
-SUBJECT.nanmask_reg = double(logical(SUBJECT.preACZ.brainmask + SUBJECT.postACZ.brainmask_2preACZ)); %combine preACZ and postACZ mask
-SUBJECT.nanmask_reg(SUBJECT.nanmask_reg==0) = NaN;
+SUBJECT.nanmask_reg = SUBJECT.preACZ.nanmask .*SUBJECT.postACZ.nanmask_2preACZ; %combine preACZ and postACZ mask
 
 % Compute CVR
 SUBJECT.(['CVR' ORprefix]) = SUBJECT.postACZ.(['CBF' ORprefix '_2preACZ']) - SUBJECT.preACZ.(['CBF' ORprefix]);
