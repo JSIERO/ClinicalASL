@@ -1,4 +1,5 @@
 function [SUBJECT] = ASLExtractParamsDICOM(SUBJECT, filename)
+% ClinicalASL toolbox 2023, JCWSiero
 tic
 disp('  Reading DICOM info... ')
 info = dicominfo([SUBJECT.DICOMdir filename]);

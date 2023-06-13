@@ -1,5 +1,5 @@
 function T1Processing(SUBJECT, filename)
-
+% ClinicalASL toolbox 2023, JCWSiero
 if isfile([SUBJECT.ANATOMYdir '/T1_brain_seg_0.nii.gz']) % check if T1 segmentation has been performed
     disp('Segmentation has already been performed');
 

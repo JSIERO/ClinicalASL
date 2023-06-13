@@ -1,7 +1,6 @@
 function [Ioutlier_allsteps, Ioutlier_step1, Ioutlier_step2, NoOutliers_logical] = ASLOutlierRemovalPerform(CBFdata4D, brainmask, outlierFactor, GMmask, WMmask, CSFmask)
-%% ASL OutlierRemoval (volumes), Siero 2019 - 01-03-2019
-% SCORE method by Duloi et al JMRI 2017
-% now works with NaN
+% ClinicalASL toolbox 2023, JCWSiero
+% ASL OutlierRemoval (volumes)using the SCORE method by Duloi et al JMRI 2017
 
 %confine to brain tissue voxels
 GMmask = logical(GMmask.*brainmask);

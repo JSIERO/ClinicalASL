@@ -1,4 +1,5 @@
 function SUBJECT = ASLPrepareM0ASLData(SUBJECT, filename, prefix)
+% ClinicalASL toolbox 2023, JCWSiero
 % Prepare (multidelay) ASL data: interleave control and label files per PLD, M0 and perform Look Locker Correction
 
 NII = load_untouch_nii([SUBJECT.NIFTIdir filename]);

@@ -1,5 +1,5 @@
 function ASLBASILanalysis(SUBJECT, locationASLlabelcontrolPLDNIFTI, locationM0, outputmap, PLDlist, locationBASILinfo, artoff)
-
+% ClinicalASL toolbox 2023, JCWSiero
 PLDstring = sprintf('%.05g,' , SUBJECT.PLDS(PLDlist)); 
 PLDstring = PLDstring(1:end-1);% strip final comma
 

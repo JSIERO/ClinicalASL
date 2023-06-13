@@ -1,5 +1,5 @@
 function ASLMNIRegistration(SUBJECT, prefix)
-
+% ClinicalASL toolbox 2023, JCWSiero
 % Register ASL T1fromM0 to MNI 2mm anatomy
 eval(['! flirt -in ' SUBJECT.ASLdir prefix '_T1fromM0 -out ' SUBJECT.ASLdir prefix '_T1fromM0ASL_2MNI -ref ' SUBJECT.MNIdir 'MNI_T1_2mm_brain -omat ' SUBJECT.ASLdir prefix '_ASL_2MNI.mat -cost corratio -dof 12 -interp trilinear'])
 

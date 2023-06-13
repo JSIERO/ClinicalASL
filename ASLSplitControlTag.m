@@ -1,4 +1,5 @@
 function [CTRL, TAG]=ASLSplitControlTag(CTRLTAG)
+% ClinicalASL toolbox 2023, JCWSiero
 % interleave CTRL and TAG data; CTRL1..TAG1..CTRL2..TAG2..
 CTRL=[];
 TAG=[];
