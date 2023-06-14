@@ -3,7 +3,7 @@ function ASLBASILanalysis(SUBJECT, locationASLlabelcontrolPLDNIFTI, locationM0, 
 PLDstring = sprintf('%.05g,' , SUBJECT.PLDS(PLDlist)); 
 PLDstring = PLDstring(1:end-1);% strip final comma
 
-if nargin == 6
+if nargin == 7
     if isempty(numel(locationBASILinfo))
         locationBASILinfostring=[];
     else
@@ -13,7 +13,7 @@ else
         locationBASILinfostring=[];
 end
 
-if nargin == 7
+if nargin == 8
     if strcmp (artoff, 'artoff')
         artoffstring= ' --artoff'; % do not inver arterial aCBV component, needed for aterial transit time aterfact (ATA) mapping
     else
