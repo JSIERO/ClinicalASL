@@ -1,4 +1,4 @@
-function ASLBASILanalysis(SUBJECT, locationASLlabelcontrolPLDNIFTI, locationM0, outputmap, PLDlist, locationBASILinfo, artoff)
+function ASLBASILanalysis(SUBJECT, locationASLlabelcontrolPLDNIFTI, locationM0, locationMask, outputmap, PLDlist, locationBASILinfo, artoff)
 % ClinicalASL toolbox 2023, JCWSiero
 PLDstring = sprintf('%.05g,' , SUBJECT.PLDS(PLDlist)); 
 PLDstring = PLDstring(1:end-1);% strip final comma
@@ -31,6 +31,6 @@ alpha = num2str(SUBJECT.alpha);
 slicetime = num2str(SUBJECT.slicetime/1000); % in s
 
 % JCWS % using BASIL precorrected Mz ->Mxy for LooK Locker; fixbolus, well-mixed fit, , -aif-leadscale=0.00001 as set in BASIL_options.txt (TIP from MARTIN GRAIG, Acknowledge him in a paper!
-eval(['!oxford_asl -i ' locationASLlabelcontrolPLDNIFTI ' -c ' locationM0 ' -o ' outputmap ' ' locationBASILinfostring artoffstring ' --bolus=' tau ' --slicedt=' slicetime ' --t1=' T1t ' --t1b=' T1b ' --plds=' PLDstring ' --tr=' TR_M0 ' --alpha=' alpha ' --iaf=ct --ibf=tis --casl --fixbolus  --fixbolus --cmethod voxel --cgain 1.00']);
+eval(['!oxford_asl -i ' locationASLlabelcontrolPLDNIFTI ' -c ' locationM0 '-m ' locationMask ' -o ' outputmap ' ' locationBASILinfostring artoffstring ' --bolus=' tau ' --slicedt=' slicetime ' --t1=' T1t ' --t1b=' T1b ' --plds=' PLDstring ' --tr=' TR_M0 ' --alpha=' alpha ' --iaf=ct --ibf=tis --casl --fixbolus  --fixbolus --cmethod voxel --cgain 1.00']);
 disp('BASIL analysis finished')
 end

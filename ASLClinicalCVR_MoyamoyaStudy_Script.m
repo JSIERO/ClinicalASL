@@ -20,7 +20,7 @@ SUBJECT.T1b = 1.65;   %s T1 of arterial blood DEFAULT is 1.65 at 3T, Alsop MRM 2
 SUBJECT.LookLocker_correction_factor_perPLD = [0.4226, 0.3830, 0.3471, 0.3146, 0.2851]; % computed in LookLocker_PCASL_Simulation_Extended.m, in/matlab/Simulations/ASL folder, deltaMxy_ratio_LL_noLL_forBASIL
 SUBJECT.FWHM = 6; % smoothing kernel size 6mm FWHM, for CBF, AAT
 SUBJECT.FWHM_CVR = 8; % smoothing kernel size 8mm FWHM, for CVR maps
-SUBJECT.FWHM_M0 = 4.5; % smoothing kernel size 4.5mm FWHM, for M0_forQCBF for manual quantification
+SUBJECT.FWHM_M0 = 5; % smoothing kernel size  5mm FWHM, for M0_forQCBF for manual quantification
 SUBJECT.outlierFactor = 2.5; % outlierFactor x stds from mean CBF are considered outliers in step1 of Dolui et al SCORE method
 SUBJECT.range_adult_cbf = [0 75]; % colourbar range for adult CBF values
 SUBJECT.range_child_cbf = [0 125]; % colourbar range for child CBF values
@@ -117,17 +117,17 @@ session = {'preACZ', 'postACZ'};
 for i=1:length(session)
     prefix = char(session(i));
     % %%%% % all PLD for AAT (arterial arrival time map) % %%%%%
-    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_allPLD_label1label2.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_allPLD'], [1:SUBJECT.NPLDS], SUBJECT.locationBASILinfo)
-    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_allPLD_label1label2_OR.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_allPLD_OR'], [1:SUBJECT.NPLDS], SUBJECT.locationBASILinfo)
+    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_allPLD_label1label2.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_allPLD'], [1:SUBJECT.NPLDS], SUBJECT.locationBASILinfo)
+    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_allPLD_label1label2_OR.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_allPLD_OR'], [1:SUBJECT.NPLDS], SUBJECT.locationBASILinfo)
     % %%%% % 2tolast PLD for CBF map % %%%% %
-    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_2tolastPLD_label1label2.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_2tolastPLD_forCBF'], [2:SUBJECT.NPLDS], SUBJECT.locationBASILinfo)
-    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_2tolastPLD_label1label2_OR.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_2tolastPLD_forCBF_OR'], [2:SUBJECT.NPLDS], SUBJECT.locationBASILinfo)
+    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_2tolastPLD_label1label2.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_2tolastPLD_forCBF'], [2:SUBJECT.NPLDS], SUBJECT.locationBASILinfo)
+    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_2tolastPLD_label1label2_OR.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_2tolastPLD_forCBF_OR'], [2:SUBJECT.NPLDS], SUBJECT.locationBASILinfo)
     % %%%% % 1to2 PLDs for ATA map -> compute COV --> then do no fit for the arterial component 'artoff' % %%%% %    
-    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_1to2PLD_label1label2.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_1to2PLD_artoff_forATA'], [1:2], SUBJECT.locationBASILinfo,'artoff') 
-    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_1to2PLD_label1label2_OR.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_1to2PLD_artoff_forATA_OR'], [1:2], SUBJECT.locationBASILinfo,'artoff')
+    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_1to2PLD_label1label2.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_1to2PLD_artoff_forATA'], [1:2], SUBJECT.locationBASILinfo,'artoff') 
+    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_1to2PLD_label1label2_OR.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_1to2PLD_artoff_forATA_OR'], [1:2], SUBJECT.locationBASILinfo,'artoff')
     % %%%% % 1to2 PLDs for aCBV map  then do fit for the arterial component 'noartoff'%  %%%% %
-    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_1to2PLD_label1label2.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_1to2PLD_noartoff_foraCBV'], [1:2], SUBJECT.locationBASILinfo, 'noartoff')    
-    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_1to2PLD_label1label2_OR.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_1to2PLD_noartoff_foraCBV_OR'], [1:2], SUBJECT.locationBASILinfo, 'noartoff')   
+    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_1to2PLD_label1label2.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_1to2PLD_noartoff_foraCBV'], [1:2], SUBJECT.locationBASILinfo, 'noartoff')    
+    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_1to2PLD_label1label2_OR.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_1to2PLD_noartoff_foraCBV_OR'], [1:2], SUBJECT.locationBASILinfo, 'noartoff')   
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%  7. Generate resulting CBF/CVR/AAT/aCBV .png images %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
