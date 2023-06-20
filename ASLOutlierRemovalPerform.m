@@ -22,13 +22,14 @@ for i = 1:size(CBFdata4D,4)
   CBFdata4D(:,:,:,i) = dummy;
 end
 
-disp('************************************************** Perform Ooutlier Removal SCORE by Duloi et al **********************************************')
+disp('************************************************** Perform Outlier Removal SCORE by Duloi et al **********************************************')
 Ioutlier_step1=[];
 Ioutlier_step2=[];
+
 mu_cbf = median(mean_cbf_gm);
 std_cbf = 1.4826*mad(mean_cbf_gm,1); %median absolute deviation
 
-step1 = abs(mean_cbf_gm - mu_cbf)<= std_cbf*outlierFactor; % creates logical array of length NREPEATS, with 0's where CBF > threshold
+step1 = abs(mean_cbf_gm - mu_cbf) <= std_cbf*outlierFactor; % creates logical array of length NREPEATS, with 0's where CBF > threshold
 data_step1 = CBFdata4D(:,:,:,step1);
 if find(step1 == 0)
     disp(['Step1: Volume(s) removed (|meanCBF - mu| > ' num2str(outlierFactor) '*std): ' num2str(find(step1 == 0))]);    
@@ -106,8 +107,25 @@ while V < Vprev && size(data_step2,4) > 1
   end
 end
 
+
 NoOutliers_logical(1:size(CBFdata4D,4)) = 1;
 NoOutliers_logical(Ioutlier_allsteps) = 0;
 NoOutliers_logical = logical(NoOutliers_logical);
 disp(['Outlier volumes all steps (total number): ' num2str(Ioutlier_allsteps) ' (' num2str(numel(Ioutlier_allsteps)) ')'])
+
+% calculate tSNR: before/after outlier removal
+CBF_data_Tmean = mean(CBFdata4D,4);
+CBF_data_Tstd = std(CBFdata4D,[],4);
+mask=logical(CBF_data_Tmean);
+CBF_data_TSNR = CBF_data_Tmean./CBF_data_Tstd .*double(mask);
+CBF_data_TSNR_GM = mean(CBF_data_TSNR(GMmask),'omitnan');
+disp(['tSNR of GM CBF - before outlier removal - is ' num2str(CBF_data_TSNR_GM)]);
+
+CBF_data_Tmean_OR = mean(CBFdata4D(:,:,:,NoOutliers_logical),4);
+CBF_data_Tstd_OR = std(CBFdata4D(:,:,:,NoOutliers_logical),[],4);
+mask=logical(CBF_data_Tmean_OR);
+CBF_data_TSNR_OR = CBF_data_Tmean_OR./CBF_data_Tstd_OR .*double(mask);
+CBF_data_TSNR_GM_OR = mean(CBF_data_TSNR_OR(GMmask),'omitnan');
+disp(['tSNR of GM CBF - after outlier removal  - is ' num2str(CBF_data_TSNR_GM_OR)]);
+
 disp('*************************************************** CBF Outlier identification finished ***********************************');

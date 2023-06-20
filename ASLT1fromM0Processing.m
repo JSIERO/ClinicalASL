@@ -11,7 +11,7 @@ eval(['!fslmaths ' SUBJECT.ASLdir prefix '_M0 -mul ' SUBJECT.ASLdir prefix '_tem
 NII = load_untouch_nii([SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz']);
 SUBJECT.(prefix).brainmask = logical(NII.img);
 
-SUBJECT.(prefix).nanmask = double(SUBJECT.preACZ.brainmask);
+SUBJECT.(prefix).nanmask = double(SUBJECT.(prefix).brainmask);
 SUBJECT.(prefix).nanmask(SUBJECT.(prefix).nanmask ==0) = NaN;
 
 NII = load_untouch_nii([SUBJECT.ASLdir prefix '_temp_M0_dilD.nii.gz']);
