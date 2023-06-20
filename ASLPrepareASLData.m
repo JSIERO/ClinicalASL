@@ -1,4 +1,4 @@
-function SUBJECT = ASLPrepareM0ASLData(SUBJECT, filename, prefix)
+function SUBJECT = ASLPrepareASLData(SUBJECT, filename, prefix)
 % ClinicalASL toolbox 2023, JCWSiero
 % Prepare (multidelay) ASL data: interleave control and label files per PLD, M0 and perform Look Locker Correction
 
@@ -27,7 +27,7 @@ end
 disp('Saving ASL data interleaved label control: all PLDs')
 SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD, DIMS(1),DIMS(2), DIMS(3), SUBJECT.NPLDS*SUBJECT.NREPEATS*2), [SUBJECT.ASLdir prefix '_allPLD_label1label2.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1,[], SUBJECT.TR)  % save interleaved control label and for all PLDs as 4th dimension
 
-disp('Saving ASL data interleaved label control: 1-to-2 PLDs  for ATA, aCBF maps, and spatial COV ')
+disp('Saving ASL data interleaved label control: 1-to-2 PLDs    for ATA, aCBF maps, and spatial COV ')
 SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD(:,:,:,:,2:end), DIMS(1),DIMS(2), DIMS(3), (SUBJECT.NPLDS-1)*SUBJECT.NREPEATS*2), [SUBJECT.ASLdir prefix '_2tolastPLD_label1label2.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1,[], SUBJECT.TR)  % save interleaved control label and for all PLDs as 4th dimension
 
 disp('Saving ASL data interleaved label control: 2-to-last PLDs for CBF maps, "free" of arterial transit artefacts')

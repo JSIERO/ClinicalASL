@@ -86,13 +86,13 @@ disp('CBF, CVR Results: NIFTI and .PNGs created')
 % register postACZ to preACZ, save BASIl results: NIFTI and PNG
 
 % %%%% % all PLD for 'allCBF' map (arterial arrival time) map
-preACZ_allPLD_CBF_path = [SUBJECT.ASLdir 'preACZ_BASIL_allPLD' ORprefix '/native_space/perfusion_calib.nii.gz'];
-postACZ_allPLD_CBF_path = [SUBJECT.ASLdir 'postACZ_BASIL_allPLD' ORprefix '/native_space/perfusion_calib.nii.gz'];
-postACZ_allPLD_CBF_2preACZ_path = [SUBJECT.ASLdir 'postACZ_BASIL_allPLD' ORprefix '/native_space/perfusion_calib_2preACZ.nii.gz'];
+preACZ_allPLD_CBF_path = [SUBJECT.ASLdir 'preACZ_BASIL_allPLD_forAAT' ORprefix '/native_space/perfusion_calib.nii.gz'];
+postACZ_allPLD_CBF_path = [SUBJECT.ASLdir 'postACZ_BASIL_allPLD_forAAT' ORprefix '/native_space/perfusion_calib.nii.gz'];
+postACZ_allPLD_CBF_2preACZ_path = [SUBJECT.ASLdir 'postACZ_BASIL_allPLD_forAAT' ORprefix '/native_space/perfusion_calib_2preACZ.nii.gz'];
 % %%%% % all PLD for AAT (arterial arrival time) map
-preACZ_allPLD_AAT_path = [SUBJECT.ASLdir 'preACZ_BASIL_allPLD' ORprefix '/native_space/arrival.nii.gz'];
-postACZ_allPLD_AAT_path = [SUBJECT.ASLdir 'postACZ_BASIL_allPLD' ORprefix '/native_space/arrival.nii.gz'];
-postACZ_allPLD_AAT_2preACZ_path = [SUBJECT.ASLdir 'postACZ_BASIL_allPLD' ORprefix '/native_space/arrival_2preACZ.nii.gz'];
+preACZ_allPLD_AAT_path = [SUBJECT.ASLdir 'preACZ_BASIL_allPLD_AAT' ORprefix '/native_space/arrival.nii.gz'];
+postACZ_allPLD_AAT_path = [SUBJECT.ASLdir 'postACZ_BASIL_allPLD_AAT' ORprefix '/native_space/arrival.nii.gz'];
+postACZ_allPLD_AAT_2preACZ_path = [SUBJECT.ASLdir 'postACZ_BASIL_allPLD_AAT' ORprefix '/native_space/arrival_2preACZ.nii.gz'];
 % %%%% % 1to2 PLD for ATA map to compute spatial COV
 preACZ_1to2PLD_ATA_path = [SUBJECT.ASLdir 'preACZ_BASIL_1to2PLD_artoff_forATA' ORprefix '/native_space/perfusion_calib.nii.gz'];
 postACZ_1to2PLD_ATA_path = [SUBJECT.ASLdir 'postACZ_BASIL_1to2PLD_artoff_forATA' ORprefix '/native_space/perfusion_calib.nii.gz'];

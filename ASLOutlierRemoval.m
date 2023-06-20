@@ -16,11 +16,11 @@ if ~exist([outputmap 'DYNAMIC_1'],'dir')
         % perform BASIL analysis
         locationASL_multiPLD = [outputmap prefix '_oneDYNAMIC_label1label2.nii.gz'];
         locationM0 = [SUBJECT.ASLdir prefix '_M0.nii.gz'];
+        locationMask = [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'];
+        disp(['****************************************************************************************  BASIL analysis on DYNAMIC = ' num2str(i) '  *****************************************************'])
 
-        disp(['****************************************************************************************  BASIL analysis on DYNAMIC = ' num2str(i) '*****************************************************'])
-
-        ASLBASILanalysis(SUBJECT, locationASL_multiPLD, locationM0, [outputmap 'DYNAMIC_' num2str(i)], [1:SUBJECT.NPLDS], SUBJECT.locationBASILinfo)
-
+        ASLBASILanalysis(SUBJECT, locationASL_multiPLD, locationM0, locationMask, [outputmap 'DYNAMIC_' num2str(i)], [1:SUBJECT.NPLDS], SUBJECT.locationBASILinfo)
+        
         NII = load_untouch_nii([SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/DYNAMIC_' num2str(i) '/native_space/perfusion_calib.nii.gz']);
         SUBJECT.(prefix).CBF_DYNAMIC(:,:,:,i) = double(NII.img);
     end
