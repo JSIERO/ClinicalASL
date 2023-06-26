@@ -1,5 +1,6 @@
 function SUBJECT = ASLOutlierRemoval(SUBJECT, prefix)
 % ClinicalASL toolbox 2023, JCWSiero
+tic
 outputmap = [SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/']; 
 if ~exist(outputmap,'dir')
 mkdir(outputmap)
@@ -19,7 +20,7 @@ if ~exist([outputmap 'DYNAMIC_1'],'dir')
         locationMask = [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'];
         disp(['****************************************************************************************  BASIL analysis on DYNAMIC = ' num2str(i) '  *****************************************************'])
 
-        ASLBASILanalysis(SUBJECT, locationASL_multiPLD, locationM0, locationMask, [outputmap 'DYNAMIC_' num2str(i)], [1:SUBJECT.NPLDS], SUBJECT.locationBASILinfo)
+        ASLBASILanalysis(SUBJECT, locationASL_multiPLD, locationM0, locationMask, [outputmap 'DYNAMIC_' num2str(i)], [1:SUBJECT.NPLDS], SUBJECT.locationBASILinfo, 'artoff')
         
         NII = load_untouch_nii([SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/DYNAMIC_' num2str(i) '/native_space/perfusion_calib.nii.gz']);
         SUBJECT.(prefix).CBF_DYNAMIC(:,:,:,i) = double(NII.img);
@@ -40,7 +41,7 @@ if isempty(IOR_allsteps)
 end
 % Write identified outliers to .txt
 writematrix([numel(IOR_step1), numel(IOR_step2)],[SUBJECT.ASLdir 'OutlierInformation_nvols_step1step2.txt'],'delimiter',' ');
-writematrix(IOR_allsteps,[SUBJECT.ASLdir 'OutlierInformation_whichvols_step1step2.txt'],'delimiter',' ');
+writematrix(IOR_allsteps,[SUBJECT.ASLdir prefix '_OutlierInformation_whichvols_step1step2.txt'],'delimiter',' ');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% Outlier removal and save to SUBJECT struct %%%%%%%%%%%%%%%%%%%%%%
 SUBJECT.(prefix).NoOutliers_logical = NoOR_logical;
@@ -65,4 +66,5 @@ SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD_OR(:,:,:,:,2:end), 
 
 disp('Saving ASL data interleaved label control - OUTLIER REMOVED: 1-to-2 PLDs  for ATA, aCBF maps, and spatial COV ')
 SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD_OR(:,:,:,:,1:2), DIMS(1),DIMS(2), DIMS(3), 2*SUBJECT.(prefix).NREPEATS_OR*2), [SUBJECT.ASLdir prefix '_1to2PLD_label1label2_OR.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1,[], SUBJECT.TR)  % save interleaved control label and for all PLDs as 4th dimension
+toc
 end

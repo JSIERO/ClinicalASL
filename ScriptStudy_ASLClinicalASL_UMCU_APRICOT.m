@@ -101,8 +101,9 @@ disp('T1 ASL MNI tissue segmentation and registration finished');
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 5. Outlier identification %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Dolui et al. SCORE outlier method
+tic
 SUBJECT = ASLOutlierRemoval(SUBJECT, 'ASL');
-
+toc
 %% %%%%%%%%%%%%%%%%%%%%%%%% 6. BASIL CBF Analysis for both Original and Outlier removed ASL data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('Perform BASIL analysis for both original and outlier removed ASL data')
 
