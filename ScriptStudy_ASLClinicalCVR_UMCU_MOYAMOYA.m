@@ -108,7 +108,6 @@ disp('T1 ASL MNI tissue segmentation and registration finished');
 SUBJECT = ASLOutlierRemoval(SUBJECT, 'preACZ');
 SUBJECT = ASLOutlierRemoval(SUBJECT, 'postACZ');
 
-
 %% %%%%%%%%%%%%%%%%%%%%%%%% 6. BASIL CBF Analysis for both Original and Outlier removed ASL data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('Perform BASIL analysis for both original and outlier removed ASL data')
 
