@@ -126,7 +126,7 @@ SUBJECT = ASLSaveResultsCBFAAT(SUBJECT,'ASL', '');
 SUBJECT = ASLSaveResultsCBFAAT(SUBJECT,'ASL', '_OR'); % save outlier removed data
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 8. Save workspace %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Workspace_ClinicalASL = [SUBJECT.ASLdir '/Workspace_ClinicalASL.mat'];
+Workspace_ClinicalASL = [SUBJECT.SUBJECTdir '/Workspace_ClinicalASL.mat'];
 save(Workspace_ClinicalASL,'-v7.3');
 disp('-- Finished --');
 
