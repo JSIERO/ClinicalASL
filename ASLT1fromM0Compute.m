@@ -1,7 +1,7 @@
 function T1fromM0=ASLT1fromM0Compute(DATA4D, MASK, TIMEARRAY)
 % ClinicalASL toolbox 2023, JCWSiero
 % compute T1w image from multi-delay PCASL (Look-Locker) M0 data across the different PLDs
-% we observe the M0 accros PLDs show a exponential decay  that depends on T1
+% we observe that the M0 across PLDs show a exponential decay that depends on T1
 % take natural log and fit for 'T1'
 
 dims = size(DATA4D);

@@ -1,9 +1,9 @@
 function SUBJECT = ASLOutlierRemoval(SUBJECT, prefix)
 % ClinicalASL toolbox 2023, JCWSiero
 tic
-outputmap = [SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/']; 
+outputmap = [SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/'];
 if ~exist(outputmap,'dir')
-mkdir(outputmap)
+    mkdir(outputmap)
 end
 
 DIMS = size(SUBJECT.(prefix).ASL_label1label2_allPLD);
@@ -21,7 +21,7 @@ if ~exist([outputmap 'DYNAMIC_1'],'dir')
         disp(['****************************************************************************************  BASIL analysis on DYNAMIC = ' num2str(i) '  *****************************************************'])
 
         ASLBASILanalysis(SUBJECT, locationASL_multiPLD, locationM0, locationMask, [outputmap 'DYNAMIC_' num2str(i)], [1:SUBJECT.NPLDS], SUBJECT.locationBASILinfo, 'artoff')
-        
+
         NII = load_untouch_nii([SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/DYNAMIC_' num2str(i) '/native_space/perfusion_calib.nii.gz']);
         SUBJECT.(prefix).CBF_DYNAMIC(:,:,:,i) = double(NII.img);
     end
@@ -31,6 +31,11 @@ if ~exist([outputmap 'DYNAMIC_1'],'dir')
     disp(['Finished saving CBF data per dynamic: ' prefix]);
 else
     disp(['Seems BASIl analysis per Dynamic has already been done, going straight to performing ASL oulierremoval by Duloi et al...' newline])
+    disp(['Loading previous BASIL analysis per dynamic...'])
+    for i=1:SUBJECT.NREPEATS
+        NII = load_untouch_nii([SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/DYNAMIC_' num2str(i) '/native_space/perfusion_calib.nii.gz']);
+        SUBJECT.(prefix).CBF_DYNAMIC(:,:,:,i) = double(NII.img);
+    end
 end
 
 % %% ASL OutlierRemoval (volumes), SCORE method by Duloi et al JMRI 2017 %%%
@@ -48,7 +53,7 @@ SUBJECT.(prefix).NoOutliers_logical = NoOR_logical;
 SUBJECT.(prefix).Ioutlier_allsteps = SUBJECT.(prefix);
 SUBJECT.(prefix).NREPEATS_OR = sum(SUBJECT.(prefix).NoOutliers_logical);
 SUBJECT.(prefix).CBF_DYNAMIC_OR = SUBJECT.(prefix).CBF_DYNAMIC(:,:,:,SUBJECT.(prefix).NoOutliers_logical);
-% save CBF outlier removed per dynamic 
+% save CBF outlier removed per dynamic
 SaveDataNII(SUBJECT.(prefix).CBF_DYNAMIC_OR,[SUBJECT.ASLdir prefix '_CBF_perDYNAMIC_OR.nii.gz'], SUBJECT.dummyfilenameSaveNII ,1,[],SUBJECT.TR);
 
 % remove outliers

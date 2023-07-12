@@ -4,6 +4,7 @@
 clear all
 close all
 clc
+tic
 %% SOURCE DATA SUBJECTS
 SUBJECT.masterdir='/Fridge/users/jeroen/APRICOT/';
 
@@ -27,7 +28,7 @@ subjnames_baseline=importdata([SUBJECT.masterdir 'subjectlist_baseline']);
 subjnames_followup=importdata([SUBJECT.masterdir 'subjectlist_followup']);
 subjnames=[subjnames_baseline; subjnames_followup];
 
-subjnames={'APRICPOT_MR22_16chHEAD_17012023_ClinicalASLtest'}
+subjnames={'CLEANPATHTEST'}
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Get subject folder name, select folder containing all patient data
@@ -101,9 +102,9 @@ disp('T1 ASL MNI tissue segmentation and registration finished');
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 5. Outlier identification %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Dolui et al. SCORE outlier method
-tic
+
 SUBJECT = ASLOutlierRemoval(SUBJECT, 'ASL');
-toc
+
 %% %%%%%%%%%%%%%%%%%%%%%%%% 6. BASIL CBF Analysis for both Original and Outlier removed ASL data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('Perform BASIL analysis for both original and outlier removed ASL data')
 
@@ -130,3 +131,4 @@ Workspace_ClinicalASL = [SUBJECT.SUBJECTdir '/Workspace_ClinicalASL.mat'];
 save(Workspace_ClinicalASL,'-v7.3');
 disp('-- Finished --');
 
+toc
