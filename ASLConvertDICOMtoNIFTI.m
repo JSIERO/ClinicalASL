@@ -9,9 +9,9 @@ eval(['!rm -f ' DICOMinputdir '/XX_*' ])
 eval(['!rm -f ' DICOMinputdir '/PS_*' ])
 
 % remove '-' character from filename, otherwise problems with structure fieldnames
-eval(['!rename -v '  '''s/-_//g''' ' ' DICOMinputdir '*']);
+eval(['!rename -v -f '  '''s/-_//g''' ' ' DICOMinputdir '*']);
 % Convert DICOM files to NIFTI output in NIFTI folder
 
 eval(['!dcm2niix -w 1 -z y -b y -f %p_%s  -o ' NIFTIoutputdir ' ' DICOMinputdir])
 % remove '-' character from filename, otherwise problems with structure fieldnames
-eval(['!rename -v '  '''s/-_//g''' ' ' NIFTIoutputdir '*']);
+eval(['!rename -v -f '  '''s/-_//g''' ' ' NIFTIoutputdir '*']);
