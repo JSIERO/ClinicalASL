@@ -40,6 +40,7 @@ TR_M0 = num2str(SUBJECT.TR_M0(1));
 alpha = num2str(SUBJECT.alpha);
 slicetime = num2str(SUBJECT.slicetime/1000); % in s
 tic
+
 % JCWS % using BASIL precorrected Mz ->Mxy for LooK Locker; fixbolus, well-mixed fit, , -aif-leadscale=0.00001 as set in BASIL_options.txt (TIP from MARTIN GRAIG, Acknowledge him in a paper!
 % note basil option --t1 is the tissue T1 for the quantification, --t1t is the tissue T1 for correction the M0 calibration when TR < 5s
 eval(['!oxford_asl -i ' locationASLlabelcontrolPLDNIFTI ' -c ' locationM0 ' -m ' locationMask ' -o ' outputmap ' ' locationBASILinfostring artoffstring ' --spatial=' spatialstring ' --bolus=' tau ...

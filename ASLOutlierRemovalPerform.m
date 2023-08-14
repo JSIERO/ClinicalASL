@@ -38,6 +38,7 @@ else
 end
 disp('')
 Ioutlier_step1 = find(step1 == 0);
+Ioutlier_step2 = [];
 Ioutlier_allsteps = Ioutlier_step1; % initialize Ioutlier_allsteps
 mean_cbf_step2 = mean(data_step1,4,'omitnan');
 
@@ -96,17 +97,18 @@ while V < Vprev && size(data_step2,4) > 1
   if V < Vprev
     dummy2 = data_step2(:,:,:,R == max(R));
     meancbf_removed = mean(dummy2(GMmask),'omitnan');
-    Ioutlier_step2 = find(meancbf_removed == mean_cbf_gm);
+    Ioutlier_step2_single = find(meancbf_removed == mean_cbf_gm);
     data_step2 = data_step3;
     disp(['Spatial Pooled Variance, iter = ' num2str(iter) ' : ' num2str(V)]);
-    disp(['Step2: Volume(i) removed = ' num2str(Ioutlier_step2)]);
-    Ioutlier_allsteps = sort([Ioutlier_allsteps Ioutlier_step2]);
+    disp(['Step2: Volume(i) removed = ' num2str(Ioutlier_step2_single)]);
+    Ioutlier_step2 = sort([Ioutlier_step2 Ioutlier_step2_single]);
   else
     disp(['Spatial Pooled Variance, iter = ' num2str(iter) ' : ' num2str(V)]);
     disp(['Step2: Pooled Variance Increased, STOPPED ']);
   end
 end
 
+Ioutlier_allsteps =[Ioutlier_step1 Ioutlier_step2];
 
 NoOutliers_logical(1:size(CBFdata4D,4)) = 1;
 NoOutliers_logical(Ioutlier_allsteps) = 0;
