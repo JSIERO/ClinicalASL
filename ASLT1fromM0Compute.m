@@ -8,7 +8,7 @@ dims = size(DATA4D);
 DATA2D = reshape(DATA4D, dims(1)*dims(2)*dims(3),dims(4));
 
 %take the natural log of data
-DATA2D = log(DATA2D);, and mask to include brain only
+DATA2D = log(DATA2D); 
 
 CONSTANTARRAY = ones(size(DATA2D, 2), 1); % create array with ones, for the constant term
 T1fit = zeros(size(DATA2D,1),2);

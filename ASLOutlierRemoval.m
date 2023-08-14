@@ -30,7 +30,7 @@ if ~exist([outputmap 'DYNAMIC_1'],'dir')
     SaveDataNII(SUBJECT.(prefix).CBF_DYNAMIC,[SUBJECT.ASLdir prefix '_CBF_perDYNAMIC.nii.gz'], SUBJECT.dummyfilenameSaveNII ,1,[],SUBJECT.TR);
     disp(['Finished saving CBF data per dynamic: ' prefix]);
 else
-    disp(['Seems BASIl analysis per Dynamic has already been done, going straight to performing ASL oulierremoval by Duloi et al...' newline])
+    disp(['Seems BASIL analysis per Dynamic has already been done, going straight to performing ASL oulierremoval by Duloi et al...' newline])
     disp(['Loading previous BASIL analysis per dynamic...'])
     for i=1:SUBJECT.NREPEATS
         NII = load_untouch_nii([SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/DYNAMIC_' num2str(i) '/native_space/perfusion_calib.nii.gz']);
@@ -45,7 +45,7 @@ if isempty(IOR_allsteps)
     IOR_allsteps=0;
 end
 % Write identified outliers to .txt
-writematrix([numel(IOR_step1), numel(IOR_step2)],[SUBJECT.ASLdir 'OutlierInformation_nvols_step1step2.txt'],'delimiter',' ');
+writematrix([numel(IOR_step1), numel(IOR_step2)],[SUBJECT.ASLdir prefix '_OutlierInformation_nvols_step1step2.txt'],'delimiter',' ');
 writematrix(IOR_allsteps,[SUBJECT.ASLdir prefix '_OutlierInformation_whichvols_step1step2.txt'],'delimiter',' ');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% Outlier removal and save to SUBJECT struct %%%%%%%%%%%%%%%%%%%%%%

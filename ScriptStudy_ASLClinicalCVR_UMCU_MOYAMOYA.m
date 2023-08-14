@@ -112,6 +112,7 @@ SUBJECT = ASLOutlierRemoval(SUBJECT, 'postACZ');
 disp('Perform BASIL analysis for both original and outlier removed ASL data')
 
 session = {'preACZ', 'postACZ'};
+
 for i=1:length(session)
     prefix = char(session(i));
     % %%%% % all PLD for AAT (arterial arrival time map) % %%%%%
