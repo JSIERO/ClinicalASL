@@ -59,7 +59,7 @@ filepreACZ = dir([SUBJECT.NIFTIdir, '*SOURCE_ASL*preACZ*2.nii.gz']);% find SOURC
 % postACZ path
 filepostACZ = dir([SUBJECT.NIFTIdir, '*SOURCE_ASL*postACZ*2.nii.gz']);% find SOURCE data ASL
 
-if size(filepreACZ,1) || size(filepostACZ,1) > 1
+if (size(filepreACZ,1) > 1 ) || (size(filepostACZ,1) > 1)
     warning(' More than 1 preAZC or postACZ ASL dataset found -  !! taking the last scanned dataset... !!')
 end
 
