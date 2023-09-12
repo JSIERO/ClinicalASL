@@ -37,7 +37,7 @@ SUBJECT.SUBJECTdir = [SUBJECT.masterdir char(subjnames)];
 
 % create folder paths
 SUBJECT.ANATOMYdir = [SUBJECT.SUBJECTdir,'/ANATOMY/']; % T1 anatomy path
-SUBJECT.MNIdir = [SUBJECT.masterdir 'MNI/']; % MNI path, needs MNI_T1_2mm_brain MNI_BRAINMASK_2mm, and seg_0, seg_1, seg_2 (CSF, GM and WM) tissue segmentations
+SUBJECT.MNIdir = [SUBJECT.masterdir 'MNI/']; % MNI path, needs MNI_T1_2mm_brain MNI_BRAINMASK_2mm, and seg_0, seg_1, seg_2 (CSF, GM and WM) tissue segmentations: obtain from GITHUB/ClinicalASL
 SUBJECT.SUBJECTMNIdir = [SUBJECT.SUBJECTdir '/MNI/']; % MNI path
 SUBJECT.DICOMdir = [SUBJECT.SUBJECTdir,'/DICOM/']; % DICOM  path
 SUBJECT.NIFTIdir = [SUBJECT.SUBJECTdir,'/NIFTI/']; % NIFTI  path
@@ -90,7 +90,7 @@ SUBJECT.T1ANATfilenameNIFTI = SUBJECT.T1ANATfilenameNIFTI.name;
 % T1w ANATOMY scan brain extraction and FSL FAST segmentation in GM, WM and CSF of  into ANATOMY dir
 T1Processing(SUBJECT, SUBJECT.T1ANATfilenameNIFTI);
 
-% create T1fromM0 and save M0 from ASL multiPLD data and tissue segmentation using FSL FAST
+% create T1fromM0 and save M0 from ASL multiPLD data, and tissue segmentation using FSL FAST: this is now used for GM, WM, and CSF masks in ASL outlierremoval: otherwise change in ASLT1fromM0Processing
 SUBJECT = ASLT1fromM0Processing(SUBJECT, 'ASL');
 
 % Register T1 and tissue segmentations to ASL space
