@@ -50,7 +50,7 @@ writematrix(IOR_allsteps,[SUBJECT.ASLdir prefix '_OutlierInformation_whichvols_s
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% Outlier removal and save to SUBJECT struct %%%%%%%%%%%%%%%%%%%%%%
 SUBJECT.(prefix).NoOutliers_logical = NoOR_logical;
-SUBJECT.(prefix).Ioutlier_allsteps = SUBJECT.(prefix);
+SUBJECT.(prefix).Ioutlier_allsteps = IOR_allsteps;
 SUBJECT.(prefix).NREPEATS_OR = sum(SUBJECT.(prefix).NoOutliers_logical);
 SUBJECT.(prefix).CBF_DYNAMIC_OR = SUBJECT.(prefix).CBF_DYNAMIC(:,:,:,SUBJECT.(prefix).NoOutliers_logical);
 % save CBF outlier removed per dynamic
