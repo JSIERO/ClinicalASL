@@ -5,7 +5,7 @@ clear all
 close all
 clc
 
-SUBJECT.masterdir='/Fridge/users/jeroen/MOYAMOYA/';
+SUBJECT.masterdir='/Fridge/users/simone/MOYAMOYA/';
 
 SUBJECT.tau = 2; % Label duration
 SUBJECT.N_BS = 4; % Number of background suppression pulses
@@ -26,9 +26,10 @@ SUBJECT.range_aCBV = [0 2]; % arterial blodo volume estimate in volume fraction 
 
 % loop over subjects
 
-subjnames=importdata([SUBJECT.masterdir 'subjectlist']);
+subjnames=importdata([SUBJECT.masterdir 'subjectlist.txt']);
 
-for subj=1:length(subjnames)
+%for subj=1:length(subjnames)
+for subj=4:length(subjnames)
 
     %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Get subject folder name, select folder containing all patient data
@@ -37,7 +38,7 @@ for subj=1:length(subjnames)
 
     % create folder paths
     SUBJECT.ANATOMYdir = [SUBJECT.SUBJECTdir,'/ANATOMY/']; % T1 anatomy path
-SUBJECT.MNIdir = [SUBJECT.masterdir 'MNI/']; % MNI path, needs MNI_T1_2mm_brain MNI_BRAINMASK_2mm, and seg_0, seg_1, seg_2 (CSF, GM and WM) tissue segmentations: obtain from GITHUB/ClinicalASL
+    SUBJECT.MNIdir = [SUBJECT.masterdir 'MNI/']; % MNI path, needs MNI_T1_2mm_brain MNI_BRAINMASK_2mm, and seg_0, seg_1, seg_2 (CSF, GM and WM) tissue segmentations: obtain from GITHUB/ClinicalASL
     SUBJECT.SUBJECTMNIdir = [SUBJECT.SUBJECTdir '/MNI/']; % MNI path
     SUBJECT.DICOMdir = [SUBJECT.SUBJECTdir,'/DICOM/']; % DICOM  path
     SUBJECT.NIFTIdir = [SUBJECT.SUBJECTdir,'/NIFTI/']; % NIFTI  path
@@ -46,8 +47,12 @@ SUBJECT.MNIdir = [SUBJECT.masterdir 'MNI/']; % MNI path, needs MNI_T1_2mm_brain 
     % extra FSL BASIL options .txt location
     SUBJECT.locationBASILinfo=[SUBJECT.masterdir 'BASIL_OPTIONS.txt']; % location .txt file with addition model options for CBF quantification BASIL
 
-    % create folders
-    if logical(max(~isfolder({SUBJECT.ANATOMYdir; SUBJECT.DICOMdir; SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir})))
+    % check and create folders
+    if ~isfolder(SUBJECT.MNIdir)
+        error('No MNI folder found in masterdir, please copy from GITHUB/ClinicalASL repository')
+    end
+
+    if logical(max(~isfolder({SUBJECT.ANATOMYdir; SUBJECT.DICOMdir; SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir})))        
         mkdir(SUBJECT.ANATOMYdir); % create Anatomy folder
         mkdir(SUBJECT.SUBJECTMNIdir); % create subject MNI folder
         mkdir(SUBJECT.DICOMdir); % create DICOM folder
@@ -57,7 +62,7 @@ SUBJECT.MNIdir = [SUBJECT.masterdir 'MNI/']; % MNI path, needs MNI_T1_2mm_brain 
     end
 
     % convert and rename DICOM files in DICOM folder to NIFTI folder
-    ASLConvertDICOMtoNIFTI(SUBJECT.DICOMdir, SUBJECT.NIFTIdir)
+   % ASLConvertDICOMtoNIFTI(SUBJECT.DICOMdir, SUBJECT.NIFTIdir)
 
     % Get ASL nifti filenames
     % preACZ path
