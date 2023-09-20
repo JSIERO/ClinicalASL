@@ -31,4 +31,4 @@ SUBJECT.alpha_inv = SUBJECT.labeleff; %label efficiency
 SUBJECT.alpha_BS = 0.95^SUBJECT.N_BS; %BS inversion efficiency, taken from Philips recon control parameters% Garcia MRM 2005
 SUBJECT.alpha = SUBJECT.alpha_inv*SUBJECT.alpha_BS;
 SUBJECT.TR_M0=SUBJECT.tau + SUBJECT.PLDS; %TR of the M0
-SUBJECT.([filename '_DCMinfo']) = info; % store DICOM info in SUBJdCT
+SUBJECT.([filename '_DCMinfo']) = info; % store DICOM info in SUBJECT
