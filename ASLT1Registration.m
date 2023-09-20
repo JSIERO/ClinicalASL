@@ -22,7 +22,6 @@ eval(['! flirt -in ' SUBJECT.ANATOMYdir 'T1_brain_seg_2 -applyxfm -init ' SUBJEC
 
 % Create  Slicer PNGs to judge Registration
 SlicerPNGs([SUBJECT.ASLdir prefix '_T1fromM0ASL_2T1'], [SUBJECT.ANATOMYdir 'T1_brain'], 'ASL', 'highres', SUBJECT.ANATOMYdir)
-SlicerPNGs([SUBJECT.ANATOMYdir 'T1_brain'], [SUBJECT.ASLdir prefix '_T1fromM0ASL_2T1'], 'highres', 'ASL', SUBJECT.ANATOMYdir)
 
 disp(['T1 and tissue segmentation registration to ' prefix ' finished'])
 end

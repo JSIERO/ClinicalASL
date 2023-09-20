@@ -41,10 +41,9 @@ SUBJECT.RESULTSdir = [SUBJECT.SUBJECTdir,'/RESULTS/']; % RESULTS path
 SUBJECT.locationBASILinfo=[SUBJECT.masterdir 'BASIL_OPTIONS.txt']; % location .txt file with addition model options for CBF quantification BASIL
 
 % create folders
-if logical(max(~isfolder({SUBJECT.ANATOMYdir; SUBJECT.DICOMdir; SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir})))
+if logical(max(~isfolder({SUBJECT.ANATOMYdir; SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir; SUBJECT.SUBJECTMNIdir})))
     mkdir(SUBJECT.ANATOMYdir); % create Anatomy folder
     mkdir(SUBJECT.SUBJECTMNIdir); % create subject MNI folder
-    mkdir(SUBJECT.DICOMdir); % create DICOM folder
     mkdir(SUBJECT.NIFTIdir); % create NIFTI folder
     mkdir(SUBJECT.ASLdir); % create ASL folder
     mkdir(SUBJECT.RESULTSdir); % create RESULTS folder
