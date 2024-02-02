@@ -112,6 +112,7 @@ if strcmp(onlystep1,'no')
     Ioutlier_allsteps =[Ioutlier_step1 Ioutlier_step2];
 elseif strcmp(onlystep1,'yes')
     Ioutlier_allsteps =[Ioutlier_step1];
+    Ioutlier_step2 =[];
 end
 
 
