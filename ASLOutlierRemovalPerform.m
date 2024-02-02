@@ -1,4 +1,4 @@
-function [Ioutlier_allsteps, Ioutlier_step1, Ioutlier_step2, NoOutliers_logical] = ASLOutlierRemovalPerform(CBFdata4D, brainmask, outlierFactor, GMmask, WMmask, CSFmask)
+function [Ioutlier_allsteps, Ioutlier_step1, Ioutlier_step2, NoOutliers_logical] = ASLOutlierRemovalPerform(CBFdata4D, brainmask, outlierFactor, GMmask, WMmask, CSFmask, onlystep1)
 % ClinicalASL toolbox 2023, JCWSiero
 % ASL OutlierRemoval (volumes)using the SCORE method by Duloi et al JMRI 2017
 
@@ -108,7 +108,12 @@ while V < Vprev && size(data_step2,4) > 1
   end
 end
 
-Ioutlier_allsteps =[Ioutlier_step1 Ioutlier_step2];
+if strcmp(onlystep1,'no')
+    Ioutlier_allsteps =[Ioutlier_step1 Ioutlier_step2];
+elseif strcmp(onlystep1,'yes')
+    Ioutlier_allsteps =[Ioutlier_step1];
+end
+
 
 NoOutliers_logical(1:size(CBFdata4D,4)) = 1;
 NoOutliers_logical(Ioutlier_allsteps) = 0;
