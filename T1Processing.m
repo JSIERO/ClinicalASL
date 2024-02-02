@@ -16,7 +16,7 @@ else % perform T1 anatomy brain extraction and tissue segmentation
     SlicerPNGs([SUBJECT.ANATOMYdir 'T1_brain_mask'], [SUBJECT.ANATOMYdir 'T1'], 'brainmask', 'highres', SUBJECT.ANATOMYdir)
 
     % FSL FAST to segment tissues and save in previously created locations
-    eval(['!fast -b -g -B ' SUBJECT.ANATOMYdir 'T1_brain.nii.gz '  SUBJECT.ANATOMYdir 'T1_brain.nii.gz'])
+    eval(['!fast -b -g -B -o ' SUBJECT.ANATOMYdir 'T1_brain.nii.gz '  SUBJECT.ANATOMYdir 'T1_brain.nii.gz'])
     eval(['!fslmaths ' SUBJECT.ANATOMYdir 'T1_brain_restore.nii.gz '  SUBJECT.ANATOMYdir 'T1_brain.nii.gz']); % replace T1_brain with bias field corrected T1_brain_restore
 
 end

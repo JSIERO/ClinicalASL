@@ -5,7 +5,7 @@ clear all
 close all
 clc
 
-SUBJECT.masterdir='/Fridge/users/jeroen/MOYAMOYA/';
+SUBJECT.masterdir='/Fridge/users/simone/MOYAMOYA/';
 
 SUBJECT.tau = 2; % Label duration
 SUBJECT.N_BS = 4; % Number of background suppression pulses

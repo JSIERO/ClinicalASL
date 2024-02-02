@@ -39,7 +39,7 @@ else
 end
 
 % %% ASL OutlierRemoval (volumes), SCORE method by Duloi et al JMRI 2017 %%%
-[IOR_allsteps, IOR_step1, IOR_step2, NoOR_logical] = ASLOutlierRemovalPerform(SUBJECT.(prefix).CBF_DYNAMIC, SUBJECT.(prefix).brainmask, SUBJECT.outlierFactor, SUBJECT.(prefix).GMmask, SUBJECT.(prefix).WMmask, SUBJECT.(prefix).CSFmask);
+[IOR_allsteps, IOR_step1, IOR_step2, NoOR_logical] = ASLOutlierRemovalPerform(SUBJECT.(prefix).CBF_DYNAMIC, SUBJECT.(prefix).brainmask, SUBJECT.outlierFactor, SUBJECT.(prefix).GMmask, SUBJECT.(prefix).WMmask, SUBJECT.(prefix).CSFmask, 'yes');
 
 if isempty(IOR_allsteps)
     IOR_allsteps=0;

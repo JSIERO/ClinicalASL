@@ -26,9 +26,10 @@ SUBJECT.range_aCBV = [0 2]; % arterial blodo volume estimate in volume fraction 
 
 %loop over subjects
 
-subjnames=importdata([SUBJECT.masterdir 'subjectlist_short.txt']);
+subjnames=importdata([SUBJECT.masterdir 'subjectlist.txt']);
 
 for subj=1:length(subjnames)
+
 
     %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Get subject folder name, select folder containing all patient data
@@ -43,7 +44,7 @@ for subj=1:length(subjnames)
     SUBJECT.PARRECdir = [SUBJECT.SUBJECTdir,'/PARREC/']; % DICOM  path
     SUBJECT.NIFTIdir = [SUBJECT.SUBJECTdir,'/NIFTI/']; % NIFTI  path
     SUBJECT.ASLdir = [SUBJECT.SUBJECTdir,'/ASL/']; % ASL path
-    SUBJECT.RESULTSdir = [SUBJECT.SUBJECTdir,'/RESULTS/']; % RESULTS path
+    SUBJECT.RESULTSdir = [SUBJECT.SUBJECTdir,'/ASL/FIGURE_RESULTS/']; % RESULTS path
     %extra FSL BASIL options .txt location
     SUBJECT.locationBASILinfo=[SUBJECT.masterdir 'BASIL_OPTIONS.txt']; % location .txt file with addition model options for CBF quantification BASIL
 
