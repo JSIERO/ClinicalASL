@@ -59,6 +59,7 @@ RGB = ind2rgb(uint8(image_scaled),COLORMAP_black);
 f1 = figure; imagesc(RGB,datarange)
 axis equal;
 axis off;
+set(f1, 'color', [0,0,0]); % black background color
 colormap(COLORMAP_black);
 h = colorbar('SouthOutside');
 t=get(h,'Limits');
@@ -73,7 +74,7 @@ if nargin >=8
     end
 end
 h.Color=[0.85 0.85 0.85];
-export_fig(output ,'-png','-a4','-m2','-transparent','-nocrop')
+export_fig(output ,'-png','-a1','-m4','-nocrop')
 warning on
 close(f1)
 end
