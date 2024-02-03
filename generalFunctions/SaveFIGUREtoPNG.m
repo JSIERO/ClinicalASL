@@ -18,10 +18,10 @@ switch COLORMAP
     case 'parula'
         COLORMAP_black=parula;
     case 'devon'
-        load('devon.mat');        
+        load('devon.mat');
         COLORMAP_black=devon;
     case 'turku'
-        load('turku.mat');        
+        load('turku.mat');
         COLORMAP_black=turku;
 end
 
@@ -38,7 +38,7 @@ elseif strcmp(label,'time_delta')
 elseif strcmp(label,'a.u.')
     label2 = 'a.u.';
 elseif strcmp(label,'%')
-    label2 = '%';    
+    label2 = '%';
 end
 if isempty(mask)
     mask=ones(size(data));
@@ -55,8 +55,10 @@ image_scaled=zeros(size(image_data));
 image_scaled=255*(image_data - datarange(1))/(datarange(2) - datarange(1)) + 1;
 image_scaled(Igz)=0;
 RGB = ind2rgb(uint8(image_scaled),COLORMAP_black);
-
-f1 = figure; imagesc(RGB,datarange)
+pause(0.5)
+f1 = figure; 
+figure(f1)
+imagesc(RGB,datarange);
 axis equal;
 axis off;
 set(f1, 'color', [0,0,0]); % black background color
@@ -70,11 +72,12 @@ output = strcat(outputloc,suffix);
 warning off
 if nargin >=8
     if strcmp(blackfont,'yes')
-        export_fig([output '_blkfnt'],'-png','-a4','-m2','-transparent','nocrop')
+        export_fig([output '_blkfnt'],'-png','-a4','-m4','-transparent','nocrop')
     end
 end
 h.Color=[0.85 0.85 0.85];
-export_fig(output ,'-png','-a1','-m4','-nocrop')
+pixeldimensions=[1680,2240];
+export_fig(output ,'-png','-a1','-m4',['-s' num2str(pixeldimensions(1)) ',' num2str(pixeldimensions(2))],'-nocrop')
 warning on
 close(f1)
 end
