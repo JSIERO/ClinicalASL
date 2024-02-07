@@ -24,7 +24,7 @@ SUBJECT.(prefix).(['aCBV' ORprefix '_smth']) = ASLSmoothImage(SUBJECT.(prefix).(
 smoothloop = {'', '_smth'};
 for  i=1:length(smoothloop)
     smthprefix = char(smoothloop(i));
-    SaveDataNII(SUBJECT.(prefix).(['CBF' ORprefix smthprefix]), [SUBJECT.ASLdir 'CBF' smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.(prefix).(['CBF' ORprefix smthprefix]), [SUBJECT.ASLdir 'CBF' ORprefix smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
     SaveDataNII(SUBJECT.(prefix).(['CBF_allPLD' ORprefix smthprefix]), [SUBJECT.ASLdir 'CBF_allPLD' ORprefix smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
     SaveDataNII(SUBJECT.(prefix).(['AAT' ORprefix smthprefix]), [SUBJECT.ASLdir 'AAT' ORprefix smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
     SaveDataNII(SUBJECT.(prefix).(['ATA' ORprefix smthprefix]), [SUBJECT.ASLdir 'ATA' ORprefix smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
