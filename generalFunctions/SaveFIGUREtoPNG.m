@@ -76,8 +76,7 @@ if nargin >=8
     end
 end
 h.Color=[0.85 0.85 0.85];
-pixeldimensions=[1680,2240];
-export_fig(output ,'-png','-a1','-m4',['-s' num2str(pixeldimensions(1)) ',' num2str(pixeldimensions(2))],'-nocrop')
+export_fig(output ,'-png','-a1','-m4','-nocrop')
 warning on
 close(f1)
 end
