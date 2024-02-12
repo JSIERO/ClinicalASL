@@ -84,10 +84,13 @@ disp('DICOMs converted to NIFTI');
 %% %%%%%%%%%%%%%%%%%%%%%%%% 4. Generate T1 from M0 , T1 Tissue segmentation and registration to T1 anatomy and MNI %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Locate T1 anatomy NIFTI
 SUBJECT.T1ANATfilenameNIFTI = dir([SUBJECT.NIFTIdir, '*T1*3D*TFE*.nii*']); % find T1 anatomy NIFTI filename
-SUBJECT.T1ANATfilenameNIFTI = SUBJECT.T1ANATfilenameNIFTI.name;
 
-% T1w ANATOMY scan brain extraction and FSL FAST segmentation in GM, WM and CSF of  into ANATOMY dir
-T1Processing(SUBJECT, SUBJECT.T1ANATfilenameNIFTI);
+if ~isempty(SUBJECT.T1ANATfilenameNIFTI)
+    SUBJECT.T1ANATfilenameNIFTI = SUBJECT.T1ANATfilenameNIFTI.name;
+
+    % T1w ANATOMY scan brain extraction and FSL FAST segmentation in GM, WM and CSF of  into ANATOMY dir
+    T1Processing(SUBJECT, SUBJECT.T1ANATfilenameNIFTI);
+end
 
 % create T1fromM0 and save M0 from ASL multiPLD data, and tissue segmentation using FSL FAST: this is now used for GM, WM, and CSF masks in ASL outlierremoval: otherwise change in ASLT1fromM0Processing
 SUBJECT = ASLT1fromM0Processing(SUBJECT, 'preACZ');
