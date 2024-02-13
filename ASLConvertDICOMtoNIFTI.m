@@ -1,17 +1,21 @@
 function ASLConvertDICOMtoNIFTI(DICOMinputdir, NIFTIoutputdir)
 % ClinicalASL toolbox 2023, JCWSiero
+
+% make copy of original DICOM folder (otherwise can't load in VM or scanners)
+system(['mkdir ' DICOMinputdir '/ORIG']);
+
 % rename DICOM files in DICOM folder, and convert to NIFTI
-eval(['!dcm2niix -w 0 -r y -f %p_%s ' DICOMinputdir])
-eval(['!rm -f ' DICOMinputdir '/*_Raw' ])
-eval(['!rm -f ' DICOMinputdir '/*_PS' ])
-eval(['!rm -f ' DICOMinputdir '/IM_*' ])
-eval(['!rm -f ' DICOMinputdir '/XX_*' ])
-eval(['!rm -f ' DICOMinputdir '/PS_*' ])
+system(['dcm2niix -w 0 -r y -f %p_%s ' DICOMinputdir])
+system(['rm -f ' DICOMinputdir '/*_Raw ' DICOMinputdir '/ORIG']);
+system(['rm -f ' DICOMinputdir '/*_PS ' DICOMinputdir '/ORIG']);
+system(['mv -f ' DICOMinputdir '/IM_* ' DICOMinputdir '/ORIG']);
+system(['mv -f ' DICOMinputdir '/XX_* ' DICOMinputdir '/ORIG']);
+system(['mv -f ' DICOMinputdir '/PS_* ' DICOMinputdir '/ORIG']);
 
 % remove '-' character from filename, otherwise problems with structure fieldnames
-eval(['!rename -v -f '  '''s/-_//g''' ' ' DICOMinputdir '*']);
+system(['rename -v -f '  '''s/-_//g''' ' ' DICOMinputdir '*']);
 % Convert DICOM files to NIFTI output in NIFTI folder
 
-eval(['!dcm2niix -w 1 -z y -b y -f %p_%s  -o ' NIFTIoutputdir ' ' DICOMinputdir])
+system(['dcm2niix -w 1 -z y -b y -f %p_%s  -o ' NIFTIoutputdir ' ' DICOMinputdir])
 % remove '-' character from filename, otherwise problems with structure fieldnames
-eval(['!rename -v -f '  '''s/-_//g''' ' ' NIFTIoutputdir '*']);
+system(['rename -v -f '  '''s/-_//g''' ' ' NIFTIoutputdir '*']);

@@ -79,11 +79,11 @@ function [hdr, filetype, fileprefix, machine, tmpName] = load_nii_hdr(fileprefix
       end
       
       fn = sprintf('%s.nii',fileprefix);
-%       if exist(fn)
-%           tmpName = tempname ;
-%           eval(['!cp ' fileprefix '.nii ' tmpName '.nii']); %JCWS make dummy
-%           fileprefix = tmpName;
-%       end
+      if exist(fn)
+          tmpName = tempname ;
+          eval(['!cp ' fileprefix '.nii ' tmpName '.nii']); %JCWS make dummy
+          fileprefix = tmpName;
+      end
       if ~exist(fn)
          msg = sprintf('Cannot find file "%s.nii".', fileprefix);
          error(msg);             
