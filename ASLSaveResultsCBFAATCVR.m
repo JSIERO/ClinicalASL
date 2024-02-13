@@ -13,8 +13,9 @@ postACZ_mask_path = [SUBJECT.ASLdir 'postACZ_M0_brain_mask.nii.gz'];
 postACZ_T1fromM0_2preACZ_mat = [SUBJECT.ASLdir 'postACZ_T1fromM0_2preACZ.aff12.1D'];
 % Registration postACZ to preACZ
 disp('Registration postACZ to preACZ CBF data')
-system(['3dAllineate -input ' postACZ_T1fromM0_path ' -base ' preACZ_T1fromM0_path ' -prefix ' postACZ_T1fromM0_2preACZ_path ' -cost lpa -interp cubic -final wsinc5 -onepass -warp affine_general -weight ' preACZ_mask_path ' -source_mask ' postACZ_mask_path ' -1Dmatrix_save ' postACZ_T1fromM0_2preACZ_mat ' -overwrite']);
+system(['3dAllineate -input ' postACZ_T1fromM0_path ' -base ' preACZ_T1fromM0_path ' -prefix ' postACZ_T1fromM0_2preACZ_path ' -cost lpa -autoweight -source_mask ' postACZ_mask_path ' -interp cubic -final wsinc5 -onepass -warp affine_general -1Dmatrix_save ' postACZ_T1fromM0_2preACZ_mat ' -overwrite']);
 system(['fslcpgeom ' preACZ_T1fromM0_path ' ' postACZ_T1fromM0_2preACZ_path ' -d']);
+SlicerPNGs(preACZ_T1fromM0_path, postACZ_T1fromM0_2preACZ_path,  'postACZ_T1fromM0', 'preACZ_T1fromM0', SUBJECT.ASLdir)
 
 preACZ_CBF_path = [SUBJECT.ASLdir 'preACZ_BASIL_2tolastPLD_forCBF' ORprefix '/native_space/perfusion_calib.nii.gz'];
 postACZ_CBF_path = [SUBJECT.ASLdir 'postACZ_BASIL_2tolastPLD_forCBF' ORprefix '/native_space/perfusion_calib.nii.gz'];
