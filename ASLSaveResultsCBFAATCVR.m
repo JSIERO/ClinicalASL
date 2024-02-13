@@ -13,18 +13,18 @@ postACZ_mask_path = [SUBJECT.ASLdir 'postACZ_M0_brain_mask.nii.gz'];
 postACZ_T1fromM0_2preACZ_mat = [SUBJECT.ASLdir 'postACZ_T1fromM0_2preACZ.aff12.1D'];
 % Registration postACZ to preACZ
 disp('Registration postACZ to preACZ CBF data')
-eval(['!3dAllineate -input ' postACZ_T1fromM0_path ' -base ' preACZ_T1fromM0_path ' -prefix ' postACZ_T1fromM0_2preACZ_path ' -cost lpa -interp cubic -final wsinc5 -onepass -warp affine_general -weight ' preACZ_mask_path ' -source_mask ' postACZ_mask_path ' -1Dmatrix_save ' postACZ_T1fromM0_2preACZ_mat ' -overwrite']);
-eval(['!fslcpgeom ' preACZ_T1fromM0_path ' ' postACZ_T1fromM0_2preACZ_path ' -d']);
+system(['3dAllineate -input ' postACZ_T1fromM0_path ' -base ' preACZ_T1fromM0_path ' -prefix ' postACZ_T1fromM0_2preACZ_path ' -cost lpa -interp cubic -final wsinc5 -onepass -warp affine_general -weight ' preACZ_mask_path ' -source_mask ' postACZ_mask_path ' -1Dmatrix_save ' postACZ_T1fromM0_2preACZ_mat ' -overwrite']);
+system(['fslcpgeom ' preACZ_T1fromM0_path ' ' postACZ_T1fromM0_2preACZ_path ' -d']);
 
 preACZ_CBF_path = [SUBJECT.ASLdir 'preACZ_BASIL_2tolastPLD_forCBF' ORprefix '/native_space/perfusion_calib.nii.gz'];
 postACZ_CBF_path = [SUBJECT.ASLdir 'postACZ_BASIL_2tolastPLD_forCBF' ORprefix '/native_space/perfusion_calib.nii.gz'];
 postACZ_CBF_2preACZ_path = [SUBJECT.ASLdir 'postACZ_CBF' ORprefix '_2preACZ.nii.gz'];
-eval(['!3dAllineate -input ' postACZ_CBF_path ' -master ' preACZ_CBF_path ' -prefix ' postACZ_CBF_2preACZ_path ' -1Dmatrix_apply ' postACZ_T1fromM0_2preACZ_mat ' -final wsinc5 -floatize -overwrite']);
-eval(['!fslcpgeom ' preACZ_CBF_path ' ' postACZ_CBF_2preACZ_path ' -d']);
+system(['3dAllineate -input ' postACZ_CBF_path ' -master ' preACZ_CBF_path ' -prefix ' postACZ_CBF_2preACZ_path ' -1Dmatrix_apply ' postACZ_T1fromM0_2preACZ_mat ' -final wsinc5 -floatize -overwrite']);
+system(['fslcpgeom ' preACZ_CBF_path ' ' postACZ_CBF_2preACZ_path ' -d']);
 % register postACZ brain mask to preACZ
 postACZ_2preACZ_mask_path = [ SUBJECT.ASLdir 'postACZ_M0_brain_mask_2preACZ.nii.gz'];
-eval(['!3dAllineate -input ' postACZ_mask_path ' -master ' preACZ_mask_path ' -prefix ' postACZ_2preACZ_mask_path ' -1Dmatrix_apply ' postACZ_T1fromM0_2preACZ_mat ' -final NN -overwrite']);
-eval(['!fslcpgeom ' preACZ_mask_path ' ' postACZ_2preACZ_mask_path ' -d']);
+system(['3dAllineate -input ' postACZ_mask_path ' -master ' preACZ_mask_path ' -prefix ' postACZ_2preACZ_mask_path ' -1Dmatrix_apply ' postACZ_T1fromM0_2preACZ_mat ' -final NN -overwrite']);
+system(['fslcpgeom ' preACZ_mask_path ' ' postACZ_2preACZ_mask_path ' -d']);
 disp('Registration finished..')
 
 % load BASIL CBF results
@@ -104,17 +104,17 @@ postACZ_1to2PLD_aCBV_2preACZpath = [SUBJECT.ASLdir 'postACZ_BASIL_1to2PLD_foraCB
 
 % Registration postACZ to preACZ
 disp('Registration postACZ to preACZ AAT, ATA, aCBV data')
-eval(['!3dAllineate -input ' postACZ_allPLD_CBF_path ' -master ' preACZ_allPLD_CBF_path ' -prefix ' postACZ_allPLD_CBF_2preACZ_path ' -1Dmatrix_apply ' postACZ_T1fromM0_2preACZ_mat ' -final wsinc5 -floatize -overwrite']);
-eval(['!fslcpgeom ' preACZ_allPLD_CBF_path ' ' postACZ_allPLD_CBF_2preACZ_path ' -d']);
+system(['3dAllineate -input ' postACZ_allPLD_CBF_path ' -master ' preACZ_allPLD_CBF_path ' -prefix ' postACZ_allPLD_CBF_2preACZ_path ' -1Dmatrix_apply ' postACZ_T1fromM0_2preACZ_mat ' -final wsinc5 -floatize -overwrite']);
+system(['fslcpgeom ' preACZ_allPLD_CBF_path ' ' postACZ_allPLD_CBF_2preACZ_path ' -d']);
 
-eval(['!3dAllineate -input ' postACZ_allPLD_AAT_path ' -master ' preACZ_allPLD_AAT_path ' -prefix ' postACZ_allPLD_AAT_2preACZ_path ' -1Dmatrix_apply ' postACZ_T1fromM0_2preACZ_mat ' -final wsinc5 -floatize -overwrite']);
-eval(['!fslcpgeom ' preACZ_allPLD_AAT_path ' ' postACZ_allPLD_AAT_2preACZ_path ' -d']);
+system(['3dAllineate -input ' postACZ_allPLD_AAT_path ' -master ' preACZ_allPLD_AAT_path ' -prefix ' postACZ_allPLD_AAT_2preACZ_path ' -1Dmatrix_apply ' postACZ_T1fromM0_2preACZ_mat ' -final wsinc5 -floatize -overwrite']);
+system(['fslcpgeom ' preACZ_allPLD_AAT_path ' ' postACZ_allPLD_AAT_2preACZ_path ' -d']);
 
-eval(['!3dAllineate -input ' postACZ_1to2PLD_ATA_path ' -master ' preACZ_1to2PLD_ATA_path ' -prefix ' postACZ_1to2PLD_ATA_2preACZpath ' -1Dmatrix_apply ' postACZ_T1fromM0_2preACZ_mat ' -final wsinc5 -floatize -overwrite']);
-eval(['!fslcpgeom ' preACZ_1to2PLD_ATA_path ' ' postACZ_1to2PLD_ATA_2preACZpath ' -d']);
+system(['3dAllineate -input ' postACZ_1to2PLD_ATA_path ' -master ' preACZ_1to2PLD_ATA_path ' -prefix ' postACZ_1to2PLD_ATA_2preACZpath ' -1Dmatrix_apply ' postACZ_T1fromM0_2preACZ_mat ' -final wsinc5 -floatize -overwrite']);
+system(['fslcpgeom ' preACZ_1to2PLD_ATA_path ' ' postACZ_1to2PLD_ATA_2preACZpath ' -d']);
 
-eval(['!3dAllineate -input ' postACZ_1to2PLD_aCBV_path ' -master ' preACZ_1to2PLD_aCBV_path ' -prefix ' postACZ_1to2PLD_aCBV_2preACZpath ' -1Dmatrix_apply ' postACZ_T1fromM0_2preACZ_mat ' -final wsinc5 -floatize -overwrite']);
-eval(['!fslcpgeom ' preACZ_1to2PLD_aCBV_path ' ' postACZ_1to2PLD_aCBV_2preACZpath ' -d']);
+system(['3dAllineate -input ' postACZ_1to2PLD_aCBV_path ' -master ' preACZ_1to2PLD_aCBV_path ' -prefix ' postACZ_1to2PLD_aCBV_2preACZpath ' -1Dmatrix_apply ' postACZ_T1fromM0_2preACZ_mat ' -final wsinc5 -floatize -overwrite']);
+system(['fslcpgeom ' preACZ_1to2PLD_aCBV_path ' ' postACZ_1to2PLD_aCBV_2preACZpath ' -d']);
 disp('Registration finished')
 
 % load BASIL and registered postACZ to preACZ data

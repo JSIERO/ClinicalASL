@@ -66,16 +66,16 @@ end
 [p,f,e]=fileparts(outputfilenm);
 if strcmp(e, '.nii')
     save_untouch_nii(NII,outputfilenm);
-    eval(['!gzip -f ' outputfilenm]); % JCWS gzip .nii
+    system(['gzip -f ' outputfilenm]); % JCWS gzip .nii
 elseif strcmp(e,'.gz')
     outputfilenm=strrep(outputfilenm, '.gz', '');
     save_untouch_nii(NII,outputfilenm);
-    eval(['!gzip -f ' outputfilenm]); % JCWS gzip .nii
+    system(['gzip -f ' outputfilenm]); % JCWS gzip .nii
 else
     error('Supply proper extension such as .nii or .nii.gz, ps NIFTI will ALWAYS be gzipped')
 end
 if isfile([tmpName '.nii']) 
-eval(['!rm ' tmpName '.nii'])
+system(['rm ' tmpName '.nii'])
 end
 
 function [space_unit, time_unit] = get_units(hdr)
