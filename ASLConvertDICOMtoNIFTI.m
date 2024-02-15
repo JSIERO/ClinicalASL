@@ -6,8 +6,8 @@ system(['mkdir ' DICOMinputdir '/ORIG']);
 
 % rename DICOM files in DICOM folder, and convert to NIFTI
 system(['dcm2niix -w 0 -r y -f %p_%s ' DICOMinputdir])
-system(['rm -f ' DICOMinputdir '/*_Raw ' DICOMinputdir '/ORIG']);
-system(['rm -f ' DICOMinputdir '/*_PS ' DICOMinputdir '/ORIG']);
+system(['rm -f ' DICOMinputdir '/*_Raw ']);
+system(['rm -f ' DICOMinputdir '/*_PS ']);
 system(['mv -f ' DICOMinputdir '/IM_* ' DICOMinputdir '/ORIG']);
 system(['mv -f ' DICOMinputdir '/XX_* ' DICOMinputdir '/ORIG']);
 system(['mv -f ' DICOMinputdir '/PS_* ' DICOMinputdir '/ORIG']);
