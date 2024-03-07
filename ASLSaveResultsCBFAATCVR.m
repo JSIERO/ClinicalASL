@@ -54,7 +54,7 @@ SUBJECT.preACZ.(['CBF' ORprefix '_smth']) = ASLSmoothImage(SUBJECT.preACZ.(['CBF
 SUBJECT.postACZ.(['CBF' ORprefix '_smth']) = ASLSmoothImage(SUBJECT.postACZ.(['CBF' ORprefix]).*SUBJECT.postACZ.nanmask, 2, SUBJECT.FWHM, SUBJECT.VOXELSIZE); % 2D Smooth
 SUBJECT.postACZ.(['CBF' ORprefix '_2preACZ_smth']) = ASLSmoothImage(SUBJECT.postACZ.(['CBF' ORprefix '_2preACZ']).*SUBJECT.postACZ.nanmask_2preACZ, 2, SUBJECT.FWHM, SUBJECT.VOXELSIZE); % 2D Smooth
 
-SUBJECT.(['CVR' ORprefix '_smth']) = ASLSmoothImage(SUBJECT.(['CVR' ORprefix]).*SUBJECT.nanmask_reg, 2, SUBJECT.FWHM_CVR, SUBJECT.VOXELSIZE);
+SUBJECT.(['CVR' ORprefix '_smth']) = ASLSmoothImage(SUBJECT.(['CVR' ORprefix]).*SUBJECT.nanmask_reg, 2, SUBJECT.FWHM, SUBJECT.VOXELSIZE);
 
 % Compute CVR in percentage
 SUBJECT.(['CVR' ORprefix '_percentage_smth']) = SUBJECT.(['CVR' ORprefix '_smth']) ./SUBJECT.preACZ.(['CBF' ORprefix '_smth']) .*SUBJECT.nanmask_reg * 100;
@@ -153,8 +153,15 @@ SUBJECT.postACZ.(['aCBV' ORprefix '_smth']) = ASLSmoothImage(SUBJECT.postACZ.(['
 SUBJECT.postACZ.(['aCBV' ORprefix '_2preACZ_smth']) = ASLSmoothImage(SUBJECT.postACZ.(['aCBV' ORprefix '_2preACZ']).*SUBJECT.postACZ.nanmask_2preACZ, 2, SUBJECT.FWHM, SUBJECT.VOXELSIZE); % 2D Smooth
 
 % compute deltaAAT map to reflect changes in AAT
-SUBJECT.(['AATdelta' ORprefix '_smth'])  = ASLSmoothImage((SUBJECT.postACZ.(['AAT' ORprefix '_2preACZ_smth']) - SUBJECT.preACZ.(['AAT' ORprefix '_smth'])).*SUBJECT.nanmask_reg, 2, SUBJECT.FWHM_CVR, SUBJECT.VOXELSIZE);
+SUBJECT.(['AATdelta' ORprefix '_smth'])  = ASLSmoothImage((SUBJECT.postACZ.(['AAT' ORprefix '_2preACZ_smth']) - SUBJECT.preACZ.(['AAT' ORprefix '_smth'])).*SUBJECT.nanmask_reg, 2, SUBJECT.FWHM, SUBJECT.VOXELSIZE);
 
+% Compute CVR
+SUBJECT.(['CVR_allPLD_' ORprefix]) = SUBJECT.postACZ.(['CBF_allPLD' ORprefix '_2preACZ']) - SUBJECT.preACZ.(['CBF_allPLD' ORprefix]);
+SUBJECT.(['CVR_allPLD' ORprefix '_smth']) = ASLSmoothImage(SUBJECT.(['CVR_allPLD_' ORprefix]).*SUBJECT.nanmask_reg, 2, SUBJECT.FWHM, SUBJECT.VOXELSIZE);
+
+% Compute CVR in percentage
+SUBJECT.(['CVR_allPLD' ORprefix '_percentage_smth']) = SUBJECT.(['CVR_allPLD' ORprefix '_smth']) ./SUBJECT.preACZ.(['CBF_allPLD' ORprefix '_smth']) .*SUBJECT.nanmask_reg * 100;
+% 
 %%% save final CBF, CVR NIFTI and .PNGs
 smoothloop = {'', '_smth'};
 for i=1:length(smoothloop)
@@ -185,8 +192,13 @@ for i=1:length(smoothloop)
 
   if strcmp(smthprefix,'_smth')
     SaveDataNII(SUBJECT.(['AATdelta' ORprefix '_smth']), [SUBJECT.ASLdir 'AATdelta' ORprefix '_smth.nii.gz'], SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
-    
-    SaveFIGUREtoPNG(SUBJECT.(['AATdelta' ORprefix '_smth']), SUBJECT.nanmask_reg, SUBJECT.range_AATdelta, SUBJECT.RESULTSdir, ['AATdelta' ORprefix '_smth'],'time_delta', 'vik');
+    SaveDataNII(SUBJECT.(['CVR_allPLD' ORprefix '_smth']), [SUBJECT.ASLdir 'CVR_allPLD' ORprefix '_smth.nii.gz'], SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
+    SaveDataNII(SUBJECT.(['CVR_allPLD' ORprefix '_percentage_smth']),[SUBJECT.ASLdir 'CVR_allPLD' ORprefix '_percentage_smth.nii.gz'], SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
+
+    SaveFIGUREtoPNG(SUBJECT.(['AATdelta' ORprefix '_smth']), SUBJECT.nanmask_reg, SUBJECT.range_AATdelta, SUBJECT.RESULTSdir, ['AATdelta' ORprefix '_smth'],'time_delta', 'vik');  
+    SaveFIGUREtoPNG(SUBJECT.(['CVR_allPLD' ORprefix '_smth']), SUBJECT.nanmask_reg, SUBJECT.range_cvr, SUBJECT.RESULTSdir, ['CVR_allPLD' ORprefix '_smth'],'CVR', 'vik');
+    SaveFIGUREtoPNG(SUBJECT.(['CVR_allPLD' ORprefix '_percentage_smth']), SUBJECT.nanmask_reg, [-100 100], SUBJECT.RESULTSdir, ['CVR_allPLD' ORprefix '_PERCENTAGE_smth'],'%','vik');
+  end
   end
 end
 
