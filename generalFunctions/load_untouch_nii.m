@@ -121,15 +121,15 @@ end
 %JCWS
 [~,name,ext] = fileparts(filename);
 if ~strcmp(ext, '.gz')
-    eval(['!gzip -f ' filename]);
+    system(['gzip -f ' filename]);
 end
 
 
 if isfile([tmpName '.nii'])
-    eval(['!rm ' tmpName '.nii']); % JCWS remove dummy.nii
+    system(['rm ' tmpName '.nii']); % JCWS remove dummy.nii
 end
 if isfile([tmpName '.nii.gz'])
-    eval(['!rm ' tmpName '.nii.gz']); % JCWS remove dummy.nii
+    system(['rm ' tmpName '.nii.gz']); % JCWS remove dummy.nii
 end
 %  Perform some of sform/qform transform
 %

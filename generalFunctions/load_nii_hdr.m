@@ -69,29 +69,20 @@ function [hdr, filetype, fileprefix, machine, tmpName] = load_nii_hdr(fileprefix
 
    if new_ext
       %JCWS   
-      if exist([fileprefix '.nii.gz'])
+      if exist([fileprefix '.nii.gz'],'file')
           tmpName = tempname ;
-          eval(['!cp ' fileprefix '.nii.gz ' tmpName '.nii.gz']); %JCWS make dummy
-          eval(['!gzip -d -f ' tmpName '.nii.gz']); %JCWS un-gzip when .nii.gz is found    
-          fileprefix = tmpName;
-      else
-           tmpName = fileprefix ;
-      end
-      
-      fn = sprintf('%s.nii',fileprefix);
-      if exist(fn)
+          system(['cp ' fileprefix '.nii.gz ' tmpName '.nii.gz']); %JCWS make dummy
+          system(['gzip -d -f ' tmpName '.nii.gz']); %JCWS un-gzip when .nii.gz is found    
+      elseif exist(sprintf('%s.nii',fileprefix),'file')
           tmpName = tempname ;
-          eval(['!cp ' fileprefix '.nii ' tmpName '.nii']); %JCWS make dummy
-          fileprefix = tmpName;
+          system(['cp ' fileprefix '.nii ' tmpName '.nii']); %JCWS make dummy       
       end
-      if ~exist(fn)
-         msg = sprintf('Cannot find file "%s.nii".', fileprefix);
-         error(msg);             
-      end
+    fn = sprintf('%s.nii',tmpName);
+    fileprefix = tmpName;
    else
       fn = sprintf('%s.hdr',fileprefix);
 
-      if ~exist(fn)
+      if ~exist(fn,'file')
          msg = sprintf('Cannot find file "%s.hdr".', fileprefix);
          error(msg);
       end
