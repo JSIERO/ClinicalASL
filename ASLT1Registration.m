@@ -2,7 +2,7 @@ function ASLT1Registration(SUBJECT, prefix)
 % ClinicalASL toolbox 2023, JCWSiero
 
 % Register ASL T1fromM0 to T1 anatomy
-system([' flirt -in ' SUBJECT.ASLdir prefix '_T1fromM0 -out ' SUBJECT.ASLdir prefix '_T1fromM0ASL_2T1 -ref ' SUBJECT.ANATOMYdir 'T1_brain -omat ' SUBJECT.ASLdir prefix '_ASL_2T1.mat  -cost mutualinfo -dof 6 -searchrx -15 15 -searchry -15 15 -searchrz -15 15 -interp trilinear']);
+system([' flirt -in ' SUBJECT.ASLdir prefix '_T1fromM0 -out ' SUBJECT.ASLdir prefix '_T1fromM0_2T1 -ref ' SUBJECT.ANATOMYdir 'T1_brain -omat ' SUBJECT.ASLdir prefix '_ASL_2T1.mat  -cost mutualinfo -dof 6 -searchrx -15 15 -searchry -15 15 -searchrz -15 15 -interp trilinear']);
 
 % Inverse transformation matrix -> T1 anatomy to ASL space
 system(['convert_xfm -omat ' SUBJECT.ASLdir prefix '_ASL_2T1_INV.mat -inverse ' SUBJECT.ASLdir prefix '_ASL_2T1.mat']);
