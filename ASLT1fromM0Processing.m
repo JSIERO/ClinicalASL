@@ -3,17 +3,17 @@ function SUBJECT = ASLT1fromM0Processing(SUBJECT, prefix)
 % Construct T1w image from multi PLD M0 image
 
 % brain extraction on M0 image
-system(['bet ' SUBJECT.ASLdir prefix '_M0.nii.gz  ' SUBJECT.ASLdir prefix '_M0_brain.nii.gz' ' -m -f 0.4 -g 0']) % extract brain mask of M0's
+system(['bet ' SUBJECT.ASLdir prefix '_M0  ' SUBJECT.ASLdir prefix '_M0_brain' ' -m -f 0.4 -g 0']) % extract brain mask of M0's
 system(['fslmaths ' SUBJECT.ASLdir prefix '_M0_brain_mask -dilM ' SUBJECT.ASLdir prefix '_temp_M0_brain_mask_dilM']);
 system(['fslmaths ' SUBJECT.ASLdir prefix '_M0_brain_mask -kernel 2D -ero ' SUBJECT.ASLdir prefix '_temp_M0_brain_mask_ero']);
 system(['fslmaths ' SUBJECT.ASLdir prefix '_M0 -mul ' SUBJECT.ASLdir prefix '_temp_M0_brain_mask_ero -kernel 2D -dilD ' SUBJECT.ASLdir prefix '_temp_M0_dilD']);
 
-SUBJECT.(prefix).brainmask = logical(niftiread([SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz']));
+SUBJECT.(prefix).brainmask = logical(niftiread([SUBJECT.ASLdir prefix '_M0_brain_mask']));
 
 SUBJECT.(prefix).nanmask = double(SUBJECT.(prefix).brainmask);
 SUBJECT.(prefix).nanmask(SUBJECT.(prefix).nanmask ==0) = NaN;
 
-M0_dilD = double(niftiread([SUBJECT.ASLdir prefix '_temp_M0_dilD.nii.gz']));
+M0_dilD = double(niftiread([SUBJECT.ASLdir prefix '_temp_M0_dilD']));
 
 % smooth M0 with SUBJECT.FWHM_M0 kernel using edge preserving smoothin by Susan (FSL)
 SUBJECT.(prefix).M0_forQCBF = ASLSmoothImage(M0_dilD, 3, SUBJECT.FWHM_M0, SUBJECT.VOXELSIZE);
@@ -31,11 +31,11 @@ T1fromM0 = ASLT1fromM0Compute(M0_allPLD_noLLcorr, SUBJECT.(prefix).brainmask, SU
 SaveDataNII(T1fromM0, [SUBJECT.ASLdir prefix '_T1fromM0'], SUBJECT.dummyfilenameSaveNII, 1, [0 500],SUBJECT.TR) % save T1fromM0
 
 % tissue segment T1fromM0 using FSL FAST and load into SUBEJCT struct
-system(['fast -b -g -B ' [SUBJECT.ASLdir prefix '_T1fromM0.nii.gz'] ' ' [SUBJECT.ASLdir prefix '_T1fromM0.nii.gz']]) 
-system(['fslmaths ' SUBJECT.ASLdir prefix '_T1fromM0_restore.nii.gz ' SUBJECT.ASLdir prefix '_T1fromM0.nii.gz']); % use the _restore data as the T1fromM0
+system(['fast -b -g -B ' [SUBJECT.ASLdir prefix '_T1fromM0.'] ' ' [SUBJECT.ASLdir prefix '_T1fromM0']]) 
+system(['fslmaths ' SUBJECT.ASLdir prefix '_T1fromM0_restore ' SUBJECT.ASLdir prefix '_T1fromM0']); % use the _restore data as the T1fromM0
 
-SUBJECT.(prefix).T1fromM0  = double(niftiread([SUBJECT.ASLdir prefix '_T1fromM0.nii.gz']));
-SUBJECT.(prefix).CSFmask = double(niftiread([SUBJECT.ASLdir prefix '_T1fromM0_seg_0.nii.gz']));
-SUBJECT.(prefix).GMmask  = double(niftiread([SUBJECT.ASLdir prefix '_T1fromM0_seg_1.nii.gz']));
-SUBJECT.(prefix).WMmask = double(niftiread([SUBJECT.ASLdir prefix '_T1fromM0_seg_2.nii.gz']));
+SUBJECT.(prefix).T1fromM0  = double(niftiread([SUBJECT.ASLdir prefix '_T1fromM0']));
+SUBJECT.(prefix).CSFmask = double(niftiread([SUBJECT.ASLdir prefix '_T1fromM0_seg_0']));
+SUBJECT.(prefix).GMmask  = double(niftiread([SUBJECT.ASLdir prefix '_T1fromM0_seg_1']));
+SUBJECT.(prefix).WMmask = double(niftiread([SUBJECT.ASLdir prefix '_T1fromM0_seg_2']));
 end

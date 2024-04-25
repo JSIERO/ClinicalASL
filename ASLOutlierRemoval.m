@@ -15,14 +15,14 @@ if ~exist([outputmap 'DYNAMIC_1'],'dir')
         SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD(:,:,:,2*i-1:2*i,:),DIMS(1),DIMS(2),DIMS(3), SUBJECT.NPLDS*2), [outputmap prefix '_oneDYNAMIC_label1label2'], SUBJECT.dummyfilenameSaveNII, 1, [],SUBJECT.TR)
 
         % perform BASIL analysis
-        locationASL_multiPLD = [outputmap prefix '_oneDYNAMIC_label1label2.nii.gz'];
-        locationM0 = [SUBJECT.ASLdir prefix '_M0.nii.gz'];
-        locationMask = [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'];
+        locationASL_multiPLD = [outputmap prefix '_oneDYNAMIC_label1label2'];
+        locationM0 = [SUBJECT.ASLdir prefix '_M0'];
+        locationMask = [SUBJECT.ASLdir prefix '_M0_brain_mask'];
         disp(['****************************************************************************************  BASIL analysis on DYNAMIC = ' num2str(i) '  *****************************************************'])
 
         ASLBASILanalysis(SUBJECT, locationASL_multiPLD, locationM0, locationMask, [outputmap 'DYNAMIC_' num2str(i)], [1:SUBJECT.NPLDS], SUBJECT.locationBASILinfo, 'artoff')
 
-        SUBJECT.(prefix).CBF_DYNAMIC(:,:,:,i) = double(niftiread([SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/DYNAMIC_' num2str(i) '/native_space/perfusion_calib.nii.gz']));
+        SUBJECT.(prefix).CBF_DYNAMIC(:,:,:,i) = double(niftiread([SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/DYNAMIC_' num2str(i) '/native_space/perfusion_calib']));
     end
 
     % save CBF  per dynamic
@@ -32,7 +32,7 @@ else
     disp(['Seems BASIL analysis per Dynamic has already been done, going straight to performing ASL oulierremoval by Duloi et al...' newline])
     disp(['Loading previous BASIL analysis per dynamic...'])
     for i=1:SUBJECT.NREPEATS
-        SUBJECT.(prefix).CBF_DYNAMIC(:,:,:,i) = double(niftiread([SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/DYNAMIC_' num2str(i) '/native_space/perfusion_calib.nii.gz']));         
+        SUBJECT.(prefix).CBF_DYNAMIC(:,:,:,i) = double(niftiread([SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/DYNAMIC_' num2str(i) '/native_space/perfusion_calib']));         
     end
 end
 
