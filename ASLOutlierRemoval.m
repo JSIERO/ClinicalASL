@@ -12,7 +12,7 @@ if ~exist([outputmap 'DYNAMIC_1'],'dir')
     % Loop: compute CBF per dynamics, making sure we have 2 (control,label) x nPLD sized datasets
     for i=1:SUBJECT.NREPEATS
         %save data for BASIL analysis
-        SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD(:,:,:,2*i-1:2*i,:),DIMS(1),DIMS(2),DIMS(3), SUBJECT.NPLDS*2), [outputmap prefix '_oneDYNAMIC_label1label2.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [],SUBJECT.TR)
+        SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD(:,:,:,2*i-1:2*i,:),DIMS(1),DIMS(2),DIMS(3), SUBJECT.NPLDS*2), [outputmap prefix '_oneDYNAMIC_label1label2'], SUBJECT.dummyfilenameSaveNII, 1, [],SUBJECT.TR)
 
         % perform BASIL analysis
         locationASL_multiPLD = [outputmap prefix '_oneDYNAMIC_label1label2.nii.gz'];
@@ -22,19 +22,17 @@ if ~exist([outputmap 'DYNAMIC_1'],'dir')
 
         ASLBASILanalysis(SUBJECT, locationASL_multiPLD, locationM0, locationMask, [outputmap 'DYNAMIC_' num2str(i)], [1:SUBJECT.NPLDS], SUBJECT.locationBASILinfo, 'artoff')
 
-        NII = load_untouch_nii([SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/DYNAMIC_' num2str(i) '/native_space/perfusion_calib.nii.gz']);
-        SUBJECT.(prefix).CBF_DYNAMIC(:,:,:,i) = double(NII.img);
+        SUBJECT.(prefix).CBF_DYNAMIC(:,:,:,i) = double(niftiread([SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/DYNAMIC_' num2str(i) '/native_space/perfusion_calib.nii.gz']));
     end
 
     % save CBF  per dynamic
-    SaveDataNII(SUBJECT.(prefix).CBF_DYNAMIC,[SUBJECT.ASLdir prefix '_CBF_perDYNAMIC.nii.gz'], SUBJECT.dummyfilenameSaveNII ,1,[],SUBJECT.TR);
+    SaveDataNII(SUBJECT.(prefix).CBF_DYNAMIC,[SUBJECT.ASLdir prefix '_CBF_perDYNAMIC'], SUBJECT.dummyfilenameSaveNII ,1,[],SUBJECT.TR);
     disp(['Finished saving CBF data per dynamic: ' prefix]);
 else
     disp(['Seems BASIL analysis per Dynamic has already been done, going straight to performing ASL oulierremoval by Duloi et al...' newline])
     disp(['Loading previous BASIL analysis per dynamic...'])
     for i=1:SUBJECT.NREPEATS
-        NII = load_untouch_nii([SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/DYNAMIC_' num2str(i) '/native_space/perfusion_calib.nii.gz']);
-        SUBJECT.(prefix).CBF_DYNAMIC(:,:,:,i) = double(NII.img);
+        SUBJECT.(prefix).CBF_DYNAMIC(:,:,:,i) = double(niftiread([SUBJECT.ASLdir prefix '_BASIL_perDYNAMIC/DYNAMIC_' num2str(i) '/native_space/perfusion_calib.nii.gz']));         
     end
 end
 
@@ -54,7 +52,7 @@ SUBJECT.(prefix).Ioutlier_allsteps = IOR_allsteps;
 SUBJECT.(prefix).NREPEATS_OR = sum(SUBJECT.(prefix).NoOutliers_logical);
 SUBJECT.(prefix).CBF_DYNAMIC_OR = SUBJECT.(prefix).CBF_DYNAMIC(:,:,:,SUBJECT.(prefix).NoOutliers_logical);
 % save CBF outlier removed per dynamic
-SaveDataNII(SUBJECT.(prefix).CBF_DYNAMIC_OR,[SUBJECT.ASLdir prefix '_CBF_perDYNAMIC_OR.nii.gz'], SUBJECT.dummyfilenameSaveNII ,1,[],SUBJECT.TR);
+SaveDataNII(SUBJECT.(prefix).CBF_DYNAMIC_OR,[SUBJECT.ASLdir prefix '_CBF_perDYNAMIC_OR'], SUBJECT.dummyfilenameSaveNII ,1,[],SUBJECT.TR);
 
 % remove outliers
 NoOutliers_logical_forinterleaved = logical(zeros(1,2*SUBJECT.NREPEATS));
@@ -64,12 +62,12 @@ NoOutliers_logical_forinterleaved(2:2:end)=SUBJECT.(prefix).NoOutliers_logical; 
 SUBJECT.(prefix).ASL_label1label2_allPLD_OR = SUBJECT.(prefix).ASL_label1label2_allPLD(:,:,:,NoOutliers_logical_forinterleaved,:);
 
 disp('Saving ASL data interleaved label control - OUTLIER REMOVED: all PLDs')
-SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD_OR, DIMS(1),DIMS(2), DIMS(3), SUBJECT.NPLDS*SUBJECT.(prefix).NREPEATS_OR*2), [SUBJECT.ASLdir prefix '_allPLD_label1label2_OR.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1,[], SUBJECT.TR)  % save interleaved control label and for all PLDs as 4th dimension
+SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD_OR, DIMS(1),DIMS(2), DIMS(3), SUBJECT.NPLDS*SUBJECT.(prefix).NREPEATS_OR*2), [SUBJECT.ASLdir prefix '_allPLD_label1label2_OR'], SUBJECT.dummyfilenameSaveNII, 1,[], SUBJECT.TR)  % save interleaved control label and for all PLDs as 4th dimension
 
 disp('Saving ASL data interleaved label control - OUTLIER REMOVED: 2-to-last PLDs for CBF maps, "free" of arterial transit artefacts')
-SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD_OR(:,:,:,:,2:end), DIMS(1),DIMS(2), DIMS(3), (SUBJECT.NPLDS-1)*SUBJECT.(prefix).NREPEATS_OR*2), [SUBJECT.ASLdir prefix '_2tolastPLD_label1label2_OR.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1,[], SUBJECT.TR)  % save interleaved control label and for all PLDs as 4th dimension
+SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD_OR(:,:,:,:,2:end), DIMS(1),DIMS(2), DIMS(3), (SUBJECT.NPLDS-1)*SUBJECT.(prefix).NREPEATS_OR*2), [SUBJECT.ASLdir prefix '_2tolastPLD_label1label2_OR'], SUBJECT.dummyfilenameSaveNII, 1,[], SUBJECT.TR)  % save interleaved control label and for all PLDs as 4th dimension
 
 disp('Saving ASL data interleaved label control - OUTLIER REMOVED: 1-to-2 PLDs  for ATA, aCBF maps, and spatial COV ')
-SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD_OR(:,:,:,:,1:2), DIMS(1),DIMS(2), DIMS(3), 2*SUBJECT.(prefix).NREPEATS_OR*2), [SUBJECT.ASLdir prefix '_1to2PLD_label1label2_OR.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1,[], SUBJECT.TR)  % save interleaved control label and for all PLDs as 4th dimension
+SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD_OR(:,:,:,:,1:2), DIMS(1),DIMS(2), DIMS(3), 2*SUBJECT.(prefix).NREPEATS_OR*2), [SUBJECT.ASLdir prefix '_1to2PLD_label1label2_OR'], SUBJECT.dummyfilenameSaveNII, 1,[], SUBJECT.TR)  % save interleaved control label and for all PLDs as 4th dimension
 toc
 end
