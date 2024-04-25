@@ -1,6 +1,6 @@
 function ASLBASILanalysis(SUBJECT, locationASLlabelcontrolPLDNIFTI, locationM0, locationMask, outputmap, PLDlist, locationBASILinfo, artoff, spatialoff)
 % ClinicalASL toolbox 2023, JCWSiero
-PLDstring = sprintf('%.05g,' , SUBJECT.PLDS(PLDlist)); 
+PLDstring = sprintf('%.05g,' , SUBJECT.PLDS(PLDlist));
 PLDstring = PLDstring(1:end-1);% strip final comma
 
 if nargin >= 7
@@ -10,7 +10,7 @@ if nargin >= 7
         locationBASILinfostring=[' --model-options=' locationBASILinfo];
     end
 else
-        locationBASILinfostring=[];
+    locationBASILinfostring=[];
 end
 
 if nargin >= 8

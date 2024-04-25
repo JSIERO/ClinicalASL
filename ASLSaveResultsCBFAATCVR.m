@@ -29,12 +29,12 @@ system(['fslcpgeom ' preACZ_mask_path ' ' postACZ_2preACZ_mask_path ' -d']);
 disp('Registration finished..')
 
 % load BASIL CBF results
-NII = load_untouch_nii(preACZ_CBF_path); SUBJECT.preACZ.(['CBF' ORprefix]) = double(NII.img);
-NII = load_untouch_nii(postACZ_CBF_path); SUBJECT.postACZ.(['CBF' ORprefix]) = double(NII.img);
-NII = load_untouch_nii(postACZ_CBF_2preACZ_path); SUBJECT.postACZ.(['CBF' ORprefix '_2preACZ']) = double(NII.img);
+SUBJECT.preACZ.(['CBF' ORprefix]) = double(niftiread(preACZ_CBF_path));
+SUBJECT.postACZ.(['CBF' ORprefix]) = double(niftiread(postACZ_CBF_path));
+SUBJECT.postACZ.(['CBF' ORprefix '_2preACZ']) = double(niftiread(postACZ_CBF_2preACZ_path));
 
 % load registered psotaCZ to preACZ brainmask
-NII = load_untouch_nii(postACZ_2preACZ_mask_path); SUBJECT.postACZ.brainmask_2preACZ = double(NII.img);
+SUBJECT.postACZ.brainmask_2preACZ = double(niftiread(postACZ_2preACZ_mask_path));
 
 SUBJECT.preACZ.nanmask = double(SUBJECT.preACZ.brainmask);
 SUBJECT.preACZ.nanmask(SUBJECT.preACZ.nanmask==0) = NaN;
@@ -58,28 +58,28 @@ SUBJECT.(['CVR' ORprefix '_smth']) = ASLSmoothImage(SUBJECT.(['CVR' ORprefix]).*
 
 % Compute CVR in percentage
 SUBJECT.(['CVR' ORprefix '_percentage_smth']) = SUBJECT.(['CVR' ORprefix '_smth']) ./SUBJECT.preACZ.(['CBF' ORprefix '_smth']) .*SUBJECT.nanmask_reg * 100;
-% 
+%
 %%% save final CBF, CVR NIFTI and .PNGs
 smoothloop = {'', '_smth'};
 for i=1:length(smoothloop)
-  smthprefix = char(smoothloop(i));
-  SaveDataNII(SUBJECT.preACZ.(['CBF' ORprefix smthprefix]), [SUBJECT.ASLdir 'preACZ_CBF' ORprefix smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.postACZ.(['CBF' ORprefix smthprefix]), [SUBJECT.ASLdir 'postACZ_CBF' ORprefix smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.postACZ.(['CBF' ORprefix '_2preACZ' smthprefix]), [SUBJECT.ASLdir 'postACZ_CBF' ORprefix '_2preACZ' smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+    smthprefix = char(smoothloop(i));
+    SaveDataNII(SUBJECT.preACZ.(['CBF' ORprefix smthprefix]), [SUBJECT.ASLdir 'preACZ_CBF' ORprefix smthprefix], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.postACZ.(['CBF' ORprefix smthprefix]), [SUBJECT.ASLdir 'postACZ_CBF' ORprefix smthprefix], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.postACZ.(['CBF' ORprefix '_2preACZ' smthprefix]), [SUBJECT.ASLdir 'postACZ_CBF' ORprefix '_2preACZ' smthprefix], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
 
-  SaveFIGUREtoPNG(SUBJECT.preACZ.(['CBF' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF' ORprefix smthprefix '_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
-  SaveFIGUREtoPNG(SUBJECT.preACZ.(['CBF' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF' ORprefix smthprefix '_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
-  SaveFIGUREtoPNG(SUBJECT.postACZ.(['CBF' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF' ORprefix smthprefix '_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
-  SaveFIGUREtoPNG(SUBJECT.postACZ.(['CBF' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF' ORprefix smthprefix '_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
-  SaveFIGUREtoPNG(SUBJECT.postACZ.(['CBF' ORprefix '_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF' ORprefix '_2preACZ' smthprefix '_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
-  SaveFIGUREtoPNG(SUBJECT.postACZ.(['CBF' ORprefix '_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF' ORprefix '_2preACZ' smthprefix '_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
-  if strcmp(smthprefix,'_smth')
-    SaveDataNII(SUBJECT.(['CVR' ORprefix '_smth']), [SUBJECT.ASLdir 'CVR' ORprefix '_smth.nii.gz'], SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
-    SaveDataNII(SUBJECT.(['CVR' ORprefix '_percentage_smth']),[SUBJECT.ASLdir 'CVR' ORprefix '_percentage_smth.nii.gz'], SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
+    SaveFIGUREtoPNG(SUBJECT.preACZ.(['CBF' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF' ORprefix smthprefix '_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
+    SaveFIGUREtoPNG(SUBJECT.preACZ.(['CBF' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF' ORprefix smthprefix '_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
+    SaveFIGUREtoPNG(SUBJECT.postACZ.(['CBF' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF' ORprefix smthprefix '_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
+    SaveFIGUREtoPNG(SUBJECT.postACZ.(['CBF' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF' ORprefix smthprefix '_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
+    SaveFIGUREtoPNG(SUBJECT.postACZ.(['CBF' ORprefix '_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF' ORprefix '_2preACZ' smthprefix '_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
+    SaveFIGUREtoPNG(SUBJECT.postACZ.(['CBF' ORprefix '_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF' ORprefix '_2preACZ' smthprefix '_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
+    if strcmp(smthprefix,'_smth')
+        SaveDataNII(SUBJECT.(['CVR' ORprefix '_smth']), [SUBJECT.ASLdir 'CVR' ORprefix '_smth'], SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
+        SaveDataNII(SUBJECT.(['CVR' ORprefix '_percentage_smth']),[SUBJECT.ASLdir 'CVR' ORprefix '_percentage_smth'], SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
 
-    SaveFIGUREtoPNG(SUBJECT.(['CVR' ORprefix '_smth']), SUBJECT.nanmask_reg, SUBJECT.range_cvr, SUBJECT.RESULTSdir, ['CVR' ORprefix '_smth'],'CVR', 'vik');
-    SaveFIGUREtoPNG(SUBJECT.(['CVR' ORprefix '_percentage_smth']), SUBJECT.nanmask_reg, [-100 100], SUBJECT.RESULTSdir, ['CVR' ORprefix '_PERCENTAGE_smth'],'%','vik');
-  end
+        SaveFIGUREtoPNG(SUBJECT.(['CVR' ORprefix '_smth']), SUBJECT.nanmask_reg, SUBJECT.range_cvr, SUBJECT.RESULTSdir, ['CVR' ORprefix '_smth'],'CVR', 'vik');
+        SaveFIGUREtoPNG(SUBJECT.(['CVR' ORprefix '_percentage_smth']), SUBJECT.nanmask_reg, [-100 100], SUBJECT.RESULTSdir, ['CVR' ORprefix '_PERCENTAGE_smth'],'%','vik');
+    end
 end
 disp('CBF, CVR Results: NIFTI and .PNGs created')
 
@@ -119,21 +119,21 @@ system(['fslcpgeom ' preACZ_1to2PLD_aCBV_path ' ' postACZ_1to2PLD_aCBV_2preACZpa
 disp('Registration finished')
 
 % load BASIL and registered postACZ to preACZ data
-NII = load_untouch_nii(preACZ_allPLD_CBF_path); SUBJECT.preACZ.(['CBF_allPLD' ORprefix]) = double(NII.img);
-NII = load_untouch_nii(postACZ_allPLD_CBF_path); SUBJECT.postACZ.(['CBF_allPLD' ORprefix]) = double(NII.img);
-NII = load_untouch_nii(postACZ_allPLD_CBF_2preACZ_path); SUBJECT.postACZ.(['CBF_allPLD' ORprefix '_2preACZ']) = double(NII.img);
+SUBJECT.preACZ.(['CBF_allPLD' ORprefix]) = double(niftiread(preACZ_allPLD_CBF_path));
+SUBJECT.postACZ.(['CBF_allPLD' ORprefix]) = double(niftiread(postACZ_allPLD_CBF_path));
+SUBJECT.postACZ.(['CBF_allPLD' ORprefix '_2preACZ']) = double(niftiread(postACZ_allPLD_CBF_2preACZ_path));
 
-NII = load_untouch_nii(preACZ_allPLD_AAT_path); SUBJECT.preACZ.(['AAT' ORprefix]) = double(NII.img);
-NII = load_untouch_nii(postACZ_allPLD_AAT_path); SUBJECT.postACZ.(['AAT' ORprefix]) = double(NII.img);
-NII = load_untouch_nii(postACZ_allPLD_AAT_2preACZ_path); SUBJECT.postACZ.(['AAT' ORprefix '_2preACZ']) = double(NII.img);
+SUBJECT.preACZ.(['AAT' ORprefix]) = double(niftiread(preACZ_allPLD_AAT_path));
+SUBJECT.postACZ.(['AAT' ORprefix]) = double(niftiread(postACZ_allPLD_AAT_path));
+SUBJECT.postACZ.(['AAT' ORprefix '_2preACZ']) = double(niftiread(postACZ_allPLD_AAT_2preACZ_path));
 
-NII = load_untouch_nii(preACZ_1to2PLD_ATA_path); SUBJECT.preACZ.(['ATA' ORprefix]) = double(NII.img);
-NII = load_untouch_nii(postACZ_1to2PLD_ATA_path); SUBJECT.postACZ.(['ATA' ORprefix]) = double(NII.img);
-NII = load_untouch_nii(postACZ_1to2PLD_ATA_2preACZpath); SUBJECT.postACZ.(['ATA' ORprefix '_2preACZ']) = double(NII.img);
+SUBJECT.preACZ.(['ATA' ORprefix]) = double(niftiread(preACZ_1to2PLD_ATA_path));
+SUBJECT.postACZ.(['ATA' ORprefix])  = double(niftiread(postACZ_1to2PLD_ATA_path));
+SUBJECT.postACZ.(['ATA' ORprefix '_2preACZ']) = double(niftiread(postACZ_1to2PLD_ATA_2preACZpath));
 
-NII = load_untouch_nii(preACZ_1to2PLD_aCBV_path); SUBJECT.preACZ.(['aCBV' ORprefix]) = double(NII.img);
-NII = load_untouch_nii(postACZ_1to2PLD_aCBV_path); SUBJECT.postACZ.(['aCBV' ORprefix]) = double(NII.img);
-NII = load_untouch_nii(postACZ_1to2PLD_aCBV_path); SUBJECT.postACZ.(['aCBV' ORprefix '_2preACZ']) = double(NII.img);
+SUBJECT.preACZ.(['aCBV' ORprefix]) = double(niftiread(preACZ_1to2PLD_aCBV_path));
+SUBJECT.postACZ.(['aCBV' ORprefix]) = double(niftiread(postACZ_1to2PLD_aCBV_path));
+SUBJECT.postACZ.(['aCBV' ORprefix '_2preACZ']) = double(niftiread(postACZ_1to2PLD_aCBV_path));
 
 % Smooth data
 SUBJECT.preACZ.(['CBF_allPLD' ORprefix '_smth']) = ASLSmoothImage(SUBJECT.preACZ.(['CBF_allPLD' ORprefix]).*SUBJECT.preACZ.nanmask, 2, SUBJECT.FWHM, SUBJECT.VOXELSIZE); % 2D Smooth
@@ -161,44 +161,44 @@ SUBJECT.(['CVR_allPLD' ORprefix '_smth']) = ASLSmoothImage(SUBJECT.(['CVR_allPLD
 
 % Compute CVR in percentage
 SUBJECT.(['CVR_allPLD' ORprefix '_percentage_smth']) = SUBJECT.(['CVR_allPLD' ORprefix '_smth']) ./SUBJECT.preACZ.(['CBF_allPLD' ORprefix '_smth']) .*SUBJECT.nanmask_reg * 100;
-% 
+%
 %%% save final CBF, CVR NIFTI and .PNGs
 smoothloop = {'', '_smth'};
 for i=1:length(smoothloop)
-  smthprefix = char(smoothloop(i));  
-  SaveDataNII(SUBJECT.preACZ.(['CBF_allPLD' ORprefix smthprefix]), [SUBJECT.ASLdir 'preACZ_CBF_allPLD' ORprefix smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.postACZ.(['CBF_allPLD' ORprefix smthprefix]), [SUBJECT.ASLdir 'postACZ_CBF_allPLD' ORprefix smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.postACZ.(['CBF_allPLD' ORprefix '_2preACZ' smthprefix]), [SUBJECT.ASLdir 'postACZ_CBF_allPLD' ORprefix '_2preACZ' smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.preACZ.(['AAT' ORprefix smthprefix]), [SUBJECT.ASLdir 'preACZ_AAT' ORprefix smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.postACZ.(['AAT' ORprefix smthprefix]), [SUBJECT.ASLdir 'postACZ_AAT' ORprefix smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.postACZ.(['AAT' ORprefix '_2preACZ' smthprefix]), [SUBJECT.ASLdir 'postACZ_AAT' ORprefix '_2preACZ' smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.preACZ.(['ATA' ORprefix smthprefix]), [SUBJECT.ASLdir 'preACZ_ATA' ORprefix smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.postACZ.(['ATA' ORprefix smthprefix]), [SUBJECT.ASLdir 'postACZ_ATA' ORprefix smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.postACZ.(['ATA' ORprefix '_2preACZ' smthprefix]), [SUBJECT.ASLdir 'postACZ_ATA' ORprefix '_2preACZ' smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.preACZ.(['aCBV' ORprefix smthprefix]), [SUBJECT.ASLdir 'preACZ_aCBV' ORprefix smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.postACZ.(['aCBV' ORprefix smthprefix]), [SUBJECT.ASLdir 'postACZ_aCBV' ORprefix smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.postACZ.(['aCBV' ORprefix '_2preACZ' smthprefix]), [SUBJECT.ASLdir 'postACZ_aCBV' ORprefix '_2preACZ' smthprefix '.nii.gz'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+    smthprefix = char(smoothloop(i));
+    SaveDataNII(SUBJECT.preACZ.(['CBF_allPLD' ORprefix smthprefix]), [SUBJECT.ASLdir 'preACZ_CBF_allPLD' ORprefix smthprefix], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.postACZ.(['CBF_allPLD' ORprefix smthprefix]), [SUBJECT.ASLdir 'postACZ_CBF_allPLD' ORprefix smthprefix], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.postACZ.(['CBF_allPLD' ORprefix '_2preACZ' smthprefix]), [SUBJECT.ASLdir 'postACZ_CBF_allPLD' ORprefix '_2preACZ' smthprefix], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.preACZ.(['AAT' ORprefix smthprefix]), [SUBJECT.ASLdir 'preACZ_AAT' ORprefix smthprefix], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.postACZ.(['AAT' ORprefix smthprefix]), [SUBJECT.ASLdir 'postACZ_AAT' ORprefix smthprefix], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.postACZ.(['AAT' ORprefix '_2preACZ' smthprefix]), [SUBJECT.ASLdir 'postACZ_AAT' ORprefix '_2preACZ' smthprefix], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.preACZ.(['ATA' ORprefix smthprefix]), [SUBJECT.ASLdir 'preACZ_ATA' ORprefix smthprefix], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.postACZ.(['ATA' ORprefix smthprefix]), [SUBJECT.ASLdir 'postACZ_ATA' ORprefix smthprefix], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.postACZ.(['ATA' ORprefix '_2preACZ' smthprefix]), [SUBJECT.ASLdir 'postACZ_ATA' ORprefix '_2preACZ' smthprefix], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.preACZ.(['aCBV' ORprefix smthprefix]), [SUBJECT.ASLdir 'preACZ_aCBV' ORprefix smthprefix], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.postACZ.(['aCBV' ORprefix smthprefix]), [SUBJECT.ASLdir 'postACZ_aCBV' ORprefix smthprefix], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.postACZ.(['aCBV' ORprefix '_2preACZ' smthprefix]), [SUBJECT.ASLdir 'postACZ_aCBV' ORprefix '_2preACZ' smthprefix], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
 
-  SaveFIGUREtoPNG(SUBJECT.preACZ.(['CBF_allPLD' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF_allPLD' ORprefix smthprefix '_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
-  SaveFIGUREtoPNG(SUBJECT.postACZ.(['CBF_allPLD' ORprefix '_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF_allPLD' ORprefix '_2preACZ' smthprefix '_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
-  SaveFIGUREtoPNG(SUBJECT.preACZ.(['CBF_allPLD' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF_allPLD' ORprefix smthprefix '_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
-  SaveFIGUREtoPNG(SUBJECT.postACZ.(['CBF_allPLD' ORprefix '_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF_allPLD' ORprefix '_2preACZ' smthprefix '_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
-  SaveFIGUREtoPNG(SUBJECT.preACZ.(['AAT' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, ['preACZ_AAT' ORprefix smthprefix], 'time', 'devon');
-  SaveFIGUREtoPNG(SUBJECT.postACZ.(['AAT' ORprefix '_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, ['postACZ_AAT' ORprefix '_2preACZ' smthprefix], 'time', 'devon');
-  SaveFIGUREtoPNG(SUBJECT.preACZ.(['ATA' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['preACZ_ATA' ORprefix smthprefix], 'CBF', 'viridis');
-  SaveFIGUREtoPNG(SUBJECT.postACZ.(['ATA' ORprefix '_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['postACZ_ATA' ORprefix '_2preACZ' smthprefix], 'CBF', 'viridis');
-  SaveFIGUREtoPNG(SUBJECT.preACZ.(['aCBV' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['preACZ_aCBV' ORprefix smthprefix], '%', 'turku');
-  SaveFIGUREtoPNG(SUBJECT.postACZ.(['aCBV' ORprefix '_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['postACZ_aCBV' ORprefix '_2preACZ' smthprefix], '%', 'turku');
+    SaveFIGUREtoPNG(SUBJECT.preACZ.(['CBF_allPLD' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF_allPLD' ORprefix smthprefix '_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
+    SaveFIGUREtoPNG(SUBJECT.postACZ.(['CBF_allPLD' ORprefix '_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF_allPLD' ORprefix '_2preACZ' smthprefix '_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
+    SaveFIGUREtoPNG(SUBJECT.preACZ.(['CBF_allPLD' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF_allPLD' ORprefix smthprefix '_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
+    SaveFIGUREtoPNG(SUBJECT.postACZ.(['CBF_allPLD' ORprefix '_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF_allPLD' ORprefix '_2preACZ' smthprefix '_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
+    SaveFIGUREtoPNG(SUBJECT.preACZ.(['AAT' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, ['preACZ_AAT' ORprefix smthprefix], 'time', 'devon');
+    SaveFIGUREtoPNG(SUBJECT.postACZ.(['AAT' ORprefix '_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, ['postACZ_AAT' ORprefix '_2preACZ' smthprefix], 'time', 'devon');
+    SaveFIGUREtoPNG(SUBJECT.preACZ.(['ATA' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['preACZ_ATA' ORprefix smthprefix], 'CBF', 'viridis');
+    SaveFIGUREtoPNG(SUBJECT.postACZ.(['ATA' ORprefix '_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['postACZ_ATA' ORprefix '_2preACZ' smthprefix], 'CBF', 'viridis');
+    SaveFIGUREtoPNG(SUBJECT.preACZ.(['aCBV' ORprefix smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['preACZ_aCBV' ORprefix smthprefix], '%', 'turku');
+    SaveFIGUREtoPNG(SUBJECT.postACZ.(['aCBV' ORprefix '_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['postACZ_aCBV' ORprefix '_2preACZ' smthprefix], '%', 'turku');
 
-  if strcmp(smthprefix,'_smth')
-    SaveDataNII(SUBJECT.(['AATdelta' ORprefix '_smth']), [SUBJECT.ASLdir 'AATdelta' ORprefix '_smth.nii.gz'], SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
-    SaveDataNII(SUBJECT.(['CVR_allPLD' ORprefix '_smth']), [SUBJECT.ASLdir 'CVR_allPLD' ORprefix '_smth.nii.gz'], SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
-    SaveDataNII(SUBJECT.(['CVR_allPLD' ORprefix '_percentage_smth']),[SUBJECT.ASLdir 'CVR_allPLD' ORprefix '_percentage_smth.nii.gz'], SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
+    if strcmp(smthprefix,'_smth')
+        SaveDataNII(SUBJECT.(['AATdelta' ORprefix '_smth']), [SUBJECT.ASLdir 'AATdelta' ORprefix '_smth'], SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
+        SaveDataNII(SUBJECT.(['CVR_allPLD' ORprefix '_smth']), [SUBJECT.ASLdir 'CVR_allPLD' ORprefix '_smth'], SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
+        SaveDataNII(SUBJECT.(['CVR_allPLD' ORprefix '_percentage_smth']),[SUBJECT.ASLdir 'CVR_allPLD' ORprefix '_percentage_smth'], SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
 
-    SaveFIGUREtoPNG(SUBJECT.(['AATdelta' ORprefix '_smth']), SUBJECT.nanmask_reg, SUBJECT.range_AATdelta, SUBJECT.RESULTSdir, ['AATdelta' ORprefix '_smth'],'time_delta', 'vik');  
-    SaveFIGUREtoPNG(SUBJECT.(['CVR_allPLD' ORprefix '_smth']), SUBJECT.nanmask_reg, SUBJECT.range_cvr, SUBJECT.RESULTSdir, ['CVR_allPLD' ORprefix '_smth'],'CVR', 'vik');
-    SaveFIGUREtoPNG(SUBJECT.(['CVR_allPLD' ORprefix '_percentage_smth']), SUBJECT.nanmask_reg, [-100 100], SUBJECT.RESULTSdir, ['CVR_allPLD' ORprefix '_PERCENTAGE_smth'],'%','vik');
-  end
-  end
+        SaveFIGUREtoPNG(SUBJECT.(['AATdelta' ORprefix '_smth']), SUBJECT.nanmask_reg, SUBJECT.range_AATdelta, SUBJECT.RESULTSdir, ['AATdelta' ORprefix '_smth'],'time_delta', 'vik');
+        SaveFIGUREtoPNG(SUBJECT.(['CVR_allPLD' ORprefix '_smth']), SUBJECT.nanmask_reg, SUBJECT.range_cvr, SUBJECT.RESULTSdir, ['CVR_allPLD' ORprefix '_smth'],'CVR', 'vik');
+        SaveFIGUREtoPNG(SUBJECT.(['CVR_allPLD' ORprefix '_percentage_smth']), SUBJECT.nanmask_reg, [-100 100], SUBJECT.RESULTSdir, ['CVR_allPLD' ORprefix '_PERCENTAGE_smth'],'%','vik');
+    end
+end
 end
 
