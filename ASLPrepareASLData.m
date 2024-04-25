@@ -2,8 +2,7 @@ function SUBJECT = ASLPrepareASLData(SUBJECT, filename, prefix)
 % ClinicalASL toolbox 2023, JCWSiero
 % Prepare (multidelay) ASL data: interleave control and label files per PLD, M0 and perform Look Locker Correction
 
-NII = niftiread([SUBJECT.NIFTIdir filename]);
-DATA = double(NII);
+DATA = double(niftiread([SUBJECT.NIFTIdir filename]));
 DIMS = size(DATA);
 
 SUBJECT.(prefix).M0ASL_allPLD = zeros(DIMS(1),DIMS(2), DIMS(3),SUBJECT.NDYNS, SUBJECT.NPLDS, 2);
