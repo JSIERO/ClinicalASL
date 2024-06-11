@@ -27,7 +27,7 @@ if nargin >= 9
     if strcmp (spatialoff, 'spatialoff')
         spatialstring= 'off'; % do not perform spatial regularization - much faster for per dynamic CBF analysis for outlierremoval
     else
-        spatialstring= 'on'; % default: inver arterial aCBV component
+        spatialstring= 'on'; % default: perform spatial regularization
     end
 else
     spatialstring='on';
