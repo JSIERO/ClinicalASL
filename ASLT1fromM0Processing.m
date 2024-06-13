@@ -3,7 +3,7 @@ function SUBJECT = ASLT1fromM0Processing(SUBJECT, prefix)
 % Construct T1w image from multi PLD M0 image
 
 % brain extraction on M0 image
-system(['bet ' SUBJECT.ASLdir prefix '_M0  ' SUBJECT.ASLdir prefix '_M0_brain' ' -m -f 0.4 -g 0']) % extract brain mask of M0's
+system(['bet ' SUBJECT.ASLdir prefix '_M0  ' SUBJECT.ASLdir prefix '_M0_brain' ' -m -f 0.4 -g 0']); % extract brain mask of M0's
 system(['fslmaths ' SUBJECT.ASLdir prefix '_M0_brain_mask -dilM ' SUBJECT.ASLdir prefix '_temp_M0_brain_mask_dilM']);
 system(['fslmaths ' SUBJECT.ASLdir prefix '_M0_brain_mask -kernel 2D -ero ' SUBJECT.ASLdir prefix '_temp_M0_brain_mask_ero']);
 system(['fslmaths ' SUBJECT.ASLdir prefix '_M0 -mul ' SUBJECT.ASLdir prefix '_temp_M0_brain_mask_ero -kernel 2D -dilD ' SUBJECT.ASLdir prefix '_temp_M0_dilD']);
@@ -28,10 +28,10 @@ end
 
 T1fromM0 = ASLT1fromM0Compute(M0_allPLD_noLLcorr, SUBJECT.(prefix).brainmask, SUBJECT.PLDS);
 
-SaveDataNII(T1fromM0, [SUBJECT.ASLdir prefix '_T1fromM0'], SUBJECT.dummyfilenameSaveNII, 1, [0 500],SUBJECT.TR) % save T1fromM0
+SaveDataNII(T1fromM0, [SUBJECT.ASLdir prefix '_T1fromM0'], SUBJECT.dummyfilenameSaveNII, 1, [0 500],SUBJECT.TR); % save T1fromM0
 
 % tissue segment T1fromM0 using FSL FAST and load into SUBEJCT struct
-system(['fast -b -g -B ' [SUBJECT.ASLdir prefix '_T1fromM0.'] ' ' [SUBJECT.ASLdir prefix '_T1fromM0']]) 
+system(['fast -b -g -B ' [SUBJECT.ASLdir prefix '_T1fromM0.'] ' ' [SUBJECT.ASLdir prefix '_T1fromM0']]);
 system(['fslmaths ' SUBJECT.ASLdir prefix '_T1fromM0_restore ' SUBJECT.ASLdir prefix '_T1fromM0']); % use the _restore data as the T1fromM0
 
 SUBJECT.(prefix).T1fromM0  = double(niftiread([SUBJECT.ASLdir prefix '_T1fromM0']));
