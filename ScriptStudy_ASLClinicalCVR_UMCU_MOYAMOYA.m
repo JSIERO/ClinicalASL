@@ -5,7 +5,7 @@ clear all
 close all
 clc
 
-SUBJECT.masterdir='/Fridge/users/simone/MOYAMOYA/MM_zonderOEF';
+SUBJECT.masterdir='/Fridge/users/jeroen/MOYAMOYA/';
 
 SUBJECT.tau = 2; % Label duration
 SUBJECT.N_BS = 4; % Number of background suppression pulses
@@ -15,7 +15,7 @@ SUBJECT.T1t = 1.3;    %s T1 of tissue DEFAULT is 1.3 at 3T, Alsop MRM 2014
 SUBJECT.T1b = 1.65;   %s T1 of arterial blood DEFAULT is 1.65 at 3T, Alsop MRM 2014
 SUBJECT.FWHM = 6; % smoothing kernel size 6mm FWHM, for CBF, AAT
 SUBJECT.FWHM_M0 = 5; % smoothing kernel size  5mm FWHM, for M0_forQCBF for manual quantification
-SUBJECT.ORmethod = 'Duloi'; %ORmethod: 'OnlyHighCBF': only use step1 of outlier removal (high CBF volumes), 'Duloi': or step1 + step2 (Duloi)
+SUBJECT.ORmethod = 'OnlyHighCBF'; %ORmethod: 'OnlyHighCBF': only use step1 of outlier removal (high CBF volumes), 'Duloi': or step1 + step2 (Duloi)
 SUBJECT.outlierFactor = 2.5; % outlierFactor x stds from mean CBF are considered outliers in step1 of Dolui et al SCORE method
 SUBJECT.range_adult_cbf = [0 75]; % colourbar range for adult CBF values
 SUBJECT.range_child_cbf = [0 125]; % colourbar range for child CBF values
@@ -36,7 +36,7 @@ SUBJECT.SUBJECTMNIdir = [SUBJECT.SUBJECTdir '/MNI/']; % MNI path
 SUBJECT.DICOMdir = [SUBJECT.SUBJECTdir,'/DICOM/']; % DICOM  path
 SUBJECT.NIFTIdir = [SUBJECT.SUBJECTdir,'/NIFTI/']; % NIFTI  path
 SUBJECT.ASLdir = [SUBJECT.SUBJECTdir,'/ASL/']; % ASL path
-SUBJECT.RESULTSdir = [SUBJECT.SUBJECTdir,'/RESULTS/']; % RESULTS path
+SUBJECT.RESULTSdir = [SUBJECT.SUBJECTdir,'/ASL/FIGURE_RESULTS/']; % RESULTS path
 % extra FSL BASIL options .txt location
 SUBJECT.locationBASILinfo=[SUBJECT.masterdir 'BASIL_OPTIONS.txt']; % location .txt file with addition model options for CBF quantification BASIL
 
@@ -107,8 +107,8 @@ end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 5. Outlier identification %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % discard volumes with very high CBF or use Dolui et al. SCORE outlier method
-SUBJECT = ASLOutlierRemoval(SUBJECT, 'preACZ',SUBJECT.ORmethod);
-SUBJECT = ASLOutlierRemoval(SUBJECT, 'postACZ',SUBJECT.ORmethod);
+SUBJECT = ASLOutlierRemoval(SUBJECT, 'preACZ', SUBJECT.ORmethod);
+SUBJECT = ASLOutlierRemoval(SUBJECT, 'postACZ', SUBJECT.ORmethod);
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 6. BASIL CBF Analysis for both Original and Outlier removed ASL data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('Perform BASIL analysis for both original and outlier removed ASL data')
