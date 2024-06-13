@@ -1,5 +1,5 @@
 function output = ASLSmoothImage(data, spatialdim, FWHM, voxelsize)
-% ClinicalASL toolbox 2023, JCWSieroniftiread
+% ClinicalASL toolbox 2023, JCWSiero
 % can handle NaNs, 2D and 3D gaussian smoothing
 
 sigma = FWHM/2.355;

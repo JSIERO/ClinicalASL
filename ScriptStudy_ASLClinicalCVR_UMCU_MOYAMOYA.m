@@ -1,6 +1,7 @@
+% ClinicalASL toolbox 2023, JCWSiero
 %%%%%%%%%%%%%%%%%%%%% ASL Analysis %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% written by Jeroen Siero  25-05-2023 for the MOYAMOYA study
-%%% includes automatic DICOM file loading, anatomy segmentation and  registration, outlier removal, data construction, BASIL analysis, CBF, map smoothing, CVR registration, calculation and saving
+% written by Jeroen Siero  25-05-2023 for the MOYAMOYA study
+% includes automatic DICOM file loading, anatomy segmentation and  registration, outlier removal, data construction, BASIL analysis, CBF, map smoothing, CVR registration, calculation and saving
 clear all
 close all
 clc
