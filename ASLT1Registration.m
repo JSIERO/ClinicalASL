@@ -21,7 +21,7 @@ system([' flirt -in ' SUBJECT.ANATOMYdir 'T1_brain_seg_1  -applyxfm -init ' SUBJ
 system([' flirt -in ' SUBJECT.ANATOMYdir 'T1_brain_seg_2 -applyxfm -init ' SUBJECT.ASLdir prefix '_ASL_2T1_INV.mat -out ' SUBJECT.ANATOMYdir 'T1_2ASL_WM_' prefix ' -ref ' SUBJECT.ASLdir prefix '_T1fromM0 -paddingsize 0.0 -interp nearestneighbour' ]);
 
 % Create  Slicer PNGs to judge Registration
-SlicerPNGs([SUBJECT.ASLdir prefix '_T1fromM0ASL_2T1'], [SUBJECT.ANATOMYdir 'T1_brain'], 'ASL', 'highres', SUBJECT.ANATOMYdir);
+SlicerPNGs([SUBJECT.ASLdir prefix '_T1fromM0_2T1'], [SUBJECT.ANATOMYdir 'T1_brain'], 'ASL', 'highres', SUBJECT.ANATOMYdir);
 
-disp(['T1 and tissue segmentation registration to ' prefix ' finished'])
+disp(['T1 and tissue segmentation registration to ' prefix ' finished']);
 end

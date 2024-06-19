@@ -42,7 +42,7 @@ for subj=1:length(subjnames)
     SUBJECT.MNIdir = [SUBJECT.masterdir 'MNI/']; % MNI path, needs MNI_T1_2mm_brain MNI_BRAINMASK_2mm, and seg_0, seg_1, seg_2 (CSF, GM and WM) tissue segmentations: obtain from GITHUB/ClinicalASL
     SUBJECT.SUBJECTMNIdir = [SUBJECT.SUBJECTdir '/MNI/']; % MNI path
     SUBJECT.PARRECdir = [SUBJECT.SUBJECTdir,'/PARREC/']; % PARREC  path
-    %SUBJECT.DICOMdir = [SUBJECT.SUBJECTdir,'/DICOM/']; % DICOM  path
+    SUBJECT.DICOMdir = [SUBJECT.SUBJECTdir,'/DICOM/']; % DICOM  path
     SUBJECT.NIFTIdir = [SUBJECT.SUBJECTdir,'/NIFTI/']; % NIFTI  path
     SUBJECT.ASLdir = [SUBJECT.SUBJECTdir,'/ASL/']; % ASL path
     SUBJECT.RESULTSdir = [SUBJECT.SUBJECTdir,'/ASL/FIGURE_RESULTS/']; % RESULTS path
@@ -65,7 +65,6 @@ for subj=1:length(subjnames)
     if ~isfolder(SUBJECT.DICOMdir) % if no DICOMs are found, then look for PARREC folder
         %convert and rename DICOM files in DICOM folder to NIFTI folder
         warning('No DICOM folder found, try manual conversion from  PARREC folder when possible')
-        return
     else
         ASLConvertDICOMtoNIFTI(SUBJECT.DICOMdir, SUBJECT.NIFTIdir)
     end
@@ -74,30 +73,24 @@ for subj=1:length(subjnames)
     %preACZ path
     filepreACZ = dir([SUBJECT.NIFTIdir, '*SOURCE*ASL*preACZ*.nii.gz']);% find SOURCE data ASL
     %postACZ path
-    filepostACZ = dir([SUBJECT.NIFTIdir, '*SOURCE*ASL*postACZ*.nii.gz']);% find SOURCE data ASL*
+    filepostACZ = dir([SUBJECT.NIFTIdir, '*SOURCE*ASL*postACZ*.nii.gz']);% find SOURCE data ASL
 
-    if (size(filepreACZ,1) > 1 ) || (size(filepostACZ,1) > 1)
-        warning(' More than 1 preAZC or postACZ ASL dataset found -  !! taking the last scanned dataset... !!')
-    end
+    SUBJECT.preACZfilenameNIFTI = [filepreACZ(1,1).name; filepreACZ(2,1).name; filepreACZ(3,1).name; filepreACZ(4,1).name; filepreACZ(5,1).name];
+    SUBJECT.postACZfilenameNIFTI = [filepostACZ(1,1).name; filepostACZ(2,1).name; filepostACZ(3,1).name; filepostACZ(4,1).name; filepostACZ(5,1).name];
 
-    SUBJECT.preACZfilenameNIFTI = filepreACZ(end,1).name;
-    SUBJECT.preACZfilenameDCM = filepreACZ(end,1).name(1:end-7);
-    SUBJECT.postACZfilenameNIFTI = filepostACZ(end,1).name;
-    SUBJECT.postACZfilenameDCM = filepostACZ(end,1).name(1:end-7);
-
-    %% %%%%%%%%%%%%%%%%%%%%%%% 2. Extract DICOM information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% %%%%%%%%%%%%%%%%%%%%%%% 2. Extract PARREC information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Fetch scan parameters
-    SUBJECT = ASLExtractParamsDICOM(SUBJECT, SUBJECT.preACZfilenameDCM);
-    SUBJECT.dummyfilenameSaveNII = [SUBJECT.NIFTIdir SUBJECT.preACZfilenameNIFTI]; % location .nii.gz NIFTI to be used as dummy template for saving NII's in the tool
+    SUBJECT = ASLExtractParamsPARREC(SUBJECT); % HARDCODED FOR NOW!!!!
+    SUBJECT.dummyfilenameSaveNII = [SUBJECT.NIFTIdir SUBJECT.preACZfilenameNIFTI(1,:)]; % location .nii.gz NIFTI to be used as dummy template for saving NII's in the tool
     % Obtain Look-Locker correction factor
     SUBJECT.LookLocker_correction_factor_perPLD = ASLLookLockerCorrectionFactor_mDelayPCASL(SUBJECT); % LookLocker correction factor, depending on the flipangle and PLDs
 
     %% %%%%%%%%%%%%%%%%%%%%%%% 3. Modify NIFTI to correct names, correct Mz loss (small fip angle) using Look Locker correction %%%%%%%%%%%%%%%%%%%%%
     % save per PLD and control and label volumes (interleaved), and save all ASL and M0 in struct SUBJECT
-    SUBJECT = ASLPrepareASLData(SUBJECT, SUBJECT.preACZfilenameNIFTI, 'preACZ'); % preACZ
-    SUBJECT = ASLPrepareASLData(SUBJECT, SUBJECT.postACZfilenameNIFTI, 'postACZ'); % postACZ
+    SUBJECT = ASLPrepareASLDataPARREC(SUBJECT, SUBJECT.preACZfilenameNIFTI, 'preACZ'); % preACZ
+    SUBJECT = ASLPrepareASLDataPARREC(SUBJECT, SUBJECT.postACZfilenameNIFTI, 'postACZ'); % postACZ
 
-    disp('DICOMs converted to NIFTI');
+    disp('PARRECs converted to NIFTI');
 
     %% %%%%%%%%%%%%%%%%%%%%%%%% 4. Generate T1 from M0 , T1 Tissue segmentation and registration to T1 anatomy and MNI %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % create T1fromM0 and save M0 from ASL multiPLD data, and tissue segmentation using FSL FAST: this is now used for GM, WM, and CSF masks in ASL outlierremoval: otherwise change in ASLT1fromM0Processing
@@ -121,11 +114,15 @@ for subj=1:length(subjnames)
         % Register T1 and tissue segmentations to ASL space
         ASLT1Registration(SUBJECT,'preACZ');
         ASLT1Registration(SUBJECT,'postACZ');
+
+    else
+        warning('No T1 anatomy found! please have a close look')
+        return
     end
     %% %%%%%%%%%%%%%%%%%%%%%%%% 5. Outlier identification %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Dolui et al. SCORE outlier method
-    SUBJECT = ASLOutlierRemoval(SUBJECT, 'preACZ');
-    SUBJECT = ASLOutlierRemoval(SUBJECT, 'postACZ');
+    SUBJECT = ASLOutlierRemoval(SUBJECT, 'preACZ', SUBJECT.ORmethod);
+    SUBJECT = ASLOutlierRemoval(SUBJECT, 'postACZ', SUBJECT.ORmethod);
 
     %% %%%%%%%%%%%%%%%%%%%%%%%% 6. BASIL CBF Analysis for both Original and Outlier removed ASL data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     disp('Perform BASIL analysis for both original and outlier removed ASL data')

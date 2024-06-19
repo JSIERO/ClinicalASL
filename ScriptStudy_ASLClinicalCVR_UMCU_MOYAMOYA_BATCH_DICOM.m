@@ -29,7 +29,7 @@ SUBJECT.range_aCBV = [0 2]; % arterial blodo volume estimate in volume fraction 
 
 subjnames=importdata([SUBJECT.masterdir 'subjectlist_extrapatients_asl_DICOM.txt']);
 
-for subj=3:length(subjnames)
+for subj=1:length(subjnames)
 
 
     %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -93,8 +93,8 @@ for subj=3:length(subjnames)
 
     %% %%%%%%%%%%%%%%%%%%%%%%% 3. Modify NIFTI to correct names, correct Mz loss (small fip angle) using Look Locker correction %%%%%%%%%%%%%%%%%%%%%
     % save per PLD and control and label volumes (interleaved), and save all ASL and M0 in struct SUBJECT
-    SUBJECT = ASLPrepareASLData(SUBJECT, SUBJECT.preACZfilenameNIFTI, 'preACZ'); % preACZ
-    SUBJECT = ASLPrepareASLData(SUBJECT, SUBJECT.postACZfilenameNIFTI, 'postACZ'); % postACZ
+    SUBJECT = ASLPrepareASLDataDICOM(SUBJECT, SUBJECT.preACZfilenameNIFTI, 'preACZ'); % preACZ
+    SUBJECT = ASLPrepareASLDataDICOM(SUBJECT, SUBJECT.postACZfilenameNIFTI, 'postACZ'); % postACZ
 
     disp('DICOMs converted to NIFTI');
 
@@ -120,6 +120,10 @@ for subj=3:length(subjnames)
         % Register T1 and tissue segmentations to ASL space
         ASLT1Registration(SUBJECT,'preACZ');
         ASLT1Registration(SUBJECT,'postACZ');
+
+else
+    warning('No T1 anatomy found! please have a close look')
+    return
     end
     %% %%%%%%%%%%%%%%%%%%%%%%%% 5. Outlier identification %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Dolui et al. SCORE outlier method

@@ -16,6 +16,6 @@ system(['mv -f ' DICOMinputdir '/PS_* ' DICOMinputdir '/ORIG']);
 system(['rename -v -f '  '''s/-_//g''' ' ' DICOMinputdir '*']);
 % Convert DICOM files to NIFTI output in NIFTI folder
 
-system(['dcm2niix -w 1 -z y -b y -f %p_%s  -o ' NIFTIoutputdir ' ' DICOMinputdir])
+system(['dcm2niix -w 1 -z y -b y -f %p_%s  -o ' NIFTIoutputdir ' ' DICOMinputdir]);
 % remove '-' character from filename, otherwise problems with structure fieldnames
 system(['rename -v -f '  '''s/-_//g''' ' ' NIFTIoutputdir '*']);
