@@ -1,3 +1,4 @@
+
 % ClinicalASL toolbox 2023, JCWSiero
 %%%%%%%%%%%%%%%%%%%%% ASL Analysis %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % written by Jeroen Siero  25-05-2023 for the MOYAMOYA study
@@ -6,7 +7,7 @@ clear all
 close all
 clc
 
-SUBJECT.masterdir='/Fridge/users/jeroen/MOYAMOYA/';
+SUBJECT.masterdir='/Fridge/users/simone/MOYAMOYA/';
 
 SUBJECT.tau = 2; % Label duration
 SUBJECT.N_BS = 4; % Number of background suppression pulses
@@ -77,8 +78,8 @@ SUBJECT.LookLocker_correction_factor_perPLD = ASLLookLockerCorrectionFactor_mDel
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 3. Modify NIFTI to correct names, correct Mz loss (small fip angle) using Look Locker correction %%%%%%%%%%%%%%%%%%%%%
 % save per PLD and control and label volumes (interleaved), and save all ASL and M0 in struct SUBJECT
-SUBJECT = ASLPrepareASLData(SUBJECT, SUBJECT.preACZfilenameNIFTI, 'preACZ'); % preACZ
-SUBJECT = ASLPrepareASLData(SUBJECT, SUBJECT.postACZfilenameNIFTI, 'postACZ'); % postACZ
+SUBJECT = ASLPrepareASLDataDICOM(SUBJECT, SUBJECT.preACZfilenameNIFTI, 'preACZ'); % preACZ
+SUBJECT = ASLPrepareASLDataDICOM(SUBJECT, SUBJECT.postACZfilenameNIFTI, 'postACZ'); % postACZ
 
 disp('DICOMs converted to NIFTI');
 
@@ -104,19 +105,16 @@ if ~isempty(SUBJECT.T1ANATfilenameNIFTI) %
     % Register T1 and tissue segmentations to ASL space
     ASLT1Registration(SUBJECT,'preACZ');
     ASLT1Registration(SUBJECT,'postACZ');
+
+else
+    warning('No T1 anatomy found! please have a close look')
+    return
 end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 5. Outlier identification %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-<<<<<<< HEAD
 % discard volumes with very high CBF or use Dolui et al. SCORE outlier method
 SUBJECT = ASLOutlierRemoval(SUBJECT, 'preACZ', SUBJECT.ORmethod);
 SUBJECT = ASLOutlierRemoval(SUBJECT, 'postACZ', SUBJECT.ORmethod);
-=======
-% Dolui et al. SCORE outlier method
-SUBJECT = ASLOutlierRemoval(SUBJECT, 'preACZ', SUBJECT.ORmethod);
-SUBJECT = ASLOutlierRemoval(SUBJECT, 'postACZ', SUBJECT.ORmethod);
-
->>>>>>> 21b8569b594162c1db4dae1fbedb917df9331a59
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 6. BASIL CBF Analysis for both Original and Outlier removed ASL data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('Perform BASIL analysis for both original and outlier removed ASL data')

@@ -18,7 +18,7 @@ M0_dilD = double(niftiread([SUBJECT.ASLdir prefix '_temp_M0_dilD']));
 % smooth M0 with SUBJECT.FWHM_M0 kernel using edge preserving smoothin by Susan (FSL)
 SUBJECT.(prefix).M0_forQCBF = ASLSmoothImage(M0_dilD, 3, SUBJECT.FWHM_M0, SUBJECT.VOXELSIZE);
 
-SaveDataNII(SUBJECT.(prefix).M0_forQCBF , [SUBJECT.ASLdir prefix '_M0_forQCBF'], SUBJECT.dummyfilenameSaveNII, 1, [0 500],SUBJECT.TR) % save T1fromM0
+SaveDataNII(SUBJECT.(prefix).M0_forQCBF , [SUBJECT.ASLdir prefix '_M0_forQCBF'], SUBJECT.dummyfilenameSaveNII, 1, [0 500],SUBJECT.TR); % save T1fromM0
 system(['rm ' SUBJECT.ASLdir '*temp*']); % remove temp files
 
 % compute T1w image from multi-delay PCASL (Look-Locker) M0 data across the different PLDs

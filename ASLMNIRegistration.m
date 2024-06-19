@@ -22,5 +22,5 @@ system(['flirt -in ' SUBJECT.MNIdir 'MNI_T1_2mm_brain_seg_2 -applyxfm -init ' SU
 % Create  Slicer PNGs to judge Registration
 SlicerPNGs([SUBJECT.ASLdir prefix '_T1fromM0_2MNI'], [SUBJECT.MNIdir 'MNI_T1_2mm_brain'], 'ASL', 'mni', SUBJECT.SUBJECTMNIdir);
 
-disp(['MNI and tissue segmentation registration to ' prefix ' finished'])
+disp(['MNI and tissue segmentation registration to ' prefix ' finished']);
 end
