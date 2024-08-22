@@ -1,4 +1,4 @@
-function ASLBASILanalysis(SUBJECT, locationASLlabelcontrolPLDNIFTI, locationM0, locationMask, outputmap, PLDlist, locationBASILinfo, artoff, spatialoff)
+ function ASLBASILanalysis(SUBJECT, locationASLlabelcontrolPLDNIFTI, locationM0, locationMask, outputmap, PLDlist, locationBASILinfo, artoff, spatialoff)
 % ClinicalASL toolbox 2023, JCWSiero
 PLDstring = sprintf('%.05g,' , SUBJECT.PLDS(PLDlist));
 PLDstring = PLDstring(1:end-1);% strip final comma
@@ -45,6 +45,7 @@ tic
 % note basil option --t1 is the tissue T1 for the quantification, --t1t is the tissue T1 for correction the M0 calibration when TR < 5s
 system(['oxford_asl -i ' locationASLlabelcontrolPLDNIFTI ' -c ' locationM0 ' -m ' locationMask ' -o ' outputmap ' ' locationBASILinfostring artoffstring ' --spatial=' spatialstring ' --bolus=' tau ...
     ' --slicedt=' slicetime ' --t1=' T1t ' --t1b=' T1b ' --t1t=' T1t ' --plds=' PLDstring ' --tr=' TR_M0 ' --alpha=' alpha ' --iaf=ct --ibf=tis --casl --fixbolus --cmethod voxel --cgain 1.00']);
+
 disp('BASIL analysis finished')
 toc
 end

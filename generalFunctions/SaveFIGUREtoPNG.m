@@ -31,6 +31,8 @@ if strcmp(label,'CBF')
     label2 = 'ml/100g/min';
 elseif strcmp(label,'CVR')
     label2 = '\DeltaCBF ml/100g/min';
+elseif strcmp(label,'BOLDCVR')
+    label2 = 'BOLD CVR (%)';
 elseif strcmp(label,'time')
     label2 = 'time (s)';
 elseif strcmp(label,'time_delta')
