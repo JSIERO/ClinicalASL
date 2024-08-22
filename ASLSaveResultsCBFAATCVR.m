@@ -23,7 +23,7 @@ postACZ_CBF_2preACZ_path = [SUBJECT.ASLdir 'postACZ_CBF' ORprefix '_2preACZ.nii.
 system(['3dAllineate -input ' postACZ_CBF_path ' -master ' preACZ_CBF_path ' -prefix ' postACZ_CBF_2preACZ_path ' -1Dmatrix_apply ' postACZ_T1fromM0_2preACZ_mat ' -final wsinc5 -floatize -overwrite']);
 system(['fslcpgeom ' preACZ_CBF_path ' ' postACZ_CBF_2preACZ_path ' -d']);
 % register postACZ brain mask to preACZ
-postACZ_2preACZ_mask_path = [ SUBJECT.ASLdir 'postACZ_M0_brain_mask_2preACZ.nii.gz'];
+postACZ_2preACZ_mask_path = [SUBJECT.ASLdir 'postACZ_M0_brain_mask_2preACZ.nii.gz'];
 system(['3dAllineate -input ' postACZ_mask_path ' -master ' preACZ_mask_path ' -prefix ' postACZ_2preACZ_mask_path ' -1Dmatrix_apply ' postACZ_T1fromM0_2preACZ_mat ' -final NN -overwrite']);
 system(['fslcpgeom ' preACZ_mask_path ' ' postACZ_2preACZ_mask_path ' -d']);
 disp('Registration finished..')

@@ -2,7 +2,7 @@ function SUBJECT = ASLPrepareASLDataPARREC(SUBJECT, filename, prefix)
 % ClinicalASL toolbox 2023, JCWSiero
 % Prepare (multidelay) ASL data: interleave control and label files per PLD, M0 and perform Look Locker Correction
 
-DATA = double(niftiread([SUBJECT.NIFTIdir filename(1,:)]));
+DATA = double(niftiread([SUBJECT.NIFTIdir filename(1,:)])); % read in first PLD NIFTI for DIMS
 DIMS = size(DATA);
 
 SUBJECT.(prefix).M0ASL_allPLD = zeros(DIMS(1),DIMS(2), DIMS(3),SUBJECT.NDYNS, SUBJECT.NPLDS, 2);
@@ -10,7 +10,7 @@ SUBJECT.(prefix).ASL_label1label2_allPLD = zeros(DIMS(1),DIMS(2), DIMS(3),SUBJEC
 
 % Split (multidelay) ASL data into separate label and control files per PLD, correct Mz loss due to small flip angle using Look Locker correction factor
 for i = 1:SUBJECT.NPLDS
-    DATA = double(niftiread([SUBJECT.NIFTIdir filename(i,:)]));
+    DATA = double(niftiread([SUBJECT.NIFTIdir filename(i,:)])); % read in PLD NIFTIs
 
     SUBJECT.(prefix).M0ASL_allPLD(:,:,:,1:SUBJECT.NDYNS,i,1) = DATA(:,:,:,1:SUBJECT.NDYNS)./ SUBJECT.LookLocker_correction_factor_perPLD(i);% for label images per PLD per volume
     SUBJECT.(prefix).M0ASL_allPLD(:,:,:,1:SUBJECT.NDYNS,i,2) = DATA(:,:,:,SUBJECT.NDYNS+1:SUBJECT.NDYNS*2)./ SUBJECT.LookLocker_correction_factor_perPLD(i);% for control images per PLD per volume

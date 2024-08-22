@@ -62,13 +62,6 @@ for subj=1:length(subjnames)
         mkdir(SUBJECT.RESULTSdir); % create RESULTS folder
     end
 
-    if ~isfolder(SUBJECT.DICOMdir) % if no DICOMs are found, then look for PARREC folder
-        %convert and rename DICOM files in DICOM folder to NIFTI folder
-        warning('No DICOM folder found, try manual conversion from  PARREC folder when possible')
-    else
-        ASLConvertDICOMtoNIFTI(SUBJECT.DICOMdir, SUBJECT.NIFTIdir)
-    end
-
     %Get ASL nifti filenames
     %preACZ path
     filepreACZ = dir([SUBJECT.NIFTIdir, '*SOURCE*ASL*preACZ*.nii.gz']);% find SOURCE data ASL
@@ -77,7 +70,7 @@ for subj=1:length(subjnames)
 
     SUBJECT.preACZfilenameNIFTI = [filepreACZ(1,1).name; filepreACZ(2,1).name; filepreACZ(3,1).name; filepreACZ(4,1).name; filepreACZ(5,1).name];
     SUBJECT.postACZfilenameNIFTI = [filepostACZ(1,1).name; filepostACZ(2,1).name; filepostACZ(3,1).name; filepostACZ(4,1).name; filepostACZ(5,1).name];
-
+   
     %% %%%%%%%%%%%%%%%%%%%%%%% 2. Extract PARREC information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Fetch scan parameters
     SUBJECT = ASLExtractParamsPARREC(SUBJECT); % HARDCODED FOR NOW!!!!

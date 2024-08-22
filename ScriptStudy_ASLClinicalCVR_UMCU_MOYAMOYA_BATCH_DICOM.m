@@ -109,7 +109,7 @@ for subj=1:length(subjnames)
     disp('T1 ASL MNI tissue segmentation and registration finished');
 
     % Locate T1 anatomy NIFTI
-    SUBJECT.T1ANATfilenameNIFTI = dir([SUBJECT.NIFTIdir, '*T1*3D*TFE*.nii*']); % find T1 anatomy NIFTI filename
+     SUBJECT.T1ANATfilenameNIFTI = dir([SUBJECT.NIFTIdir, '*T1*3D*TFE*.nii*']); % find T1 anatomy NIFTI filename
 
     if ~isempty(SUBJECT.T1ANATfilenameNIFTI) %
         SUBJECT.T1ANATfilenameNIFTI = SUBJECT.T1ANATfilenameNIFTI.name;
@@ -121,10 +121,11 @@ for subj=1:length(subjnames)
         ASLT1Registration(SUBJECT,'preACZ');
         ASLT1Registration(SUBJECT,'postACZ');
 
-else
-    warning('No T1 anatomy found! please have a close look')
-    return
+    else
+        warning('No T1 anatomy found! please have a close look')
+        return
     end
+
     %% %%%%%%%%%%%%%%%%%%%%%%%% 5. Outlier identification %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Dolui et al. SCORE outlier method
     SUBJECT = ASLOutlierRemoval(SUBJECT, 'preACZ', SUBJECT.ORmethod);
