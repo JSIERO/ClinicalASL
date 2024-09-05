@@ -4,7 +4,7 @@ function SUBJECT = ASLSaveResultsCBFAATCVR(SUBJECT, ORprefix)
 %% CBF using 2ndtolast PLD, compute CVR
 % register postACZ to preACZ, save BASIl results: NIFTI and PNG - loops over smoothed BASIl data
 
-% Registration postACZ to preACZ space using T1fromM0 AFNI 3dAllineate, 12 dof wsinc interpolation, brain masks as weight
+% Registration postACZ to preACZ space using T1fromM0 AFNI 3dAllineate, 6 dof wsinc interpolation, brain masks as weight
 preACZ_T1fromM0_path = [SUBJECT.ASLdir 'preACZ_T1fromM0.nii.gz'];
 postACZ_T1fromM0_path = [SUBJECT.ASLdir 'postACZ_T1fromM0.nii.gz'];
 postACZ_T1fromM0_2preACZ_path = [SUBJECT.ASLdir 'postACZ_T1fromM0_2preACZ.nii.gz'];
@@ -13,7 +13,7 @@ postACZ_mask_path = [SUBJECT.ASLdir 'postACZ_M0_brain_mask.nii.gz'];
 postACZ_T1fromM0_2preACZ_mat = [SUBJECT.ASLdir 'postACZ_T1fromM0_2preACZ.aff12.1D'];
 % Registration postACZ to preACZ
 disp('Registration postACZ to preACZ CBF data')
-system(['3dAllineate -input ' postACZ_T1fromM0_path ' -base ' preACZ_T1fromM0_path ' -prefix ' postACZ_T1fromM0_2preACZ_path ' -cost lpa -autoweight -source_mask ' postACZ_mask_path ' -interp cubic -final wsinc5 -onepass -warp affine_general -1Dmatrix_save ' postACZ_T1fromM0_2preACZ_mat ' -overwrite']);
+system(['3dAllineate -input ' postACZ_T1fromM0_path ' -base ' preACZ_T1fromM0_path ' -prefix ' postACZ_T1fromM0_2preACZ_path ' -cost lpa -autoweight -source_mask ' postACZ_mask_path ' -interp cubic -final wsinc5 -onepass -warp shift_rotate -1Dmatrix_save ' postACZ_T1fromM0_2preACZ_mat ' -overwrite']);
 system(['fslcpgeom ' preACZ_T1fromM0_path ' ' postACZ_T1fromM0_2preACZ_path ' -d']);
 SlicerPNGs(preACZ_T1fromM0_path, postACZ_T1fromM0_2preACZ_path,  'postACZ_T1fromM0', 'preACZ_T1fromM0', SUBJECT.ASLdir)
 
