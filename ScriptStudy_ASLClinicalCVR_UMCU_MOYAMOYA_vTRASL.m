@@ -7,7 +7,15 @@ clear all
 close all
 clc
 
-SUBJECT.masterdir='/Fridge/users/jeroen/MOYAMOYA/';
+SUBJECT.GITHUB_ClinicalASLDIR = 'J:\OneDrive\Documents\GitHub\ClinicalASL';
+SUBJECT.masterdir = 'G:\DATA\MOYAMOYA\';
+addpath(SUBJECT.GITHUB_ClinicalASLDIR)
+addpath([SUBJECT.GITHUB_ClinicalASLDIR '\MNI'])
+addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions'])
+addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions\export_fig'])
+setenv('PATH', [getenv('PATH') ';' SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions'])
+
+% global parameters
 SUBJECT.N_BS = 4; % Number of background suppression pulses
 SUBJECT.labeleff = 0.85; %PCASL label efficiency
 SUBJECT.lambda = 0.9;%water partition fraction, Alsop MRM 2014
@@ -60,6 +68,8 @@ SUBJECT.preACZfilenameNIFTI = filepreACZ;
 SUBJECT.postACZfilenameNIFTI = filepostACZ;
 SUBJECT.preACZfilenameDCM = filepreACZ(1:end-7);
 SUBJECT.dummyfilenameSaveNII = [SUBJECT.NIFTIdir SUBJECT.preACZfilenameNIFTI]; % location .nii.gz NIFTI to be used as dummy template for saving NII's in the tool
+
+% extract scan parameters from DICOM
 SUBJECT = ASLExtractParamsDICOM_vTR(SUBJECT, SUBJECT.preACZfilenameDCM);
 
 % Get vTR-ASL M0 nifti filenames
@@ -68,12 +78,18 @@ for i=1:length(filenames_vTRM0)
     filenamesizeM0(i)=sum(filenames_vTRM0(i,1).name); % sum the string values to find fielname with smallest scannumber (=preACZ)
 end
 [filenamesizeM0_sort, Isort_M0]=sort(filenamesizeM0);
-filepreACZM0 = filenames_vTRM0(Isort_M0(1),1).name;
-filepostACZM0 = filenames_vTRM0(Isort_M0(2),1).name;
-SUBJECT.preACZM0filenameNIFTI = filepreACZM0;
-SUBJECT.postACZM0filenameNIFTI = filepostACZM0;
-disp('DICOMs converted to NIFTI');
+SUBJECT.preACZM0filenameNIFTI = [SUBJECT.NIFTIdir filenames_vTRM0(Isort_M0(1),1).name];
+SUBJECT.postACZM0filenameNIFTI = [SUBJECT.NIFTIdir filenames_vTRM0(Isort_M0(2),1).name];
 
+% CBF
+SUBJECT.preACZCBFfilenameNIFTI = [SUBJECT.NIFTIdir SUBJECT.preACZfilenameNIFTI(1:end-7) '.nii.gz'];
+SUBJECT.postACZCBFfilenameNIFTI = [SUBJECT.NIFTIdir SUBJECT.postACZfilenameNIFTI(1:end-7) '.nii.gz'];
+
+% AAT
+SUBJECT.preACZAATfilenameNIFTI = [SUBJECT.NIFTIdir SUBJECT.preACZfilenameNIFTI(1:end-7) 'a.nii.gz'];
+SUBJECT.postACZAATfilenameNIFTI = [SUBJECT.NIFTIdir SUBJECT.postACZfilenameNIFTI(1:end-7) 'a.nii.gz'];
+
+disp('DICOMs converted to NIFTI');
 %% %%%%%%%%%%%%%%%%%%%%%%%%  7. Generate resulting CBF/CVR/AAT/aCBV .png images %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 SUBJECT = ASLSaveResultsCBFAATCVR_vTRASL(SUBJECT);
 
