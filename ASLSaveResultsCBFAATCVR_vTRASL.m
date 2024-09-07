@@ -5,8 +5,8 @@ function SUBJECT = ASLSaveResultsCBFAATCVR_vTRASL(SUBJECT)
 % M0
 system(['cp ' SUBJECT.NIFTIdir '/' SUBJECT.preACZM0filenameNIFTI ' ' SUBJECT.ASLdir '/preACZ_M0.nii.gz']);
 system(['cp ' SUBJECT.NIFTIdir '/' SUBJECT.postACZM0filenameNIFTI ' ' SUBJECT.ASLdir '/postACZ_M0.nii.gz']);
-system(['fslroi ' SUBJECT.ASLdir '/preACZ_M0.nii.gz' ' ' SUBJECT.ASLdir '/preACZ_M0.nii.gz 1 1']);
-system(['fslroi ' SUBJECT.ASLdir '/postACZ_M0.nii.gz' ' ' SUBJECT.ASLdir '/postACZ_M0.nii.gz 1 1']);
+system(['fslroi ' SUBJECT.ASLdir '/preACZ_M0.nii.gz' ' ' SUBJECT.ASLdir '/preACZ_M0.nii.gz 0 1']);
+system(['fslroi ' SUBJECT.ASLdir '/postACZ_M0.nii.gz' ' ' SUBJECT.ASLdir '/postACZ_M0.nii.gz 0 1']);
 preACZ_M0_path = [SUBJECT.ASLdir '/preACZ_M0.nii.gz'];
 postACZ_M0_path = [SUBJECT.ASLdir '/postACZ_M0.nii.gz'];
 % AAT
@@ -32,9 +32,9 @@ postACZ_mask_path = [SUBJECT.ASLdir 'postACZ_M0_brain_mask.nii.gz'];
 %% compute CVR
 % Registration postACZ to preACZ space using M0 AFNI 3dAllineate, 6 dof wsinc interpolation, brain masks as weight
 postACZ_M0_2preACZ_path = [SUBJECT.ASLdir 'postACZ_M0_2preACZ.nii.gz'];
-postACZ_M0_2preACZ_mat = [SUBJECT.ASLdir 'postACZ_M0_2preACZ.aff12.1D'];
+postACZ_M0_2preACZ_mat = [SUBJECT.ASLdir 'postACZ_M0_2preACZ.6dof.1D'];
 postACZ_CBF_2preACZ_path = [SUBJECT.ASLdir 'postACZ_CBF_2preACZ.nii.gz'];
-postACZ_2preACZ_mask_path = [SUBJECT.ASLdir 'postACZ_CBF_brain_mask_2preACZ.nii.gz'];
+postACZ_mask_2preACZ_path = [SUBJECT.ASLdir 'postACZ_M0_brain_mask_2preACZ.nii.gz'];
 
 % Registration postACZ to preACZ M0
 disp('Registration postACZ to preACZ CBF data')
@@ -45,7 +45,7 @@ SlicerPNGs(preACZ_M0_path, postACZ_M0_2preACZ_path, 'postACZ_M0', 'preACZ_M0', S
 system(['3dAllineate -input ' postACZ_CBF_path ' -master ' preACZ_CBF_path ' -prefix ' postACZ_CBF_2preACZ_path ' -1Dmatrix_apply ' postACZ_M0_2preACZ_mat ' -final wsinc5 -floatize -overwrite']);
 system(['fslcpgeom ' preACZ_CBF_path ' ' postACZ_CBF_2preACZ_path ' -d']);
 % register postACZ brain mask to preACZ
-system(['3dAllineate -input ' postACZ_mask_path ' -master ' preACZ_mask_path ' -prefix ' postACZ_2preACZ_mask_path ' -1Dmatrix_apply ' postACZ_M0_2preACZ_mat ' -final NN -overwrite']);
+system(['3dAllineate -input ' postACZ_mask_path ' -master ' preACZ_mask_path ' -prefix ' postACZ_mask_2preACZ_path ' -1Dmatrix_apply ' postACZ_M0_2preACZ_mat ' -final NN -overwrite']);
 system(['fslcpgeom ' preACZ_mask_path ' ' postACZ_2preACZ_mask_path ' -d']);
 disp('Registration finished..')
 

@@ -1,7 +1,7 @@
 function SaveDataNII(data, outputfilenm, dummyfilenm, scaleslope, datarange, TR)
 % TR is s
 
-data_info = niftiinfo(dummyfilenm); % read metadata nifti for svaing nifti with same header
+data_info = niftiinfo(dummyfilenm); % read metadata nifti for saving nifti with same header
 
 if isfloat(data)
     data_info.Datatype = 'double';
