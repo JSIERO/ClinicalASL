@@ -94,10 +94,10 @@ postACZ_CBF_2preACZ_path = [SUBJECT.ASLdir 'postACZ_CBF_2preACZ.nii.gz'];
 postACZ_AAT_2preACZ_path = [SUBJECT.ASLdir 'postACZ_AAT_2preACZ.nii.gz'];
 postACZ_mask_2preACZ_path = [SUBJECT.ASLdir 'postACZ_M0_brain_mask_2preACZ.nii.gz'];
 
-ElastixParameterFile = [SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions\Par0001rigid_NIFTIGZ.txt'];
+ElastixParameterFile = [SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions\Par0001rigid_6DOF_MI_NIFTIGZ.txt'];
 % Registration M0 postACZ to preACZ
 disp('Registration postACZ to preACZ data')
-
+% use Elastix: S. Klein, M. Staring, K. Murphy, M.A. Viergever, J.P.W. Pluim, "elastix: a toolbox for intensity based medical image registration," IEEE Transactions on Medical Imaging, vol. 29, no. 1, pp. 196 - 205, January 2010
 system(['elastix -f ' preACZ_M0_path ' -m ' postACZ_M0_path ' -fMask ' preACZ_mask_path ' -mMask ' postACZ_mask_path ' -p ' ElastixParameterFile ' -loglevel info -out ' SUBJECT.ASLdir]);
 system(['move /Y ' SUBJECT.ASLdir 'result.0.nii.gz ' postACZ_M0_2preACZ_path]);
 
@@ -168,7 +168,7 @@ for i=1:length(smoothloop)
     SaveDataNII(SUBJECT.postACZ.(['CBF_2preACZ' smthprefix]), [SUBJECT.ASLdir 'postACZ_CBF_2preACZ' smthprefix], SUBJECT.dummyfilenameSaveNII_CBF, 1, [], SUBJECT.TR);
     SaveDataNII(SUBJECT.preACZ.(['AAT' smthprefix]), [SUBJECT.ASLdir 'preACZ_AAT' smthprefix], SUBJECT.dummyfilenameSaveNII_AAT, 1, [], SUBJECT.TR);
     SaveDataNII(SUBJECT.postACZ.(['AAT' smthprefix]), [SUBJECT.ASLdir 'postACZ_AAT' smthprefix], SUBJECT.dummyfilenameSaveNII_AAT, 1, [], SUBJECT.TR);
-    SaveDataNII(SUBJECT.postACZ.(['AAT' '_2preACZ' smthprefix]), [SUBJECT.ASLdir 'postACZ_AAT' '_2preACZ' smthprefix], SUBJECT.dummyfilenameSaveNII_AAT, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.postACZ.(['AAT_2preACZ' smthprefix]), [SUBJECT.ASLdir 'postACZ_AAT_2preACZ' smthprefix], SUBJECT.dummyfilenameSaveNII_AAT, 1, [], SUBJECT.TR);
 
     SaveFIGUREtoPNG(SUBJECT.preACZ.(['CBF' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF' smthprefix '_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
     SaveFIGUREtoPNG(SUBJECT.preACZ.(['CBF' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF' smthprefix '_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
@@ -178,15 +178,15 @@ for i=1:length(smoothloop)
     SaveFIGUREtoPNG(SUBJECT.postACZ.(['CBF_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF_2preACZ' smthprefix '_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
     SaveFIGUREtoPNG(SUBJECT.preACZ.(['AAT' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, ['preACZ_AAT' smthprefix], 'time', 'devon');
     SaveFIGUREtoPNG(SUBJECT.postACZ.(['AAT' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, ['postACZ_AAT' smthprefix], 'time', 'devon');
-    SaveFIGUREtoPNG(SUBJECT.postACZ.(['AAT' '_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, ['postACZ_AAT' '_2preACZ' smthprefix], 'time', 'devon');
+    SaveFIGUREtoPNG(SUBJECT.postACZ.(['AAT_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, ['postACZ_AAT_2preACZ' smthprefix], 'time', 'devon');
     if strcmp(smthprefix,'_smth')
         SaveDataNII(SUBJECT.CVR_smth, [SUBJECT.ASLdir 'CVR_smth'], SUBJECT.dummyfilenameSaveNII_CBF,1,[], SUBJECT.TR);
         SaveDataNII(SUBJECT.CVR_percentage_smth,[SUBJECT.ASLdir 'CVR_percentage_smth'], SUBJECT.dummyfilenameSaveNII_CBF,1,[], SUBJECT.TR);
-        SaveDataNII(SUBJECT.(['AATdelta' '_smth']), [SUBJECT.ASLdir 'AATdelta' '_smth'], SUBJECT.dummyfilenameSaveNII_AAT,1,[], SUBJECT.TR);
+        SaveDataNII(SUBJECT.AATdelta_smth, [SUBJECT.ASLdir 'AATdelta_smth'], SUBJECT.dummyfilenameSaveNII_AAT,1,[], SUBJECT.TR);
 
         SaveFIGUREtoPNG(SUBJECT.CVR_smth, SUBJECT.nanmask_reg, SUBJECT.range_cvr, SUBJECT.RESULTSdir, 'CVR_smth','CVR', 'vik');
         SaveFIGUREtoPNG(SUBJECT.CVR_percentage_smth, SUBJECT.nanmask_reg, [-100 100], SUBJECT.RESULTSdir, 'CVR_PERCENTAGE_smth','%','vik');
-        SaveFIGUREtoPNG(SUBJECT.(['AATdelta' '_smth']), SUBJECT.nanmask_reg, SUBJECT.range_AATdelta, SUBJECT.RESULTSdir, ['AATdelta' '_smth'],'time_delta', 'vik');
+        SaveFIGUREtoPNG(SUBJECT.AATdelta_smth, SUBJECT.nanmask_reg, SUBJECT.range_AATdelta, SUBJECT.RESULTSdir, 'AATdelta_smth','time_delta', 'vik');
     end
 end
 disp('CBF, AAT, CVR Results: NIFTI and .PNGs created')
