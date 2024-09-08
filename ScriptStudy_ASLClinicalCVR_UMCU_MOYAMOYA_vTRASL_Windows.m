@@ -9,10 +9,10 @@ clc
 
 SUBJECT.GITHUB_ClinicalASLDIR = 'J:\OneDrive\Documents\GitHub\ClinicalASL';
 SUBJECT.masterdir = 'G:\DATA\MOYAMOYA\';
-addpath(SUBJECT.GITHUB_ClinicalASLDIR)
-addpath([SUBJECT.GITHUB_ClinicalASLDIR '\MNI'])
-addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions'])
-addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions\export_fig'])
+% addpath(SUBJECT.GITHUB_ClinicalASLDIR)
+% addpath([SUBJECT.GITHUB_ClinicalASLDIR '\MNI'])
+% addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions'])
+% addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions\export_fig'])
 setenv('PATH', [getenv('PATH') ';' SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions'])
 
 % global parameters
