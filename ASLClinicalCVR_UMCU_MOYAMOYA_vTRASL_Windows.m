@@ -7,13 +7,26 @@ clear all
 close all
 clc
 
-SUBJECT.GITHUB_ClinicalASLDIR = 'J:\OneDrive\Documents\GitHub\ClinicalASL';
-SUBJECT.masterdir = 'G:\DATA\MOYAMOYA\';
+% Open the ClinicalASL.ini file for reading
+fid = fopen('ClinicalASL.ini', 'r');
+% Read the file line by line into a cell array
+fileContents = {};
+lineIndex = 1;
+while ~feof(fid)
+    fileContents{lineIndex} = fgetl(fid);
+    lineIndex = lineIndex + 1;
+end
+
+SUBJECT.GITHUB_ClinicalASLDIR = fileContents{1};
+SUBJECT.masterdir = fileContents{2};
+%SUBJECT.GITHUB_ClinicalASLDIR = 'J:\OneDrive\Documents\GitHub\ClinicalASL';
+%SUBJECT.masterdir = 'G:\DATA\MOYAMOYA\';
 % addpath(SUBJECT.GITHUB_ClinicalASLDIR)
 % addpath([SUBJECT.GITHUB_ClinicalASLDIR '\MNI'])
 % addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions'])
 % addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions\export_fig'])
 setenv('PATH', [getenv('PATH') ';' SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions'])
+
 
 % global parameters
 SUBJECT.N_BS = 4; % Number of background suppression pulses
@@ -99,6 +112,33 @@ disp('DICOMs converted to NIFTI');
 %% %%%%%%%%%%%%%%%%%%%%%%%%  7. Generate resulting CBF\CVR\AAT\aCBV .png images %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 SUBJECT = ASLSaveResultsCBFAATCVR_vTRASL_Windows(SUBJECT);
 
+%write dicomsPRIDE_WIP_SOURCE_vTR_805_real
+info = dicominfo([SUBJECT.DICOMdir 'WIP_SOURCE_M0_702']);
+%info = dicominfo([SUBJECT.DICOMdir 'PRIDE_WIP_SOURCE_vTR_805_real']);
+
+[a,b,c] = size(SUBJECT.CVR);
+scalingfactor = (2^16-2)/range(SUBJECT.CVR,'all');
+info.SeriesDescription ='WIP CVR vTR-ASL';
+for i=1:info.NumberOfFrames
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_cvr);
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_cvr);
+
+    if i > c %remove extra frames larger than slice number input image
+        info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
+    end
+end
+
+dicomwrite(reshape(int16(SUBJECT.CVR*scalingfactor),[a,b,1,c]),[SUBJECT.ASLdir 'CVR.dcm'],info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+infocvr=dicominfo([SUBJECT.ASLdir 'CVR.dcm']);
+T2 = dicomread([SUBJECT.ASLdir 'CVR.dcm']);
+infocvr.PerFrameFunctionalGroupsSequence.Item_1.PlanePositionSequence.Item_1.ImagePositionPatient 
+info.PerFrameFunctionalGroupsSequence.Item_1.PlanePositionSequence.Item_1.ImagePositionPatient 
+
+for i=1:infocvr.NumberOfFrames
+    infocvr.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelMeasuresSequence.Item_1.PixelSpacing
+  end
 %% %%%%%%%%%%%%%%%%%%%%%%%% 8. Save workspace %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Workspace_ClinicalASL_vTR = [SUBJECT.SUBJECTdir '\Workspace_ClinicalASL_vTR.mat'];
 save(Workspace_ClinicalASL_vTR,'-v7.3');
