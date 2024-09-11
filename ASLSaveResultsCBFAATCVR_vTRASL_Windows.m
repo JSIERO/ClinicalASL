@@ -98,15 +98,28 @@ ElastixParameterFile = [SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions\Par0001
 % Registration M0 postACZ to preACZ
 disp('Registration postACZ to preACZ data')
 % use Elastix: S. Klein, M. Staring, K. Murphy, M.A. Viergever, J.P.W. Pluim, "elastix: a toolbox for intensity based medical image registration," IEEE Transactions on Medical Imaging, vol. 29, no. 1, pp. 196 - 205, January 2010
-system(['elastix -f ' preACZ_M0_path ' -m ' postACZ_M0_path ' -fMask ' preACZ_mask_path ' -mMask ' postACZ_mask_path ' -p ' ElastixParameterFile ' -loglevel info -out ' SUBJECT.ASLdir]);
-system(['move /Y ' SUBJECT.ASLdir 'result.0.nii.gz ' postACZ_M0_2preACZ_path]);
+%system(['elastix -f ' preACZ_M0_path ' -m ' postACZ_M0_path ' -fMask ' preACZ_mask_path ' -mMask ' postACZ_mask_path ' -p ' ElastixParameterFile ' -loglevel info -out ' SUBJECT.ASLdir]);
+%system(['move /Y ' SUBJECT.ASLdir 'result.0.nii.gz ' postACZ_M0_2preACZ_path]);
+[optimizer, metric]  = imregconfig('monomodal');
+% optimizer =  registration.optimizer.RegularStepGradientDescent;
+% metric = registration.metric.MattesMutualInformation;
+fixed_im = SUBJECT.postACZ.M0.*SUBJECT.postACZ.brainmask;
+moving_im = SUBJECT.preACZ.M0.*SUBJECT.preACZ.brainmask;
+tform = imregtform(moving_im, imref3d(size(moving_im)), fixed_im, imref3d(size(fixed_im)), "rigid",optimizer,metric, "PyramidLevels",2);
+moving_reg = imwarp(moving_im, tform, "cubic","OutputView", imref3d(size(moving_im)));
+SaveDataNII(moving_reg, postACZ_M0_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_M0, scalesclope, [], SUBJECT.TR);
 
 % Registration CBF postACZ to preACZ
-system(['transformix -in ' postACZ_CBF_path ' -out ' SUBJECT.ASLdir ' -tp ' SUBJECT.ASLdir 'TransformParameters.0.txt']);
-system(['move /Y ' SUBJECT.ASLdir 'result.nii.gz ' postACZ_CBF_2preACZ_path]);
+%system([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions\transformix -in ' postACZ_CBF_path ' -out ' SUBJECT.ASLdir ' -tp ' SUBJECT.ASLdir 'TransformParameters.0.txt']);
+%system(['move /Y ' SUBJECT.ASLdir 'result.nii.gz ' postACZ_CBF_2preACZ_path]);
+moving_reg = imwarp(SUBJECT.postACZ.CBF, tform, "cubic","OutputView", imref3d(size(SUBJECT.postACZ.CBF)));
+SaveDataNII(moving_reg, postACZ_CBF_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_CBF, scalesclope, [], SUBJECT.TR);
+
 % Registration AAT postACZ to preACZ
-system(['transformix -in ' postACZ_AAT_path ' -out ' SUBJECT.ASLdir ' -tp ' SUBJECT.ASLdir 'TransformParameters.0.txt']);
-system(['move /Y ' SUBJECT.ASLdir 'result.nii.gz ' postACZ_AAT_2preACZ_path]);
+%system([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions\transformix -in ' postACZ_AAT_path ' -out ' SUBJECT.ASLdir ' -tp ' SUBJECT.ASLdir 'TransformParameters.0.txt']);
+%system(['move /Y ' SUBJECT.ASLdir 'result.nii.gz ' postACZ_AAT_2preACZ_path]);
+moving_reg = imwarp(SUBJECT.postACZ.AAT, tform, "cubic","OutputView", imref3d(size(SUBJECT.postACZ.AAT)));
+SaveDataNII(moving_reg, postACZ_AAT_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_AAT, scalesclope, [], SUBJECT.TR);
 
 % Registration mask postACZ to preACZ
 % change ResampleInterpolator to nearestneighbour for binary mask transformation to preACZ
@@ -114,8 +127,11 @@ oldTextLine = '(ResampleInterpolator "FinalBSplineInterpolator")';
 newTextLine = '(ResampleInterpolator "FinalNearestNeighborInterpolator")';
 ChangeElastixParameterFileEntry([SUBJECT.ASLdir 'TransformParameters.0.txt'], oldTextLine, newTextLine, [SUBJECT.ASLdir 'TransformParameters.0.NN.txt']);
 
-system(['transformix -in ' postACZ_mask_path ' -out ' SUBJECT.ASLdir ' -tp ' SUBJECT.ASLdir 'TransformParameters.0.NN.txt']);
-system(['move /Y ' SUBJECT.ASLdir 'result.nii.gz ' postACZ_mask_2preACZ_path]);
+%system(['transformix -in ' postACZ_mask_path ' -out ' SUBJECT.ASLdir ' -tp ' SUBJECT.ASLdir 'TransformParameters.0.NN.txt']);
+%system(['move /Y ' SUBJECT.ASLdir 'result.nii.gz ' postACZ_mask_2preACZ_path]);
+moving_reg = imwarp(SUBJECT.postACZ.brainmask, tform, "nearest","OutputView", imref3d(size(SUBJECT.postACZ.CBF)));
+SaveDataNII(moving_reg, postACZ_mask_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_M0, 1, [], SUBJECT.TR);
+
 disp('Registration finished..')
 
 % load CBF results

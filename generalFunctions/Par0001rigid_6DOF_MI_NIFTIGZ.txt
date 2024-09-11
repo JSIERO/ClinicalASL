@@ -7,8 +7,8 @@
 (MoResultImageFormatvingImageDimension 3)
 //JCWS
 (ResultImageFormat "nii.gz")
-(ImageSampler "RandomSparseMask")
-//(ImageSampler "RandomCoordinate") //JCWS
+//(ImageSampler "RandomSparseMask")
+(ImageSampler "RandomCoordinate") //JCWS
 (AutomaticTransformInitializationMethod "CenterOfGravity")
 (ResultImagePixelType "double")
 (WriteIterationInfo "false")
