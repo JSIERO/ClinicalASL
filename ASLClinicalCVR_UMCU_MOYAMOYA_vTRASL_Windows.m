@@ -19,12 +19,12 @@ end
 
 SUBJECT.GITHUB_ClinicalASLDIR = fileContents{1};
 SUBJECT.masterdir = fileContents{2};
-%SUBJECT.GITHUB_ClinicalASLDIR = 'J:\OneDrive\Documents\GitHub\ClinicalASL';
-%SUBJECT.masterdir = 'G:\DATA\MOYAMOYA\';
-% addpath(SUBJECT.GITHUB_ClinicalASLDIR)
-% addpath([SUBJECT.GITHUB_ClinicalASLDIR '\MNI'])
-% addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions'])
-% addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions\export_fig'])
+SUBJECT.GITHUB_ClinicalASLDIR = 'J:\OneDrive\Documents\GitHub\ClinicalASL';
+SUBJECT.masterdir = 'J:\DATA\MOYAMOYA\';
+ addpath(SUBJECT.GITHUB_ClinicalASLDIR)
+ addpath([SUBJECT.GITHUB_ClinicalASLDIR '\MNI'])
+ addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions'])
+ addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions\export_fig'])
 setenv('PATH', [getenv('PATH') ';' SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions'])
 
 
@@ -69,7 +69,7 @@ end
 % convert and rename DICOM files in DICOM folder to NIFTI folder
 ASLConvertDICOMtoNIFTI(SUBJECT.DICOMdir, SUBJECT.NIFTIdir, 'vTR_only');
 
-% Get vTR-ASL nifti filenames
+% Get vTR-ASL CBF and AAT nifti filenames
 filenames_vTR = dir([SUBJECT.NIFTIdir, '*PRIDE*SOURCE*vTR*.nii.gz']);% find SOURCE data ASL
 filenamesize=zeros(1,length(filenames_vTR));
 for i=1:length(filenames_vTR)
@@ -85,7 +85,7 @@ SUBJECT.preACZfilenameDCM = filepreACZ(1:end-7);
 % extract scan parameters from DICOM
 SUBJECT = ASLExtractParamsDICOM_vTR(SUBJECT, SUBJECT.preACZfilenameDCM);
 
-% Get vTR-ASL M0, CBF and AAT nifti filenames
+% Get vTR-ASL M0 nifti filenames
 filenames_vTRM0 = dir([SUBJECT.NIFTIdir, '*SOURCE*M0*.nii.gz']);% find SOURCE data ASL
 filenamesizeM0=zeros(1,length(filenames_vTRM0));
 for i=1:length(filenames_vTRM0)
@@ -119,6 +119,8 @@ info = dicominfo([SUBJECT.DICOMdir 'WIP_SOURCE_M0_702']);
 [a,b,c] = size(SUBJECT.CVR);
 scalingfactor = (2^16-2)/range(SUBJECT.CVR,'all');
 info.SeriesDescription ='WIP CVR vTR-ASL';
+info.ProtocolName ='WIP CVR vTR-ASL';
+
 for i=1:info.NumberOfFrames
     info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
     info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
@@ -129,10 +131,13 @@ for i=1:info.NumberOfFrames
         info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
     end
 end
+dicomwrite(flipud(permute(reshape(int16(SUBJECT.CVR*scalingfactor),[a,b,1,c]),[2,1,3,4])),[SUBJECT.ASLdir 'CVR.dcm'],info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
-dicomwrite(reshape(int16(SUBJECT.CVR*scalingfactor),[a,b,1,c]),[SUBJECT.ASLdir 'CVR.dcm'],info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 infocvr=dicominfo([SUBJECT.ASLdir 'CVR.dcm']);
+dicomdisp([SUBJECT.ASLdir 'CVR.dcm']);
 T2 = dicomread([SUBJECT.ASLdir 'CVR.dcm']);
+T3 = dicomread([SUBJECT.DICOMdir 'WIP_SOURCE_M0_702']);
+
 infocvr.PerFrameFunctionalGroupsSequence.Item_1.PlanePositionSequence.Item_1.ImagePositionPatient 
 info.PerFrameFunctionalGroupsSequence.Item_1.PlanePositionSequence.Item_1.ImagePositionPatient 
 

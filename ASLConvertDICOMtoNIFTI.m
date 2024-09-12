@@ -61,12 +61,20 @@ elseif ispc % windows
             system(['dcm2niix -w 1 -z y -b y -f %p_%s  -o ' NIFTIoutputdir ' ' DICOMinputdir]);
         case 3
             if strcmp(vTR_only,'vTR_only')
-                % find SOURCE data vTR ASL
+                % find SOURCE ASL CBF and AAT data vTR ASL
                 files_vTRASL_DCM = dir([DICOMinputdir, '*PRIDE*SOURCE*vTR*']);
                 if ~isempty(files_vTRASL_DCM)
                     system(['del /F /Q ' NIFTIoutputdir 'PRIDE*SOURCE*vTR*.*']);
                     for i=1:length(files_vTRASL_DCM)
                         system(['dcm2niix -w 2 -z y -b y -f %p_%s -s y -o ' NIFTIoutputdir ' ' DICOMinputdir '\' files_vTRASL_DCM(i,1).name]);
+                    end
+                end
+                % find SOURCE M0 data vTR ASL
+                files_M0_DCM = dir([DICOMinputdir, '*SOURCE*M0*']);
+                if ~isempty(files_M0_DCM)
+                    system(['del /F /Q ' NIFTIoutputdir '*SOURCE*M0*.*']);
+                    for i=1:length(files_M0_DCM)
+                        system(['dcm2niix -w 2 -z y -b y -f %p_%s -s y -o ' NIFTIoutputdir ' ' DICOMinputdir '\' files_M0_DCM(i,1).name]);
                     end
                 end
             end
