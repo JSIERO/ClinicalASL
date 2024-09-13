@@ -7,26 +7,21 @@ clear all
 close all
 clc
 
-% Open the ClinicalASL.ini file for reading
-fid = fopen('ClinicalASL.ini', 'r');
-% Read the file line by line into a cell array
-fileContents = {};
-lineIndex = 1;
-while ~feof(fid)
-    fileContents{lineIndex} = fgetl(fid);
-    lineIndex = lineIndex + 1;
+forCompile ='yes'; % set to 'yes' if you aimto compile the script to an executable then RegistrationMethod = matlab's registration 'matlab_imreg', set to 'no' when using maltab itself and than registrationMethod = 'elastix'
+
+if strcmp(forCompile,'no')
+    SUBJECT.RegistrationMethod = 'elastix'; %choose: 'matlab_imreg', or 'elastix'
+    SUBJECT.GITHUB_ClinicalASLDIR = 'J:\OneDrive\Documents\GitHub\ClinicalASL';
+    SUBJECT.masterdir = 'G:\DATA\MOYAMOYA\';
+    addpath(SUBJECT.GITHUB_ClinicalASLDIR)
+    addpath([SUBJECT.GITHUB_ClinicalASLDIR '\MNI'])
+    addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions'])
+    addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions\export_fig'])
+    setenv('PATH', [getenv('PATH') ';' SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions']);
+elseif strcmp(forCompile,'yes')
+    SUBJECT.masterdir = pwd;
+    SUBJECT.RegistrationMethod = 'matlab_imreg'; %choose: 'matlab_imreg', or 'elastix'
 end
-
-SUBJECT.GITHUB_ClinicalASLDIR = fileContents{1};
-SUBJECT.masterdir = fileContents{2};
-SUBJECT.GITHUB_ClinicalASLDIR = 'J:\OneDrive\Documents\GitHub\ClinicalASL';
-SUBJECT.masterdir = 'J:\DATA\MOYAMOYA\';
- addpath(SUBJECT.GITHUB_ClinicalASLDIR)
- addpath([SUBJECT.GITHUB_ClinicalASLDIR '\MNI'])
- addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions'])
- addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions\export_fig'])
-setenv('PATH', [getenv('PATH') ';' SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions'])
-
 
 % global parameters
 SUBJECT.N_BS = 4; % Number of background suppression pulses
@@ -49,8 +44,7 @@ SUBJECT.range_aCBV = [0 2]; % arterial blodo volume estimate in volume fraction 
 SUBJECT.SUBJECTdir = uigetdir(SUBJECT.masterdir,'Select subject folder');
 
 % create folder paths
-SUBJECT.ANATOMYdir = [SUBJECT.SUBJECTdir,'\ANATOMY\']; % T1 anatomy path
-SUBJECT.MNIdir = [SUBJECT.masterdir 'MNI\']; % MNI path, needs MNI_T1_2mm_brain MNI_BRAINMASK_2mm, and seg_0, seg_1, seg_2 (CSF, GM and WM) tissue segmentations: obtain from GITHUB\ClinicalASL
+
 SUBJECT.SUBJECTMNIdir = [SUBJECT.SUBJECTdir '\MNI\']; % MNI path
 SUBJECT.DICOMdir = [SUBJECT.SUBJECTdir,'\DICOM\']; % DICOM  path
 SUBJECT.NIFTIdir = [SUBJECT.SUBJECTdir,'\NIFTI\']; % NIFTI  path
@@ -58,9 +52,7 @@ SUBJECT.ASLdir = [SUBJECT.SUBJECTdir,'\ASL_vTR\']; % ASL path
 SUBJECT.RESULTSdir = [SUBJECT.SUBJECTdir,'\ASL_vTR\FIGURE_RESULTS\']; % RESULTS path
 
 % create folders
-if logical(max(~isfolder({SUBJECT.ANATOMYdir; SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir; SUBJECT.SUBJECTMNIdir})))
-    mkdir(SUBJECT.ANATOMYdir); % create Anatomy folder
-    mkdir(SUBJECT.SUBJECTMNIdir); % create subject MNI folder
+if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir})))
     mkdir(SUBJECT.NIFTIdir); % create NIFTI folder
     mkdir(SUBJECT.ASLdir); % create ASL folder
     mkdir(SUBJECT.RESULTSdir); % create RESULTS folder
@@ -92,6 +84,8 @@ for i=1:length(filenames_vTRM0)
     filenamesizeM0(i)=sum(filenames_vTRM0(i,1).name); % sum the string values to find fielname with smallest scannumber (=preACZ)
 end
 [filenamesizeM0_sort, Isort_M0]=sort(filenamesizeM0);
+SUBJECT.preACZfilenameDCM_M0 = [SUBJECT.DICOMdir filenames_vTRM0(Isort_M0(1),1).name(1:end-7)]; % preACZ M0 DICOM used to generate DICOMs of the analysis results in ASLSaveResultsCBFAATCVR_vTRASL_Windows()
+
 SUBJECT.preACZM0filenameNIFTI = [SUBJECT.NIFTIdir filenames_vTRM0(Isort_M0(1),1).name];
 SUBJECT.postACZM0filenameNIFTI = [SUBJECT.NIFTIdir filenames_vTRM0(Isort_M0(2),1).name];
 
@@ -112,38 +106,7 @@ disp('DICOMs converted to NIFTI');
 %% %%%%%%%%%%%%%%%%%%%%%%%%  7. Generate resulting CBF\CVR\AAT\aCBV .png images %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 SUBJECT = ASLSaveResultsCBFAATCVR_vTRASL_Windows(SUBJECT);
 
-%write dicomsPRIDE_WIP_SOURCE_vTR_805_real
-info = dicominfo([SUBJECT.DICOMdir 'WIP_SOURCE_M0_702']);
-%info = dicominfo([SUBJECT.DICOMdir 'PRIDE_WIP_SOURCE_vTR_805_real']);
 
-[a,b,c] = size(SUBJECT.CVR);
-scalingfactor = (2^16-2)/range(SUBJECT.CVR,'all');
-info.SeriesDescription ='WIP CVR vTR-ASL';
-info.ProtocolName ='WIP CVR vTR-ASL';
-
-for i=1:info.NumberOfFrames
-    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
-    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
-    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_cvr);
-    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_cvr);
-
-    if i > c %remove extra frames larger than slice number input image
-        info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
-    end
-end
-dicomwrite(flipud(permute(reshape(int16(SUBJECT.CVR*scalingfactor),[a,b,1,c]),[2,1,3,4])),[SUBJECT.ASLdir 'CVR.dcm'],info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
-
-infocvr=dicominfo([SUBJECT.ASLdir 'CVR.dcm']);
-dicomdisp([SUBJECT.ASLdir 'CVR.dcm']);
-T2 = dicomread([SUBJECT.ASLdir 'CVR.dcm']);
-T3 = dicomread([SUBJECT.DICOMdir 'WIP_SOURCE_M0_702']);
-
-infocvr.PerFrameFunctionalGroupsSequence.Item_1.PlanePositionSequence.Item_1.ImagePositionPatient 
-info.PerFrameFunctionalGroupsSequence.Item_1.PlanePositionSequence.Item_1.ImagePositionPatient 
-
-for i=1:infocvr.NumberOfFrames
-    infocvr.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelMeasuresSequence.Item_1.PixelSpacing
-  end
 %% %%%%%%%%%%%%%%%%%%%%%%%% 8. Save workspace %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Workspace_ClinicalASL_vTR = [SUBJECT.SUBJECTdir '\Workspace_ClinicalASL_vTR.mat'];
 save(Workspace_ClinicalASL_vTR,'-v7.3');
