@@ -101,7 +101,7 @@ if strcmp(SUBJECT.RegistrationMethod,'elastix') % use elastix
     % use Elastix: S. Klein, M. Staring, K. Murphy, M.A. Viergever, J.P.W. Pluim, "elastix: a toolbox for intensity based medical image registration," IEEE Transactions on Medical Imaging, vol. 29, no. 1, pp. 196 - 205, January 2010
 
     % Registration M0 postACZ to preACZ data
-    system(['elastix -f ' preACZ_M0_path ' -m ' postACZ_M0_path ' -fMask ' preACZ_mask_path ' -mMask ' postACZ_mask_path ' -p ' ElastixParameterFile ' -loglevel info -out ' SUBJECT.ASLdir]);
+    system(['elastix -f ' preACZ_M0_path ' -m ' postACZ_M0_path ' -fMask ' preACZ_mask_path ' -p ' ElastixParameterFile ' -loglevel info -out ' SUBJECT.ASLdir]);
     system(['move /Y ' SUBJECT.ASLdir 'result.0.nii.gz ' postACZ_M0_2preACZ_path]);
 
     % Registration CBF postACZ to preACZ

@@ -7,12 +7,12 @@ clear all
 close all
 clc
 
-forCompile ='yes'; % set to 'yes' if you aimto compile the script to an executable then RegistrationMethod = matlab's registration 'matlab_imreg', set to 'no' when using maltab itself and than registrationMethod = 'elastix'
+forCompile ='no'; % set to 'yes' if you aimto compile the script to an executable then RegistrationMethod = matlab's registration 'matlab_imreg', set to 'no' when using maltab itself and than registrationMethod = 'elastix'
 
 if strcmp(forCompile,'no')
     SUBJECT.RegistrationMethod = 'elastix'; %choose: 'matlab_imreg', or 'elastix'
-    SUBJECT.GITHUB_ClinicalASLDIR = 'J:\OneDrive\Documents\GitHub\ClinicalASL';
-    SUBJECT.masterdir = 'G:\DATA\MOYAMOYA\';
+    SUBJECT.GITHUB_ClinicalASLDIR = 'D:\OneDrive\Documents\GitHub\ClinicalASL';
+    SUBJECT.masterdir = 'D:\DATA\MOYAMOYA\';
     addpath(SUBJECT.GITHUB_ClinicalASLDIR)
     addpath([SUBJECT.GITHUB_ClinicalASLDIR '\MNI'])
     addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions'])
@@ -45,7 +45,6 @@ SUBJECT.SUBJECTdir = uigetdir(SUBJECT.masterdir,'Select subject folder');
 
 % create folder paths
 
-SUBJECT.SUBJECTMNIdir = [SUBJECT.SUBJECTdir '\MNI\']; % MNI path
 SUBJECT.DICOMdir = [SUBJECT.SUBJECTdir,'\DICOM\']; % DICOM  path
 SUBJECT.NIFTIdir = [SUBJECT.SUBJECTdir,'\NIFTI\']; % NIFTI  path
 SUBJECT.ASLdir = [SUBJECT.SUBJECTdir,'\ASL_vTR\']; % ASL path
