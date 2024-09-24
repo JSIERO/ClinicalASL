@@ -1,4 +1,4 @@
-function SUBJECT = ASLPrepareASLData(SUBJECT, filename, prefix)
+function SUBJECT = ASLPrepareASLDataDICOM(SUBJECT, filename, prefix)
 % ClinicalASL toolbox 2023, JCWSiero
 % Prepare (multidelay) ASL data: interleave control and label files per PLD, M0 and perform Look Locker Correction
 
