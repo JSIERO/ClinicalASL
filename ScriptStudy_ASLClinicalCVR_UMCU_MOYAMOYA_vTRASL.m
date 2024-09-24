@@ -7,13 +7,14 @@ clear all
 close all
 clc
 
-SUBJECT.GITHUB_ClinicalASLDIR = 'J:\OneDrive\Documents\GitHub\ClinicalASL';
-SUBJECT.masterdir = 'G:\DATA\MOYAMOYA\';
+SUBJECT.GITHUB_ClinicalASLDIR = '/home/jeroen/GITHUB/ClinicalASL/';
+SUBJECT.masterdir = '/Fridge/users/jeroen/MOYAMOYA/';
+SUBJECT.RegistrationMethod = 'elastix'; %choose: 'matlab_imreg', or 'elastix'
 addpath(SUBJECT.GITHUB_ClinicalASLDIR)
-addpath([SUBJECT.GITHUB_ClinicalASLDIR '\MNI'])
-addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions'])
-addpath([SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions\export_fig'])
-setenv('PATH', [getenv('PATH') ';' SUBJECT.GITHUB_ClinicalASLDIR '\generalFunctions'])
+addpath([SUBJECT.GITHUB_ClinicalASLDIR 'MNI'])
+addpath([SUBJECT.GITHUB_ClinicalASLDIR 'generalFunctions'])
+addpath([SUBJECT.GITHUB_ClinicalASLDIR 'generalFunctions/export_fig'])
+setenv('PATH', [getenv('PATH') ';' SUBJECT.GITHUB_ClinicalASLDIR 'generalFunctions'])
 
 % global parameters
 SUBJECT.N_BS = 4; % Number of background suppression pulses
@@ -27,7 +28,7 @@ SUBJECT.range_adult_cbf = [0 75]; % colourbar range for adult CBF values
 SUBJECT.range_child_cbf = [0 125]; % colourbar range for child CBF values
 SUBJECT.range_cvr = [-50 50]; % colourbar range for CVR values
 SUBJECT.range_AAT = [0.5 2.5]; % time (s), arterial arrival time
-SUBJECT.range_AATdelta = [-1.2 1.2];% delta time (s), delta arterial arrival time, postACZ - preACZ
+SUBJECT.range_AATdelta = [-0.7 0.7];% delta time (s), delta arterial arrival time, postACZ - preACZ
 SUBJECT.range_aCBV = [0 2]; % arterial blodo volume estimate in volume fraction voxel (%)
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -36,18 +37,13 @@ SUBJECT.range_aCBV = [0 2]; % arterial blodo volume estimate in volume fraction 
 SUBJECT.SUBJECTdir = uigetdir(SUBJECT.masterdir,'Select subject folder');
 
 % create folder paths
-SUBJECT.ANATOMYdir = [SUBJECT.SUBJECTdir,'/ANATOMY/']; % T1 anatomy path
-SUBJECT.MNIdir = [SUBJECT.masterdir 'MNI/']; % MNI path, needs MNI_T1_2mm_brain MNI_BRAINMASK_2mm, and seg_0, seg_1, seg_2 (CSF, GM and WM) tissue segmentations: obtain from GITHUB/ClinicalASL
-SUBJECT.SUBJECTMNIdir = [SUBJECT.SUBJECTdir '/MNI/']; % MNI path
-SUBJECT.DICOMdir = [SUBJECT.SUBJECTdir,'/DICOM/']; % DICOM  path
-SUBJECT.NIFTIdir = [SUBJECT.SUBJECTdir,'/NIFTI/']; % NIFTI  path
-SUBJECT.ASLdir = [SUBJECT.SUBJECTdir,'/ASL_vTR/']; % ASL path
-SUBJECT.RESULTSdir = [SUBJECT.SUBJECTdir,'/ASL_vTR/FIGURE_RESULTS/']; % RESULTS path
+SUBJECT.DICOMdir = [SUBJECT.SUBJECTdir,'\DICOM\']; % DICOM  path
+SUBJECT.NIFTIdir = [SUBJECT.SUBJECTdir,'\NIFTI\']; % NIFTI  path
+SUBJECT.ASLdir = [SUBJECT.SUBJECTdir,'\ASL_vTR\']; % ASL path
+SUBJECT.RESULTSdir = [SUBJECT.SUBJECTdir,'\ASL_vTR\FIGURE_RESULTS\']; % RESULTS path
 
 % create folders
-if logical(max(~isfolder({SUBJECT.ANATOMYdir; SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir; SUBJECT.SUBJECTMNIdir})))
-    mkdir(SUBJECT.ANATOMYdir); % create Anatomy folder
-    mkdir(SUBJECT.SUBJECTMNIdir); % create subject MNI folder
+if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir})))
     mkdir(SUBJECT.NIFTIdir); % create NIFTI folder
     mkdir(SUBJECT.ASLdir); % create ASL folder
     mkdir(SUBJECT.RESULTSdir); % create RESULTS folder
@@ -74,10 +70,13 @@ SUBJECT = ASLExtractParamsDICOM_vTR(SUBJECT, SUBJECT.preACZfilenameDCM);
 
 % Get vTR-ASL M0 nifti filenames
 filenames_vTRM0 = dir([SUBJECT.NIFTIdir, '*SOURCE*M0*.nii.gz']);% find SOURCE data ASL
+filenamesizeM0=zeros(1,length(filenames_vTRM0));
 for i=1:length(filenames_vTRM0)
     filenamesizeM0(i)=sum(filenames_vTRM0(i,1).name); % sum the string values to find fielname with smallest scannumber (=preACZ)
 end
 [filenamesizeM0_sort, Isort_M0]=sort(filenamesizeM0);
+SUBJECT.preACZfilenameDCM_M0 = [SUBJECT.DICOMdir filenames_vTRM0(Isort_M0(1),1).name(1:end-7)]; % preACZ M0 DICOM used to generate DICOMs of the analysis results in ASLSaveResultsCBFAATCVR_vTRASL_Windows()
+
 SUBJECT.preACZM0filenameNIFTI = [SUBJECT.NIFTIdir filenames_vTRM0(Isort_M0(1),1).name];
 SUBJECT.postACZM0filenameNIFTI = [SUBJECT.NIFTIdir filenames_vTRM0(Isort_M0(2),1).name];
 
@@ -89,9 +88,13 @@ SUBJECT.postACZCBFfilenameNIFTI = [SUBJECT.NIFTIdir SUBJECT.postACZfilenameNIFTI
 SUBJECT.preACZAATfilenameNIFTI = [SUBJECT.NIFTIdir SUBJECT.preACZfilenameNIFTI(1:end-7) 'a.nii.gz'];
 SUBJECT.postACZAATfilenameNIFTI = [SUBJECT.NIFTIdir SUBJECT.postACZfilenameNIFTI(1:end-7) 'a.nii.gz'];
 
+SUBJECT.dummyfilenameSaveNII_M0 = SUBJECT.preACZM0filenameNIFTI; % location .nii.gz NIFTI to be used as dummy template for saving NII's in the tool
+SUBJECT.dummyfilenameSaveNII_CBF = SUBJECT.preACZCBFfilenameNIFTI; % location .nii.gz NIFTI to be used as dummy template for saving NII's in the tool
+SUBJECT.dummyfilenameSaveNII_AAT = SUBJECT.preACZAATfilenameNIFTI; % location .nii.gz NIFTI to be used as dummy template for saving NII's in the tool
+
 disp('DICOMs converted to NIFTI');
 %% %%%%%%%%%%%%%%%%%%%%%%%%  7. Generate resulting CBF/CVR/AAT/aCBV .png images %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-SUBJECT = ASLSaveResultsCBFAATCVR_vTRASL(SUBJECT);
+SUBJECT = ASLSaveResultsCBFAATCVR_vTRASL_Windows(SUBJECT);
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 8. Save workspace %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Workspace_ClinicalASL_vTR = [SUBJECT.SUBJECTdir '/Workspace_ClinicalASL_vTR.mat'];

@@ -35,7 +35,7 @@ SUBJECT.range_adult_cbf = [0 75]; % colourbar range for adult CBF values
 SUBJECT.range_child_cbf = [0 125]; % colourbar range for child CBF values
 SUBJECT.range_cvr = [-50 50]; % colourbar range for CVR values
 SUBJECT.range_AAT = [0.5 2.5]; % time (s), arterial arrival time
-SUBJECT.range_AATdelta = [-1.2 1.2];% delta time (s), delta arterial arrival time, postACZ - preACZ
+SUBJECT.range_AATdelta = [-0.7 0.7];% delta time (s), delta arterial arrival time, postACZ - preACZ
 SUBJECT.range_aCBV = [0 2]; % arterial blodo volume estimate in volume fraction voxel (%)
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -44,7 +44,6 @@ SUBJECT.range_aCBV = [0 2]; % arterial blodo volume estimate in volume fraction 
 SUBJECT.SUBJECTdir = uigetdir(SUBJECT.masterdir,'Select subject folder');
 
 % create folder paths
-
 SUBJECT.DICOMdir = [SUBJECT.SUBJECTdir,'\DICOM\']; % DICOM  path
 SUBJECT.NIFTIdir = [SUBJECT.SUBJECTdir,'\NIFTI\']; % NIFTI  path
 SUBJECT.ASLdir = [SUBJECT.SUBJECTdir,'\ASL_vTR\']; % ASL path
