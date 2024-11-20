@@ -70,7 +70,7 @@ t=get(h,'Limits');
 set(h,'Ticks',linspace(t(1),t(2),5))
 set(get(h,'label'),'string',label2);
 
-output = strcat(outputloc,suffix);
+output = fullfile(outputloc,suffix);
 warning off
 if nargin >=8
     if strcmp(blackfont,'yes')
