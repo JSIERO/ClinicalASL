@@ -3,8 +3,8 @@ function SUBJECT = ASLSaveResultsCBFAATCVR_vTRASL(SUBJECT)
 
 % copy NIFTIs to ASL_vTR folder
 % M0
-preACZ_M0_path = [SUBJECT.ASLdir 'preACZ_M0.nii.gz'];
-postACZ_M0_path = [SUBJECT.ASLdir 'postACZ_M0.nii.gz'];
+preACZ_M0_path = fullfile(SUBJECT.ASLdir, 'preACZ_M0.nii.gz');
+postACZ_M0_path = fullfile(SUBJECT.ASLdir, 'postACZ_M0.nii.gz');
 if isunix
     system(['cp ' SUBJECT.preACZM0filenameNIFTI ' ' preACZ_M0_path]);
     system(['cp ' SUBJECT.postACZM0filenameNIFTI ' ' postACZ_M0_path]);
@@ -26,8 +26,8 @@ SUBJECT.postACZ.M0 = double(dummy(:,:,:,1))*info.MultiplicativeScaling;
 SaveDataNII(SUBJECT.postACZ.M0, postACZ_M0_path(1:end-7), SUBJECT.dummyfilenameSaveNII_M0, scalesclope, [], SUBJECT.TR);
 
 % make brain masks
-preACZ_mask_path = [SUBJECT.ASLdir 'preACZ_M0_brain_mask.nii.gz'];
-postACZ_mask_path = [SUBJECT.ASLdir 'postACZ_M0_brain_mask.nii.gz'];
+preACZ_mask_path = fullfile(SUBJECT.ASLdir, 'preACZ_M0_brain_mask.nii.gz');
+postACZ_mask_path = fullfile(SUBJECT.ASLdir, 'postACZ_M0_brain_mask.nii.gz');
 
 setenv('FSLOUTPUTTYPE','NIFTI_GZ')
 system(['bet2 ' preACZ_M0_path ' ' preACZ_mask_path(1:end-12) ' -m -f 0.5']);
@@ -37,8 +37,8 @@ SUBJECT.preACZ.brainmask = double(niftiread(preACZ_mask_path));
 SUBJECT.postACZ.brainmask = double(niftiread(postACZ_mask_path));
 
 % CBF
-preACZ_CBF_path = [SUBJECT.ASLdir 'preACZ_CBF.nii.gz'];
-postACZ_CBF_path = [SUBJECT.ASLdir 'postACZ_CBF.nii.gz'];
+preACZ_CBF_path = fullfile(SUBJECT.ASLdir, 'preACZ_CBF.nii.gz');
+postACZ_CBF_path = fullfile(SUBJECT.ASLdir, 'postACZ_CBF.nii.gz');
 if isunix
     system(['cp ' SUBJECT.preACZCBFfilenameNIFTI ' ' preACZ_CBF_path]);
     system(['cp ' SUBJECT.postACZCBFfilenameNIFTI ' ' postACZ_CBF_path]);
@@ -60,8 +60,8 @@ SUBJECT.postACZ.CBF= double(dummy(:,:,:,2))*info.MultiplicativeScaling.*SUBJECT.
 SaveDataNII(SUBJECT.postACZ.CBF, postACZ_CBF_path(1:end-7), SUBJECT.dummyfilenameSaveNII_CBF, scalesclope, [], SUBJECT.TR);
 
 % AAT
-preACZ_AAT_path = [SUBJECT.ASLdir 'preACZ_AAT.nii.gz'];
-postACZ_AAT_path = [SUBJECT.ASLdir 'postACZ_AAT.nii.gz'];
+preACZ_AAT_path = fullfile(SUBJECT.ASLdir, 'preACZ_AAT.nii.gz');
+postACZ_AAT_path = fullfile(SUBJECT.ASLdir, 'postACZ_AAT.nii.gz');
 if isunix
     system(['cp ' SUBJECT.preACZAATfilenameNIFTI ' ' preACZ_AAT_path]);
     system(['cp ' SUBJECT.postACZAATfilenameNIFTI ' ' postACZ_AAT_path]);
@@ -86,10 +86,10 @@ SaveDataNII(SUBJECT.postACZ.AAT, postACZ_AAT_path(1:end-7), SUBJECT.dummyfilenam
 %% compute CVR
 % Registration postACZ to preACZ space using M0
 
-postACZ_M0_2preACZ_path = [SUBJECT.ASLdir 'postACZ_M0_2preACZ.nii.gz'];
-postACZ_CBF_2preACZ_path = [SUBJECT.ASLdir 'postACZ_CBF_2preACZ.nii.gz'];
-postACZ_AAT_2preACZ_path = [SUBJECT.ASLdir 'postACZ_AAT_2preACZ.nii.gz'];
-postACZ_mask_2preACZ_path = [SUBJECT.ASLdir 'postACZ_M0_brain_mask_2preACZ.nii.gz'];
+postACZ_M0_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_M0_2preACZ.nii.gz');
+postACZ_CBF_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_CBF_2preACZ.nii.gz');
+postACZ_AAT_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_AAT_2preACZ.nii.gz');
+postACZ_mask_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_M0_brain_mask_2preACZ.nii.gz');
 
 disp('Registration M0 postACZ to preACZ data')
 if strcmp(SUBJECT.RegistrationMethod,'elastix') % use elastix
@@ -99,35 +99,35 @@ if strcmp(SUBJECT.RegistrationMethod,'elastix') % use elastix
     % Registration M0 postACZ to preACZ data
     system(['elastix -f ' preACZ_M0_path ' -m ' postACZ_M0_path ' -fMask ' preACZ_mask_path ' -p ' ElastixParameterFile ' -loglevel info -out ' SUBJECT.ASLdir]);
     if isunix
-        system(['mv -f ' SUBJECT.ASLdir 'result.0.nii.gz ' postACZ_M0_2preACZ_path]);
+        system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.0.nii.gz') ' ' postACZ_M0_2preACZ_path]);
     elseif ispc
-        system(['move /Y ' SUBJECT.ASLdir 'result.0.nii.gz ' postACZ_M0_2preACZ_path]);
+        system(['move /Y ' fullfile(SUBJECT.ASLdir, 'result.0.nii.gz') ' ' postACZ_M0_2preACZ_path]);
     end
     % Registration CBF postACZ to preACZ
-    system(['transformix -in ' postACZ_CBF_path ' -out ' SUBJECT.ASLdir ' -tp ' SUBJECT.ASLdir 'TransformParameters.0.txt']);
+    system(['transformix -in ' postACZ_CBF_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt')]);
     if isunix
-        system(['mv -f ' SUBJECT.ASLdir 'result.nii.gz ' postACZ_CBF_2preACZ_path]);
+        system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' postACZ_CBF_2preACZ_path]);
     elseif ispc
-        system(['move /Y ' SUBJECT.ASLdir 'result.nii.gz ' postACZ_CBF_2preACZ_path]);
+        system(['move /Y ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' postACZ_CBF_2preACZ_path]);
     end
     % Registration AAT postACZ to preACZ
-    system(['transformix -in ' postACZ_AAT_path ' -out ' SUBJECT.ASLdir ' -tp ' SUBJECT.ASLdir 'TransformParameters.0.txt']);
+    system(['transformix -in ' postACZ_AAT_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt')]);
     if isunix
-        system(['mv -f ' SUBJECT.ASLdir 'result.nii.gz ' postACZ_AAT_2preACZ_path]);
+        system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' postACZ_AAT_2preACZ_path]);
     elseif ispc
-        system(['move /Y ' SUBJECT.ASLdir 'result.nii.gz ' postACZ_AAT_2preACZ_path]);
+        system(['move /Y ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' postACZ_AAT_2preACZ_path]);
     end
     % Registration mask postACZ to preACZ
     % change ResampleInterpolator to nearestneighbour for binary mask transformation to preACZ
     oldTextLine = '(ResampleInterpolator "FinalBSplineInterpolator")';
     newTextLine = '(ResampleInterpolator "FinalNearestNeighborInterpolator")';
-    ChangeElastixParameterFileEntry([SUBJECT.ASLdir 'TransformParameters.0.txt'], oldTextLine, newTextLine, [SUBJECT.ASLdir 'TransformParameters.0.NN.txt']);
+    ChangeElastixParameterFileEntry(fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt'), oldTextLine, newTextLine, fullfile(SUBJECT.ASLdir, 'TransformParameters.0.NN.txt'));
 
-    system(['transformix -in ' postACZ_mask_path ' -out ' SUBJECT.ASLdir ' -tp ' SUBJECT.ASLdir 'TransformParameters.0.NN.txt']);
+    system(['transformix -in ' postACZ_mask_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.NN.txt')]);
     if isunix
-        system(['mv -f ' SUBJECT.ASLdir 'result.nii.gz ' postACZ_mask_2preACZ_path]);
+        system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' postACZ_mask_2preACZ_path]);
     elseif ispc
-        system(['move /Y ' SUBJECT.ASLdir 'result.nii.gz ' postACZ_mask_2preACZ_path]);
+        system(['move /Y ' Sfullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' postACZ_mask_2preACZ_path]);
     end
 elseif strcmp(SUBJECT.RegistrationMethod,'matlab_imreg') % use Matlab imregtform
     optimizer =  registration.optimizer.RegularStepGradientDescent;
@@ -196,12 +196,12 @@ SUBJECT.AATdelta_smth = ASLSmoothImage((SUBJECT.postACZ.AAT_2preACZ_smth - SUBJE
 smoothloop = {'', '_smth'};
 for i=1:length(smoothloop)
     smthprefix = char(smoothloop(i));
-    SaveDataNII(SUBJECT.preACZ.(['CBF' smthprefix]), [SUBJECT.ASLdir 'preACZ_CBF' smthprefix], SUBJECT.dummyfilenameSaveNII_CBF, 1, [], SUBJECT.TR);
-    SaveDataNII(SUBJECT.postACZ.(['CBF' smthprefix]), [SUBJECT.ASLdir 'postACZ_CBF' smthprefix], SUBJECT.dummyfilenameSaveNII_CBF, 1, [], SUBJECT.TR);
-    SaveDataNII(SUBJECT.postACZ.(['CBF_2preACZ' smthprefix]), [SUBJECT.ASLdir 'postACZ_CBF_2preACZ' smthprefix], SUBJECT.dummyfilenameSaveNII_CBF, 1, [], SUBJECT.TR);
-    SaveDataNII(SUBJECT.preACZ.(['AAT' smthprefix]), [SUBJECT.ASLdir 'preACZ_AAT' smthprefix], SUBJECT.dummyfilenameSaveNII_AAT, 1, [], SUBJECT.TR);
-    SaveDataNII(SUBJECT.postACZ.(['AAT' smthprefix]), [SUBJECT.ASLdir 'postACZ_AAT' smthprefix], SUBJECT.dummyfilenameSaveNII_AAT, 1, [], SUBJECT.TR);
-    SaveDataNII(SUBJECT.postACZ.(['AAT_2preACZ' smthprefix]), [SUBJECT.ASLdir 'postACZ_AAT_2preACZ' smthprefix], SUBJECT.dummyfilenameSaveNII_AAT, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.preACZ.(['CBF' smthprefix]), fullfile(SUBJECT.ASLdir, ['preACZ_CBF' smthprefix]), SUBJECT.dummyfilenameSaveNII_CBF, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.postACZ.(['CBF' smthprefix]), fullfile(SUBJECT.ASLdir, ['postACZ_CBF' smthprefix]), SUBJECT.dummyfilenameSaveNII_CBF, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.postACZ.(['CBF_2preACZ' smthprefix]), fullfile(SUBJECT.ASLdir, ['postACZ_CBF_2preACZ' smthprefix]), SUBJECT.dummyfilenameSaveNII_CBF, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.preACZ.(['AAT' smthprefix]), fullfile(SUBJECT.ASLdir, ['preACZ_AAT' smthprefix]), SUBJECT.dummyfilenameSaveNII_AAT, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.postACZ.(['AAT' smthprefix]), fullfile(SUBJECT.ASLdir, ['postACZ_AAT' smthprefix]), SUBJECT.dummyfilenameSaveNII_AAT, 1, [], SUBJECT.TR);
+    SaveDataNII(SUBJECT.postACZ.(['AAT_2preACZ' smthprefix]), fullfile(SUBJECT.ASLdir, ['postACZ_AAT_2preACZ' smthprefix]), SUBJECT.dummyfilenameSaveNII_AAT, 1, [], SUBJECT.TR);
 
     SaveFIGUREtoPNG(SUBJECT.preACZ.(['CBF' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF' smthprefix '_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
     SaveFIGUREtoPNG(SUBJECT.preACZ.(['CBF' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF' smthprefix '_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
@@ -213,9 +213,9 @@ for i=1:length(smoothloop)
     SaveFIGUREtoPNG(SUBJECT.postACZ.(['AAT' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, ['postACZ_AAT' smthprefix], 'time', 'devon');
     SaveFIGUREtoPNG(SUBJECT.postACZ.(['AAT_2preACZ' smthprefix]), SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, ['postACZ_AAT_2preACZ' smthprefix], 'time', 'devon');
     if strcmp(smthprefix,'_smth')
-        SaveDataNII(SUBJECT.CVR_smth, [SUBJECT.ASLdir 'CVR_smth'], SUBJECT.dummyfilenameSaveNII_CBF,1,[], SUBJECT.TR);
-        SaveDataNII(SUBJECT.CVR_percentage_smth,[SUBJECT.ASLdir 'CVR_percentage_smth'], SUBJECT.dummyfilenameSaveNII_CBF,1,[], SUBJECT.TR);
-        SaveDataNII(SUBJECT.AATdelta_smth, [SUBJECT.ASLdir 'AATdelta_smth'], SUBJECT.dummyfilenameSaveNII_AAT,1,[], SUBJECT.TR);
+        SaveDataNII(SUBJECT.CVR_smth, fullfile(SUBJECT.ASLdir, 'CVR_smth'), SUBJECT.dummyfilenameSaveNII_CBF,1,[], SUBJECT.TR);
+        SaveDataNII(SUBJECT.CVR_percentage_smth,fullfile(SUBJECT.ASLdir, 'CVR_percentage_smth'), SUBJECT.dummyfilenameSaveNII_CBF,1,[], SUBJECT.TR);
+        SaveDataNII(SUBJECT.AATdelta_smth, fullfile(SUBJECT.ASLdir, 'AATdelta_smth'), SUBJECT.dummyfilenameSaveNII_AAT,1,[], SUBJECT.TR);
 
         SaveFIGUREtoPNG(SUBJECT.CVR_smth, SUBJECT.nanmask_reg, SUBJECT.range_cvr, SUBJECT.RESULTSdir, 'CVR_smth','CVR', 'vik');
         SaveFIGUREtoPNG(SUBJECT.CVR_percentage_smth, SUBJECT.nanmask_reg, [-100 100], SUBJECT.RESULTSdir, 'CVR_PERCENTAGE_smth','%','vik');
@@ -245,7 +245,7 @@ for i=1:info.NumberOfFrames
     end
 end
 info.NumberOfFrames= size(image, 3);
-dicomwrite(flipud(permute(reshape(int16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),[SUBJECT.ASLdir dicomname],info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+dicomwrite(flipud(permute(reshape(int16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 % preACZ CBF
 info = dicominfo(SUBJECT.preACZfilenameDCM_M0); % reference DICOM file
@@ -268,7 +268,7 @@ for i=1:info.NumberOfFrames
     end
 end
 info.NumberOfFrames= size(image, 3);
-dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),[SUBJECT.ASLdir dicomname],info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 % postACZ CBF
 info = dicominfo(SUBJECT.preACZfilenameDCM_M0); % reference DICOM file
@@ -290,7 +290,7 @@ for i=1:info.NumberOfFrames
     end
 end
 info.NumberOfFrames= size(image, 3);
-dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),[SUBJECT.ASLdir dicomname],info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 % preACZ AAT
 info = dicominfo(SUBJECT.preACZfilenameDCM_M0); % reference DICOM file
@@ -312,7 +312,7 @@ for i=1:info.NumberOfFrames
     end
 end
 info.NumberOfFrames= size(image, 3);
-dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),[SUBJECT.ASLdir dicomname],info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 % postACZ AAT
 info = dicominfo(SUBJECT.preACZfilenameDCM_M0); % reference DICOM file
@@ -334,7 +334,7 @@ for i=1:info.NumberOfFrames
     end
 end
 info.NumberOfFrames= size(image, 3);
-dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),[SUBJECT.ASLdir dicomname],info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 % deltaAAT
 info = dicominfo(SUBJECT.preACZfilenameDCM_M0); % reference DICOM file
@@ -356,7 +356,7 @@ for i=1:info.NumberOfFrames
     end
 end
 info.NumberOfFrames= size(image, 3);
-dicomwrite(flipud(permute(reshape(int16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),[SUBJECT.ASLdir dicomname],info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+dicomwrite(flipud(permute(reshape(int16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 disp('CBF, AAT, CVR Results: NIFTI, DICOM and .PNGs created')
 end

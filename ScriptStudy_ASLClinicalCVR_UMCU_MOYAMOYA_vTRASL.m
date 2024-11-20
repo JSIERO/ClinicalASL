@@ -37,10 +37,10 @@ SUBJECT.range_aCBV = [0 2]; % arterial blodo volume estimate in volume fraction 
 SUBJECT.SUBJECTdir = uigetdir(SUBJECT.masterdir,'Select subject folder');
 
 % create folder paths
-SUBJECT.DICOMdir = [SUBJECT.SUBJECTdir,'\DICOM\']; % DICOM  path
-SUBJECT.NIFTIdir = [SUBJECT.SUBJECTdir,'\NIFTI\']; % NIFTI  path
-SUBJECT.ASLdir = [SUBJECT.SUBJECTdir,'\ASL_vTR\']; % ASL path
-SUBJECT.RESULTSdir = [SUBJECT.SUBJECTdir,'\ASL_vTR\FIGURE_RESULTS\']; % RESULTS path
+SUBJECT.DICOMdir = fullfile(SUBJECT.SUBJECTdir,'DICOM/'); % DICOM  path
+SUBJECT.NIFTIdir = fullfile(SUBJECT.SUBJECTdir,'NIFTI/'); % NIFTI  path
+SUBJECT.ASLdir = fullfile(SUBJECT.SUBJECTdir,'ASL_vTR/'); % ASL path
+SUBJECT.RESULTSdir = fullfile(SUBJECT.SUBJECTdir,'ASL_vTR','FIGURE_RESULTS'); % RESULTS path
 
 % create folders
 if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir})))
@@ -50,10 +50,11 @@ if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir})
 end
 
 % convert and rename DICOM files in DICOM folder to NIFTI folder
-ASLConvertDICOMtoNIFTI(SUBJECT.DICOMdir, SUBJECT.NIFTIdir)
+ASLConvertDICOMtoNIFTI(SUBJECT.DICOMdir, SUBJECT.NIFTIdir, 'vTR_only');
 
 % Get vTR-ASL nifti filenames
-filenames_vTR = dir([SUBJECT.NIFTIdir, '*PRIDE*SOURCE*vTR*.nii.gz']);% find SOURCE data ASL
+filenames_vTR = dir(fullfile(SUBJECT.NIFTIdir, '*PRIDE*SOURCE*vTR*.nii.gz'));% find SOURCE data ASL
+filenamesize=zeros(1,length(filenames_vTR));
 for i=1:length(filenames_vTR)
     filenamesize(i)=sum(filenames_vTR(i,1).name); % sum the string values to find fielname with smallest scannumber (=preACZ)
 end
@@ -63,30 +64,30 @@ filepostACZ = filenames_vTR(Isort(2),1).name;
 SUBJECT.preACZfilenameNIFTI = filepreACZ;
 SUBJECT.postACZfilenameNIFTI = filepostACZ;
 SUBJECT.preACZfilenameDCM = filepreACZ(1:end-7);
-SUBJECT.dummyfilenameSaveNII = [SUBJECT.NIFTIdir SUBJECT.preACZfilenameNIFTI]; % location .nii.gz NIFTI to be used as dummy template for saving NII's in the tool
+SUBJECT.dummyfilenameSaveNII = fullfile(SUBJECT.NIFTIdir, SUBJECT.preACZfilenameNIFTI); % location .nii.gz NIFTI to be used as dummy template for saving NII's in the tool
 
 % extract scan parameters from DICOM
 SUBJECT = ASLExtractParamsDICOM_vTR(SUBJECT, SUBJECT.preACZfilenameDCM);
 
 % Get vTR-ASL M0 nifti filenames
-filenames_vTRM0 = dir([SUBJECT.NIFTIdir, '*SOURCE*M0*.nii.gz']);% find SOURCE data ASL
+filenames_vTRM0 = dir(fullfile(SUBJECT.NIFTIdir, '*SOURCE*M0*.nii.gz'));% find SOURCE data ASL
 filenamesizeM0=zeros(1,length(filenames_vTRM0));
 for i=1:length(filenames_vTRM0)
     filenamesizeM0(i)=sum(filenames_vTRM0(i,1).name); % sum the string values to find fielname with smallest scannumber (=preACZ)
 end
 [filenamesizeM0_sort, Isort_M0]=sort(filenamesizeM0);
-SUBJECT.preACZfilenameDCM_M0 = [SUBJECT.DICOMdir filenames_vTRM0(Isort_M0(1),1).name(1:end-7)]; % preACZ M0 DICOM used to generate DICOMs of the analysis results in ASLSaveResultsCBFAATCVR_vTRASL_Windows()
+SUBJECT.preACZfilenameDCM_M0 = fullfile(SUBJECT.DICOMdir, filenames_vTRM0(Isort_M0(1),1).name(1:end-7)); % preACZ M0 DICOM used to generate DICOMs of the analysis results in ASLSaveResultsCBFAATCVR_vTRASL_Windows()
 
-SUBJECT.preACZM0filenameNIFTI = [SUBJECT.NIFTIdir filenames_vTRM0(Isort_M0(1),1).name];
-SUBJECT.postACZM0filenameNIFTI = [SUBJECT.NIFTIdir filenames_vTRM0(Isort_M0(2),1).name];
+SUBJECT.preACZM0filenameNIFTI = fullfile(SUBJECT.NIFTIdir, filenames_vTRM0(Isort_M0(1),1).name);
+SUBJECT.postACZM0filenameNIFTI = fullfile(SUBJECT.NIFTIdir, filenames_vTRM0(Isort_M0(2),1).name);
 
 % CBF
-SUBJECT.preACZCBFfilenameNIFTI = [SUBJECT.NIFTIdir SUBJECT.preACZfilenameNIFTI(1:end-7) '.nii.gz'];
-SUBJECT.postACZCBFfilenameNIFTI = [SUBJECT.NIFTIdir SUBJECT.postACZfilenameNIFTI(1:end-7) '.nii.gz'];
+SUBJECT.preACZCBFfilenameNIFTI = fullfile(SUBJECT.NIFTIdir, [SUBJECT.preACZfilenameNIFTI(1:end-7), '.nii.gz']);
+SUBJECT.postACZCBFfilenameNIFTI = fullfile(SUBJECT.NIFTIdir, [SUBJECT.postACZfilenameNIFTI(1:end-7), '.nii.gz']);
 
 % AAT
-SUBJECT.preACZAATfilenameNIFTI = [SUBJECT.NIFTIdir SUBJECT.preACZfilenameNIFTI(1:end-7) 'a.nii.gz'];
-SUBJECT.postACZAATfilenameNIFTI = [SUBJECT.NIFTIdir SUBJECT.postACZfilenameNIFTI(1:end-7) 'a.nii.gz'];
+SUBJECT.preACZAATfilenameNIFTI = fullfile(SUBJECT.NIFTIdir, [SUBJECT.preACZfilenameNIFTI(1:end-7), 'a.nii.gz']);
+SUBJECT.postACZAATfilenameNIFTI = fullfile(SUBJECT.NIFTIdir, [SUBJECT.postACZfilenameNIFTI(1:end-7), 'a.nii.gz']);
 
 SUBJECT.dummyfilenameSaveNII_M0 = SUBJECT.preACZM0filenameNIFTI; % location .nii.gz NIFTI to be used as dummy template for saving NII's in the tool
 SUBJECT.dummyfilenameSaveNII_CBF = SUBJECT.preACZCBFfilenameNIFTI; % location .nii.gz NIFTI to be used as dummy template for saving NII's in the tool
@@ -94,10 +95,10 @@ SUBJECT.dummyfilenameSaveNII_AAT = SUBJECT.preACZAATfilenameNIFTI; % location .n
 
 disp('DICOMs converted to NIFTI');
 %% %%%%%%%%%%%%%%%%%%%%%%%%  7. Generate resulting CBF/CVR/AAT/aCBV .png images %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-SUBJECT = ASLSaveResultsCBFAATCVR_vTRASL_Windows(SUBJECT);
+SUBJECT = ASLSaveResultsCBFAATCVR_vTRASL(SUBJECT);
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 8. Save workspace %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Workspace_ClinicalASL_vTR = [SUBJECT.SUBJECTdir '/Workspace_ClinicalASL_vTR.mat'];
+Workspace_ClinicalASL_vTR = fullfile(SUBJECT.SUBJECTdir, 'Workspace_ClinicalASL_vTR.mat');
 save(Workspace_ClinicalASL_vTR,'-v7.3');
 disp('-- Finished --');
 
