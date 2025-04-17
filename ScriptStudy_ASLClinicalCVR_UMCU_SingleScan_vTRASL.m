@@ -91,7 +91,6 @@ SUBJECT.dummyfilenameSaveNII_AAT = SUBJECT.vTRAATfilenameNIFTI; % location .nii.
 
 disp('DICOMs converted to NIFTI');
 %% %%%%%%%%%%%%%%%%%%%%%%%%  7. Generate resulting CBF/CVR/AAT/aCBV .png images %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-SUBJECT = ASLSaveResultsCBFAATCVR_vTRASL(SUBJECT);
 SUBJECT = ASLSaveResultsCBFAAT_vTRASL(SUBJECT);
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 8. Save workspace %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

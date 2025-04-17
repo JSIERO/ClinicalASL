@@ -74,9 +74,9 @@ for i=1:length(smoothloop)
     SaveDataNII(SUBJECT.vTR.(['CBF' smthprefix]), fullfile(SUBJECT.ASLdir, ['vTR_CBF' smthprefix]), SUBJECT.dummyfilenameSaveNII_CBF, 1, [], SUBJECT.TR);
     SaveDataNII(SUBJECT.vTR.(['AAT' smthprefix]), fullfile(SUBJECT.ASLdir, ['vTR_AAT' smthprefix]), SUBJECT.dummyfilenameSaveNII_AAT, 1, [], SUBJECT.TR);
 
-    SaveFIGUREtoPNG(SUBJECT.vTR.(['CBF' smthprefix]), SUBJECT.nanmask, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['vTR_CBF' smthprefix '_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
-    SaveFIGUREtoPNG(SUBJECT.vTR.(['CBF' smthprefix]), SUBJECT.nanmask, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['vTR_CBF' smthprefix '_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
-    SaveFIGUREtoPNG(SUBJECT.vTR.(['AAT' smthprefix]), SUBJECT.nanmask, SUBJECT.range_AAT, SUBJECT.RESULTSdir, ['vTR_AAT' smthprefix], 'time', 'devon');
+    SaveFIGUREtoPNG(SUBJECT.vTR.(['CBF' smthprefix]), SUBJECT.vTR.nanmask, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['vTR_CBF' smthprefix '_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
+    SaveFIGUREtoPNG(SUBJECT.vTR.(['CBF' smthprefix]), SUBJECT.vTR.nanmask, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['vTR_CBF' smthprefix '_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
+    SaveFIGUREtoPNG(SUBJECT.vTR.(['AAT' smthprefix]), SUBJECT.vTR.nanmask, SUBJECT.range_AAT, SUBJECT.RESULTSdir, ['vTR_AAT' smthprefix], 'time', 'devon');
 end
 
 %% Save to DICOMS: CBF, AAT
