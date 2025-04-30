@@ -109,13 +109,15 @@ for i=1:length(smoothloop)
 end
 
 %% Save to DICOMS: CBF, AAT, CVR, delta AAT
-% CVR
-info = dicominfo(SUBJECT.preACZfilenameDCM_M0); % reference DICOM file
-image = SUBJECT.CVR_smth;
-name = 'WIP CVR vTR-ASL';
-dicomname = 'CVR_smth.dcm';
+info_ref = dicominfo([SUBJECT.DICOMdir,SUBJECT.preACZfilenameDCM]); % reference DICOM file
+
+% preACZ CBF
+info = info_ref; %copy DICOM info of reference DICOM
+image = SUBJECT.preACZ.CBF;
+name = 'WIP preACZ CBF MD-ASL';
+dicomname = 'preACZ_CBF.dcm';
 [a,b,c] = size(image);
-scalingfactor = (2^15-1)/max(image,[],'all'); % for conversion to signed int16
+scalingfactor = (2^16)/max(image,[],'all'); % for conversion to unsigned int16, divided by 10 otherwize clipping
 info.SeriesDescription = name;
 info.ProtocolName = name;
 info.SeriesNumber = info.SeriesNumber + 1;
@@ -123,66 +125,21 @@ info.SeriesNumber = info.SeriesNumber + 1;
 for i=1:info.NumberOfFrames
     info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
     info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
-    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_cvr);
-    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_cvr);
-    if i > size(image, 3) %remove extra frames larger than slice number input image
-        info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
-    end
-end
-info.NumberOfFrames= size(image, 3);
-dicomwrite(flipud(permute(reshape(int16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
-
-% preACZ CBF
-info = dicominfo(SUBJECT.preACZfilenameDCM_M0); % reference DICOM file
-image = SUBJECT.preACZ.CBF;
-name = 'WIP preACZ CBF vTR-ASL';
-dicomname = 'preACZ_CBF.dcm';
-[a,b,c] = size(image);
-scalingfactor = (2^16)/max(image,[],'all'); % for conversion to unsigned int16, divided by 10 otherwize clipping
-info.SeriesDescription = name;
-info.ProtocolName = name;
-info.SeriesNumber = info.SeriesNumber + 2;
-
-for i=1:info.NumberOfFrames
-    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
-    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
     info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_adult_cbf);
     info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_adult_cbf);
     if i > size(image, 3) %remove extra frames larger than slice number input image
         info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
     end
 end
-info.NumberOfFrames= size(image, 3);
-dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
-
-% postACZ CBF
-info = dicominfo(SUBJECT.preACZfilenameDCM_M0); % reference DICOM file
-image = SUBJECT.postACZ.CBF;
-name = 'WIP postACZ CBF vTR-ASL';
-dicomname = 'postACZ_CBF.dcm';
-[a,b,c] = size(image);
-scalingfactor = (2^16)/max(image,[],'all')/10; % for conversion to unsigned int16, divided by 10 otherwize clipping
-info.SeriesDescription = name;
-info.ProtocolName = name;
-info.SeriesNumber = info.SeriesNumber + 3;
-for i=1:info.NumberOfFrames
-    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
-    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
-    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_adult_cbf);
-    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_adult_cbf);
-    if i > size(image, 3) %remove extra frames larger than slice number input image
-        info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
-    end
-end
-info.NumberOfFrames= size(image, 3);
+info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 % preACZ AAT
-info = dicominfo(SUBJECT.preACZfilenameDCM_M0); % reference DICOM file
+info = info_ref; %copy DICOM info of reference DICOM
 image = SUBJECT.preACZ.AAT;
-name = 'WIP preACZ AAT(s) vTR-ASL';
+name = 'WIP preACZ AAT(s) MD-ASL';
 dicomname = 'preACZ_AAT.dcm';
-info.SeriesNumber = info.SeriesNumber + 4;
+info.SeriesNumber = info.SeriesNumber + 2;
 [a,b,c] = size(image);
 scalingfactor = (2^16)/max(image,[],'all')/10; % for conversion to unsigned int16, divided by 10 otherwize clipping
 info.SeriesDescription = name;
@@ -196,19 +153,65 @@ for i=1:info.NumberOfFrames
         info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
     end
 end
-info.NumberOfFrames= size(image, 3);
+info.NumberOfFrames = size(image, 3);
+dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+
+% CVR
+info = info_ref; %copy DICOM info of reference DICOM
+image = SUBJECT.CVR_smth;
+name = 'WIP CVR MD-ASL';
+dicomname = 'CVR.dcm';
+[a,b,c] = size(image);
+scalingfactor = (2^15-1)/max(image,[],'all'); % for conversion to signed int16
+info.SeriesDescription = name;
+info.ProtocolName = name;
+info.SeriesNumber = info.SeriesNumber + 3;
+
+for i=1:info.NumberOfFrames
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_cvr);
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_cvr);
+    if i > size(image, 3) %remove extra frames larger than slice number input image
+        info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
+    end
+end
+info.NumberOfFrames = size(image, 3);
+dicomwrite(flipud(permute(reshape(int16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+
+% postACZ CBF
+info_ref= dicominfo([SUBJECT.DICOMdir,SUBJECT.postACZfilenameDCM]); % reference DICOM file
+info = info_ref; %copy DICOM info of reference DICOM
+image = SUBJECT.postACZ.CBF;
+name = 'WIP postACZ CBF MD-ASL';
+dicomname = 'postACZ_CBF.dcm';
+[a,b,c] = size(image);
+scalingfactor = (2^16)/max(image,[],'all')/10; % for conversion to unsigned int16, divided by 10 otherwize clipping
+info.SeriesDescription = name;
+info.ProtocolName = name;
+info.SeriesNumber = info.SeriesNumber + 1;
+for i=1:info.NumberOfFrames
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_adult_cbf);
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_adult_cbf);
+    if i > size(image, 3) %remove extra frames larger than slice number input image
+        info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
+    end
+end
+info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 % postACZ AAT
-info = dicominfo(SUBJECT.preACZfilenameDCM_M0); % reference DICOM file
+info = info_ref; %copy DICOM info of reference DICOM
 image = SUBJECT.postACZ.AAT;
-name = 'WIP postACZ AAT(s) vTR-ASL';
+name = 'WIP postACZ AAT(s) MD-ASL';
 dicomname = 'postACZ_AAT.dcm';
 [a,b,c] = size(image);
 scalingfactor = (2^16)/max(image,[],'all')/10; % for conversion to unsigned int16
 info.SeriesDescription = name;
 info.ProtocolName = name;
-info.SeriesNumber = info.SeriesNumber + 5;
+info.SeriesNumber = info.SeriesNumber + 2;
 for i=1:info.NumberOfFrames
     info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
     info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
@@ -218,30 +221,8 @@ for i=1:info.NumberOfFrames
         info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
     end
 end
-info.NumberOfFrames= size(image, 3);
+info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
-
-% deltaAAT
-info = dicominfo(SUBJECT.preACZfilenameDCM_M0); % reference DICOM file
-image = SUBJECT.AATdelta_smth;
-name = 'WIP deltaAAT(s) vTR-ASL';
-dicomname = 'AATdelta_smth.dcm';
-[a,b,c] = size(image);
-scalingfactor = (2^15-1)/max(image,[],'all'); % for conversion to signed int16
-info.SeriesDescription = name;
-info.ProtocolName = name;
-info.SeriesNumber = info.SeriesNumber + 6;
-for i=1:info.NumberOfFrames
-    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
-    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
-    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_AATdelta);
-    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_AATdelta);
-    if i > size(image, 3) %remove extra frames larger than slice number input image
-        info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
-    end
-end
-info.NumberOfFrames= size(image, 3);
-dicomwrite(flipud(permute(reshape(int16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 disp('CBF, AAT, CVR Results: NIFTI, DICOM and .PNGs created')
 

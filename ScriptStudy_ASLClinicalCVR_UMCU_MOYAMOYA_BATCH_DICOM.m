@@ -93,8 +93,8 @@ for subj=1:length(subjnames)
 
     %% %%%%%%%%%%%%%%%%%%%%%%% 3. Modify NIFTI to correct names, correct Mz loss (small fip angle) using Look Locker correction %%%%%%%%%%%%%%%%%%%%%
     % save per PLD and control and label volumes (interleaved), and save all ASL and M0 in struct SUBJECT
-    SUBJECT = ASLPrepareASLDataDICOM(SUBJECT, SUBJECT.preACZfilenameNIFTI, 'preACZ'); % preACZ
-    SUBJECT = ASLPrepareASLDataDICOM(SUBJECT, SUBJECT.postACZfilenameNIFTI, 'postACZ'); % postACZ
+    SUBJECT = ASLPrepareASLDataDICOM(SUBJECT, SUBJECT.preACZfilenameNIFTI, 'preACZ','complete'); % preACZ
+    SUBJECT = ASLPrepareASLDataDICOM(SUBJECT, SUBJECT.postACZfilenameNIFTI, 'postACZ','complete'); % postACZ
 
     disp('DICOMs converted to NIFTI');
 
