@@ -8,7 +8,6 @@ clc
 tic
 %% SOURCE DATA SUBJECTS
 SUBJECT.masterdir='/Fridge/users/jeroen/MOYAMOYA/';
-subjnames={'4DMRATest_Bhog_Sim_20231912'}
 
 SUBJECT.tau = 2; % Label duration
 SUBJECT.N_BS = 4; % Number of background suppression pulses
@@ -18,11 +17,11 @@ SUBJECT.T1t = 1.3;    %s T1 of tissue DEFAULT is 1.3 at 3T, Alsop MRM 2014
 SUBJECT.T1b = 1.65;   %s T1 of arterial blood DEFAULT is 1.65 at 3T, Alsop MRM 2014
 SUBJECT.FWHM = 6; % smoothing kernel size 6mm FWHM, for CBF, AAT
 SUBJECT.FWHM_M0 = 5; % smoothing kernel size  5mm FWHM, for M0_forQCBF for manual quantification
+SUBJECT.ORmethod = 'OnlyHighCBF'; %ORmethod: 'OnlyHighCBF': only use step1 of outlier removal (high CBF volumes), 'Duloi': or step1 + step2 (Duloi)
 SUBJECT.outlierFactor = 2.5; % outlierFactor x stds from mean CBF are considered outliers in step1 of Dolui et al SCORE method
 SUBJECT.range_cbf = [0 100]; % colourbar range for CBF values
 SUBJECT.range_AAT = [0.5 2.5]; % time (s), arterial arrival time
 SUBJECT.range_aCBV = [0 2]; % arterial blodo volume estimate in volume fraction voxel (%)
-
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Get subject folder name, select folder containing all patient data
@@ -61,6 +60,10 @@ if size(fileSOURCEASLNIFTI,1) > 1
     warning(' More than 1 SOURCE ASL dataset found -  !! taking the last scanned dataset... !!')
 end
 
+% convert and rename DICOM files in DICOM folder to NIFTI folder
+ASLConvertDICOMtoNIFTI(SUBJECT.DICOMdir, SUBJECT.NIFTIdir)
+
+% Get ASL nifti & dicom filenames
 SUBJECT.filenameNIFTI = fileSOURCEASLNIFTI(end,1).name;
 SUBJECT.filenameDCM = fileSOURCEASLNIFTI(end,1).name(1:end-7);
 
@@ -68,36 +71,41 @@ SUBJECT.filenameDCM = fileSOURCEASLNIFTI(end,1).name(1:end-7);
 % Fetch scan parameters
 SUBJECT = ASLExtractParamsDICOM(SUBJECT, SUBJECT.filenameDCM);
 SUBJECT.dummyfilenameSaveNII = [SUBJECT.NIFTIdir SUBJECT.filenameNIFTI]; % lication .nii.gz NIFTI to be used as dummy template for saving NII's in the tool
-   
 % Obtain Look-Locker correction factor
 SUBJECT.LookLocker_correction_factor_perPLD = ASLLookLockerCorrectionFactor_mDelayPCASL(SUBJECT); % LookLocker correction factor, depending on the flipangle and PLDs
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 3. Modify NIFTI to correct names, correct Mz loss (small fip angle) using Look Locker correction %%%%%%%%%%%%%%%%%%%%%
 % save per PLD and control and label volumes (interleaved), and save all ASL and M0 in struct SUBJECT
-SUBJECT = ASLPrepareASLData(SUBJECT, SUBJECT.filenameNIFTI, 'ASL');
+SUBJECT = ASLPrepareASLDataDICOM(SUBJECT, SUBJECT.filenameNIFTI, 'ASL', 'complete');
+disp('DICOMs converted to NIFTI');
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 4. Generate T1 from M0 , T1 Tissue segmentation and registration to T1 anatomy and MNI %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Locate T1 anatomy NIFTI
-SUBJECT.T1ANATfilenameNIFTI = dir([SUBJECT.NIFTIdir, '*T1*3D*TFE*.nii*']); % find T1 anatomy NIFTI filename
-SUBJECT.T1ANATfilenameNIFTI = SUBJECT.T1ANATfilenameNIFTI.name;
-
-% T1w ANATOMY scan brain extraction and FSL FAST segmentation in GM, WM and CSF of  into ANATOMY dir
-T1Processing(SUBJECT, SUBJECT.T1ANATfilenameNIFTI);
-
 % create T1fromM0 and save M0 from ASL multiPLD data, and tissue segmentation using FSL FAST: this is now used for GM, WM, and CSF masks in ASL outlierremoval: otherwise change in ASLT1fromM0Processing
 SUBJECT = ASLT1fromM0Processing(SUBJECT, 'ASL');
-
-% Register T1 and tissue segmentations to ASL space
-ASLT1Registration(SUBJECT,'ASL');
 
 % Register MNI segmentations to ASL space using the T1fromM0
 ASLMNIRegistration(SUBJECT,'ASL');
 disp('T1 ASL MNI tissue segmentation and registration finished');
 
-%% %%%%%%%%%%%%%%%%%%%%%%%% 5. Outlier identification %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Dolui et al. SCORE outlier method
+% Locate T1 anatomy NIFTI
+SUBJECT.T1ANATfilenameNIFTI = dir([SUBJECT.NIFTIdir, '*T1*3D*TFE*.nii*']); % find T1 anatomy NIFTI filename
 
-SUBJECT = ASLOutlierRemoval(SUBJECT, 'ASL');
+if ~isempty(SUBJECT.T1ANATfilenameNIFTI) %
+    SUBJECT.T1ANATfilenameNIFTI = SUBJECT.T1ANATfilenameNIFTI.name;
+
+    % T1w ANATOMY scan brain extraction and FSL FAST segmentation in GM, WM and CSF of  into ANATOMY dir
+    T1Processing(SUBJECT, SUBJECT.T1ANATfilenameNIFTI);
+
+    % Register T1 and tissue segmentations to ASL space
+    ASLT1Registration(SUBJECT,'ASL');
+else
+    warning('No T1 anatomy found! please have a close look')
+    return
+end
+
+%% %%%%%%%%%%%%%%%%%%%%%%%% 5. Outlier identification %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% discard volumes with very high CBF or use Dolui et al. SCORE outlier method
+SUBJECT = ASLOutlierRemoval(SUBJECT, 'ASL', SUBJECT.ORmethod);
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 6. BASIL CBF Analysis for both Original and Outlier removed ASL data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('Perform BASIL analysis for both original and outlier removed ASL data')
