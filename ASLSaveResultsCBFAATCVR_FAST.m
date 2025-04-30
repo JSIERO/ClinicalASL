@@ -1,5 +1,5 @@
 function SUBJECT = ASLSaveResultsCBFAATCVR_FAST(SUBJECT)
-% ClinicalASL toolbox 2023, JCWSiero
+% ClinicalASL toolbox 2025, JCWSiero
 ORprefix='';
 %% CBF using 2ndtolast PLD, compute CVR
 % register postACZ to preACZ, save BASIl results: NIFTI and PNG - loops over smoothed BASIl data

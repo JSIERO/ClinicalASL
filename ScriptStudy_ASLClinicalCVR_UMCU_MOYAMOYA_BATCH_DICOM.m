@@ -47,10 +47,13 @@ for subj=1:length(subjnames)
     SUBJECT.RESULTSdir = [SUBJECT.SUBJECTdir,'/ASL/FIGURE_RESULTS/']; % RESULTS path
     %extra FSL BASIL options .txt location
     SUBJECT.locationBASILinfo=[SUBJECT.masterdir 'BASIL_OPTIONS.txt']; % location .txt file with addition model options for CBF quantification BASIL
-
+    if ~isfile(SUBJECT.locationBASILinfo)
+        warning('no BASIL_OPTIONS.txt file found in study folder (masterdir), please copy from GITHUB/ClinicalASL/')
+        return
+    end
     %check and create folders
     if ~isfolder(SUBJECT.MNIdir)
-        error('No MNI folder found in masterdir, please copy from GITHUB/ClinicalASL repository')
+        error('No MNI folder found in study folder masterdir, please copy from GITHUB/ClinicalASL repository')
     end
 
     if logical(max(~isfolder({SUBJECT.ANATOMYdir; SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir; SUBJECT.SUBJECTMNIdir})))

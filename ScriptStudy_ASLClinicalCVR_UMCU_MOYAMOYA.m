@@ -34,8 +34,9 @@ SUBJECT.SUBJECTdir = uigetdir(SUBJECT.masterdir,'Select subject folder');
 % create folder paths
 SUBJECT.ANATOMYdir = [SUBJECT.SUBJECTdir,'/ANATOMY/']; % T1 anatomy path
 SUBJECT.MNIdir = [SUBJECT.masterdir 'MNI/']; % MNI path, needs MNI_T1_2mm_brain MNI_BRAINMASK_2mm, and seg_0, seg_1, seg_2 (CSF, GM and WM) tissue segmentations: obtain from GITHUB/ClinicalASL
-if ~isfolder([SUBJECT.masterdir 'MNI/'])
-    warning('no MNI folder found in study folder (masterdir), please copy from GITHUB/ClinicalASL')
+if ~isfolder(SUBJECT.MNIdir)
+    warning('no MNI folder found in study folder (masterdir), please copy from GITHUB/ClinicalASL/ repository')
+    return
 end
 SUBJECT.SUBJECTMNIdir = [SUBJECT.SUBJECTdir '/MNI/']; % MNI path
 SUBJECT.DICOMdir = [SUBJECT.SUBJECTdir,'/DICOM/']; % DICOM  path
@@ -43,8 +44,11 @@ SUBJECT.NIFTIdir = [SUBJECT.SUBJECTdir,'/NIFTI/']; % NIFTI  path
 SUBJECT.ASLdir = [SUBJECT.SUBJECTdir,'/ASL/']; % ASL path
 SUBJECT.RESULTSdir = [SUBJECT.SUBJECTdir,'/ASL/FIGURE_RESULTS/']; % RESULTS path
 % extra FSL BASIL options .txt location
-SUBJECT.locationBASILinfo=[SUBJECT.masterdir 'BASIL_OPTIONS.txt']; % location .txt file with addition model options for CBF quantification BASIL
-
+SUBJECT.locationBASILinfo = [SUBJECT.masterdir 'BASIL_OPTIONS.txt']; % location .txt file with addition model options for CBF quantification BASIL
+if ~isfile(SUBJECT.locationBASILinfo)
+    warning('no BASIL_OPTIONS.txt file found in study folder (masterdir), please copy from GITHUB/ClinicalASL/ repository')
+    return
+end
 % create folders
 if logical(max(~isfolder({SUBJECT.ANATOMYdir; SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir; SUBJECT.SUBJECTMNIdir})))
     mkdir(SUBJECT.ANATOMYdir); % create Anatomy folder
