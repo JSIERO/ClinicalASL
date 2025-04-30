@@ -46,6 +46,7 @@ SUBJECT.locationBASILinfo=[SUBJECT.masterdir 'BASIL_OPTIONS.txt']; % location .t
 if logical(max(~isfolder({SUBJECT.ANATOMYdir; SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir; SUBJECT.SUBJECTMNIdir})))
     mkdir(SUBJECT.ANATOMYdir); % create Anatomy folder
     mkdir(SUBJECT.SUBJECTMNIdir); % create subject MNI folder
+    mkdir(SUBJECT.DICOMdir); % create DICOM folder
     mkdir(SUBJECT.NIFTIdir); % create NIFTI folder
     mkdir(SUBJECT.ASLdir); % create ASL folder
     mkdir(SUBJECT.RESULTSdir); % create RESULTS folder
@@ -80,7 +81,6 @@ SUBJECT.LookLocker_correction_factor_perPLD = ASLLookLockerCorrectionFactor_mDel
 % save per PLD and control and label volumes (interleaved), and save all ASL and M0 in struct SUBJECT
 SUBJECT = ASLPrepareASLDataDICOM(SUBJECT, SUBJECT.preACZfilenameNIFTI, 'preACZ','complete'); % preACZ
 SUBJECT = ASLPrepareASLDataDICOM(SUBJECT, SUBJECT.postACZfilenameNIFTI, 'postACZ','complete'); % postACZ
-
 disp('DICOMs converted to NIFTI');
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 4. Generate T1 from M0 , T1 Tissue segmentation and registration to T1 anatomy and MNI %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
