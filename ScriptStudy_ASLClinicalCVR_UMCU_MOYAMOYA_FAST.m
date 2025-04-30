@@ -33,7 +33,10 @@ SUBJECT.ASLdir = [SUBJECT.SUBJECTdir,'/ASL/']; % ASL path
 SUBJECT.RESULTSdir = [SUBJECT.SUBJECTdir,'/ASL/FIGURE_RESULTS/']; % RESULTS path
 % extra FSL BASIL options .txt location
 SUBJECT.locationBASILinfo=[SUBJECT.masterdir 'BASIL_OPTIONS.txt']; % location .txt file with addition model options for CBF quantification BASIL
-
+if ~isfile(SUBJECT.locationBASILinfo)
+    warning('no BASIL_OPTIONS.txt file found in study folder (masterdir), please copy from GITHUB/ClinicalASL/ repository')
+    return
+end
 % create folders
 if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir})))
     mkdir(SUBJECT.NIFTIdir); % create NIFTI folder
