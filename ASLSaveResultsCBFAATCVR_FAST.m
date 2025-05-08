@@ -109,18 +109,15 @@ for i=1:length(smoothloop)
 end
 
 %% Save to DICOMS: CBF, AAT, CVR, delta AAT
-info_ref = dicominfo([SUBJECT.DICOMdir,SUBJECT.preACZfilenameDCM]); % reference DICOM file
-
 % preACZ CBF
-info = info_ref; %copy DICOM info of reference DICOM
+info = dicominfo([SUBJECT.DICOMdir,SUBJECT.preACZfilenameDCM_CBF]); % reference DICOM file
 image = SUBJECT.preACZ.CBF;
 name = 'WIP preACZ CBF MD-ASL';
-dicomname = 'preACZ_CBF.dcm';
+dicomname = [SUBJECT.preACZfilenameDCM_CBF '.dcm'];
 [a,b,c] = size(image);
 scalingfactor = (2^16)/max(image,[],'all'); % for conversion to unsigned int16, divided by 10 otherwize clipping
 info.SeriesDescription = name;
 info.ProtocolName = name;
-info.SeriesNumber = info.SeriesNumber + 1;
 
 for i=1:info.NumberOfFrames
     info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
@@ -135,11 +132,10 @@ info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 % preACZ AAT
-info = info_ref; %copy DICOM info of reference DICOM
+info = dicominfo([SUBJECT.DICOMdir,SUBJECT.preACZfilenameDCM_AAT]); % reference DICOM file
 image = SUBJECT.preACZ.AAT;
 name = 'WIP preACZ AAT(s) MD-ASL';
-dicomname = 'preACZ_AAT.dcm';
-info.SeriesNumber = info.SeriesNumber + 2;
+dicomname = [SUBJECT.preACZfilenameDCM_AAT '.dcm'];
 [a,b,c] = size(image);
 scalingfactor = (2^16)/max(image,[],'all')/10; % for conversion to unsigned int16, divided by 10 otherwize clipping
 info.SeriesDescription = name;
@@ -157,15 +153,14 @@ info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 % CVR
-info = info_ref; %copy DICOM info of reference DICOM
+info = dicominfo([SUBJECT.DICOMdir,SUBJECT.preACZfilenameDCM_CVR]); % reference DICOM file
 image = SUBJECT.CVR_smth;
 name = 'WIP CVR MD-ASL';
-dicomname = 'CVR.dcm';
+dicomname = [SUBJECT.preACZfilenameDCM_CVR '.dcm'];
 [a,b,c] = size(image);
 scalingfactor = (2^15-1)/max(image,[],'all'); % for conversion to signed int16
 info.SeriesDescription = name;
 info.ProtocolName = name;
-info.SeriesNumber = info.SeriesNumber + 3;
 
 for i=1:info.NumberOfFrames
     info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
@@ -180,16 +175,15 @@ info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(int16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 % postACZ CBF
-info_ref= dicominfo([SUBJECT.DICOMdir,SUBJECT.postACZfilenameDCM]); % reference DICOM file
+info_ref= dicominfo([SUBJECT.DICOMdir,SUBJECT.postACZfilenameDCM_CBF]); % reference DICOM file
 info = info_ref; %copy DICOM info of reference DICOM
 image = SUBJECT.postACZ.CBF;
 name = 'WIP postACZ CBF MD-ASL';
-dicomname = 'postACZ_CBF.dcm';
+dicomname = [SUBJECT.postACZfilenameDCM_CBF '.dcm'];
 [a,b,c] = size(image);
 scalingfactor = (2^16)/max(image,[],'all')/10; % for conversion to unsigned int16, divided by 10 otherwize clipping
 info.SeriesDescription = name;
 info.ProtocolName = name;
-info.SeriesNumber = info.SeriesNumber + 1;
 for i=1:info.NumberOfFrames
     info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
     info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
@@ -203,15 +197,14 @@ info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 % postACZ AAT
-info = info_ref; %copy DICOM info of reference DICOM
+info = dicominfo([SUBJECT.DICOMdir,SUBJECT.postACZfilenameDCM_AAT]); % reference DICOM file
 image = SUBJECT.postACZ.AAT;
 name = 'WIP postACZ AAT(s) MD-ASL';
-dicomname = 'postACZ_AAT.dcm';
+dicomname = [SUBJECT.postACZfilenameDCM_AAT '.dcm'];
 [a,b,c] = size(image);
 scalingfactor = (2^16)/max(image,[],'all')/10; % for conversion to unsigned int16
 info.SeriesDescription = name;
 info.ProtocolName = name;
-info.SeriesNumber = info.SeriesNumber + 2;
 for i=1:info.NumberOfFrames
     info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
     info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
