@@ -59,21 +59,29 @@ end
 SUBJECT.preACZfilenameNIFTI = filepreACZ(end,1).name;
 SUBJECT.postACZfilenameNIFTI = filepostACZ(end,1).name;
 % Get ASL DICOM filenames
-SUBJECT.postACZfilenameDCM = filepostACZ(end,1).name(1:end-7); % DICOM ASL source file
+SUBJECT.preACZfilenameDCM = filepreACZ(end,1).name(1:end-7); % DICOM ASL source file
 SUBJECT.postACZfilenameDCM = filepostACZ(end,1).name(1:end-7); % DICOM ASL source file
 
-% find DICOM dummy file names for CBF, CVR, AAT, pre/post ACZ created by immgeAlgebra in Philips Examcard
-preACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'sWIP*CBF*preACZ*']);% find SOURCE data ASL
-preACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'sWIP*AAT*preACZ*']);% find SOURCE data ASL
-preACZfilenameDCM_CVR = dir([SUBJECT.DICOMdir, 'sWIP*CVR*preACZ*']);% find SOURCE data ASL
-postACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'sWIP*CBF*postACZ*']);% find SOURCE data ASL
-postACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'sWIP*AAT*postACZ*']);% find SOURCE data ASL
+dummydcm = dir([SUBJECT.DICOMdir, 'WIP*CBF*preACZ*']);
+if size(dummydcm,1) > 0 % find DICOM dummy file names for CBF, CVR, AAT, pre/post ACZ created by immgeAlgebra in Philips Examcard
+    preACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'WIP*CBF*preACZ*']);% find SOURCE data ASL
+    preACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'WIP*AAT*preACZ*']);% find SOURCE data ASL
+    preACZfilenameDCM_CVR = dir([SUBJECT.DICOMdir, 'WIP*CVR*preACZ*']);% find SOURCE data ASL
+    postACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'WIP*CBF*postACZ*']);% find SOURCE data ASL
+    postACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'WIP*AAT*postACZ*']);% find SOURCE data ASL
 
-SUBJECT.preACZfilenameDCM_CBF = preACZfilenameDCM_CBF.name; % DICOM CBF dummy file
-SUBJECT.preACZfilenameDCM_AAT = preACZfilenameDCM_AAT.name; % DICOM AAT dummy file
-SUBJECT.preACZfilenameDCM_CVR = preACZfilenameDCM_CVR.name; % DICOM CVR dummy file
-SUBJECT.postACZfilenameDCM_CBF = postACZfilenameDCM_CBF.name; % DICOM CBF dummy file
-SUBJECT.postACZfilenameDCM_AAT = postACZfilenameDCM_AAT.name; % DICOM AAT dummy file
+    SUBJECT.preACZfilenameDCM_CBF = preACZfilenameDCM_CBF.name; % DICOM CBF dummy file
+    SUBJECT.preACZfilenameDCM_AAT = preACZfilenameDCM_AAT.name; % DICOM AAT dummy file
+    SUBJECT.preACZfilenameDCM_CVR = preACZfilenameDCM_CVR.name; % DICOM CVR dummy file
+    SUBJECT.postACZfilenameDCM_CBF = postACZfilenameDCM_CBF.name; % DICOM CBF dummy file
+    SUBJECT.postACZfilenameDCM_AAT = postACZfilenameDCM_AAT.name; % DICOM AAT dummy file
+else % use original source ASL DICOM, takes longer to load
+    SUBJECT.preACZfilenameDCM_CBF = SUBJECT.preACZfilenameDCM; % DICOM CBF dummy file
+    SUBJECT.preACZfilenameDCM_AAT = SUBJECT.preACZfilenameDCM; % DICOM AAT dummy file
+    SUBJECT.preACZfilenameDCM_CVR = SUBJECT.preACZfilenameDCM; % DICOM CVR dummy file
+    SUBJECT.postACZfilenameDCM_CBF = SUBJECT.postACZfilenameDCM; % DICOM CBF dummy file
+    SUBJECT.postACZfilenameDCM_AAT = SUBJECT.postACZfilenameDCM; % DICOM AAT dummy file
+end
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 2. Extract DICOM information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Fetch scan parameters
