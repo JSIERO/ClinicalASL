@@ -15,7 +15,7 @@ SUBJECT.T1t = 1.3;    %s T1 of tissue DEFAULT is 1.3 at 3T, Alsop MRM 2014
 SUBJECT.T1b = 1.65;   %s T1 of arterial blood DEFAULT is 1.65 at 3T, Alsop MRM 2014
 SUBJECT.FWHM = 6; % smoothing kernel size 6mm FWHM, for CBF, AAT
 SUBJECT.FWHM_M0 = 5; % smoothing kernel size  5mm FWHM, for M0_forQCBF for manual quantification
-SUBJECT.range_cbf = [0 100]; % colourbar range for CBF values
+SUBJECT.range_cbf = [0 75]; % colourbar range for CBF values
 SUBJECT.range_AAT = [0.5 2.5]; % time (s), arterial arrival time
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
