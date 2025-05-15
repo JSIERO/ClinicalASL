@@ -1,4 +1,4 @@
-function ScriptStudy_ASLClinicalCVR_UMCU_MOYAMOYA_FAST_IMAGER(inputdir)
+function MRI_DIAMOX_UMCU_ClinicalASL_CVR_IMAGER(inputdir)
 % ClinicalASL toolbox 2025, JCWSiero
 %%%%%%%%%%%%%%%%%%%%% ASL Analysis %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % written by Jeroen Siero  25-05-2023 for the MOYAMOYA study
