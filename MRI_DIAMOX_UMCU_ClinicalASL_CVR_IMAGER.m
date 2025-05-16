@@ -6,15 +6,16 @@ function MRI_DIAMOX_UMCU_ClinicalASL_CVR_IMAGER(inputdir)
 %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Get subject folder name, select folder containing all patient data
 SUBJECT.SUBJECTdir = inputdir;
+docker_compiled_app_location = '/app/compiled_matlab_app/';
 
 % location of registration Elastix File and FSL BASIL options
-SUBJECT.ElastixParameterFile = 'Par0001rigid_6DOF_MI_NIFTIGZ.txt'; % use 6DOF, rigidbody, Mutual information for registration
+SUBJECT.ElastixParameterFile = fullfile(docker_compiled_app_location,'Par0001rigid_6DOF_MI_NIFTIGZ.txt'); % use 6DOF, rigidbody, Mutual information for registration
 if ~isfile(SUBJECT.ElastixParameterFile)
     warning('no Elastix registration TXT file found in folder, please copy from GITHUB/ClinicalASL/ repository')
     return
 end
 
-SUBJECT.locationBASILinfo='BASIL_OPTIONS.txt'; % location .txt file with addition model options for CBF quantification FSL BASIL
+SUBJECT.locationBASILinfo = fullfile(docker_compiled_app_location,'BASIL_OPTIONS.txt'); % location .txt file with addition model options for CBF quantification FSL BASIL
 if ~isfile(SUBJECT.locationBASILinfo)
     warning('no BASIL_OPTIONS.txt file found in folder, please copy from GITHUB/ClinicalASL/ repository')
     return
