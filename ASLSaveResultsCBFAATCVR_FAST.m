@@ -77,7 +77,7 @@ disp('CBF, CVR Results: NIFTI and .PNGs created')
 % %%%% % all PLD for AAT (arterial arrival time) map
 preACZ_allPLD_AAT_path = [SUBJECT.ASLdir 'preACZ_BASIL_allPLD_forAAT' ORprefix '/native_space/arrival.nii.gz'];
 postACZ_allPLD_AAT_path = [SUBJECT.ASLdir 'postACZ_BASIL_allPLD_forAAT' ORprefix '/native_space/arrival.nii.gz'];
-postACZ_allPLD_AAT_2preACZ_path = [SUBJECT.ASLdir 'postACZ_BASIL_allPLD_forAAT' ORprefix '/native_space/arrival_2preACZ.nii.gz'];
+postACZ_allPLD_AAT_2preACZ_path = [SUBJECT.ASLdir 'postACZ_AAT' ORprefix '_2preACZ.nii.gz'];
 
 % Registration postACZ to preACZ
 disp('Registration postACZ to preACZ AAT, ATA, aCBV data')
