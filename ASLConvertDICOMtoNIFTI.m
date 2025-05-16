@@ -18,6 +18,7 @@ if isunix  % unix
 
     % remove '-' character from filename, otherwise problems with structure fieldnames
     system(['rename -v -f '  '''s/-_//g''' ' ' fullfile(DICOMinputdir,'*')]);
+    system(['rename -v -f '  '''s/-//g''' ' ' fullfile(DICOMinputdir,'*')]);
 
     % Convert DICOM files to NIFTI output in NIFTI folder
     % check for vTR-ASL
@@ -46,6 +47,7 @@ if isunix  % unix
     end
     % remove '-' character from filename, otherwise problems with structure fieldnames
     system(['rename -v -f '  '''s/-_//g''' ' ' fullfile(NIFTIoutputdir,'*')]);
+    system(['rename -v -f '  '''s/-//g''' ' ' fullfile(NIFTIoutputdir,'*')]);    
     system(['rm '  fullfile(NIFTIoutputdir,'*Raw*') ' 2>/dev/null']);
 
 elseif ispc % windows
@@ -62,6 +64,7 @@ elseif ispc % windows
 
     % remove '-' character from filename, otherwise problems with structure fieldnames
     system(['cmd /e:on /v:on /c "for %f in ("' DICOMinputdir '\*_-_*") do (set "n=%~nxf" & set "n=!n:_-_=_!" & move /Y "%~ff" ' DICOMinputdir '\"!n!" )"']);
+    system(['cmd /e:on /v:on /c "for %f in ("' DICOMinputdir '\*-*") do (set "n=%~nxf" & set "n=!n:-=!" & move /Y "%~ff" ' DICOMinputdir '\"!n!" )"']);
 
     % Convert DICOM files to NIFTI output in NIFTI folder
     % check for vTR-ASL
@@ -90,6 +93,7 @@ elseif ispc % windows
     end
     % remove '-' character from filename, otherwise problems with structure fieldnames
     system(['cmd /e:on /v:on /c "for %f in ("' NIFTIoutputdir '\*_-_*") do (set "n=%~nxf" & set "n=!n:_-_=_!" & move /Y "%~ff" ' NIFTIoutputdir '\"!n!" )"']);
+    system(['cmd /e:on /v:on /c "for %f in ("' NIFTIoutputdir '\*-*") do (set "n=%~nxf" & set "n=!n:-=!" & move /Y "%~ff" ' NIFTIoutputdir '\"!n!" )"']);
     system(['del /F /Q ' fullfile(NIFTIoutputdir,'*Raw*')]);
 
 end
