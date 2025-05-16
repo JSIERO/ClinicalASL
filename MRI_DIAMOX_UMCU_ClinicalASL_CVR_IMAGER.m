@@ -7,9 +7,21 @@ function MRI_DIAMOX_UMCU_ClinicalASL_CVR_IMAGER(inputdir)
 % Get subject folder name, select folder containing all patient data
 SUBJECT.SUBJECTdir = inputdir;
 
+% location of registration Elastix File and FSL BASIL options
+SUBJECT.ElastixParameterFile = 'Par0001rigid_6DOF_MI_NIFTIGZ.txt'; % use 6DOF, rigidbody, Mutual information for registration
+if ~isfile(SUBJECT.ElastixParameterFile)
+    warning('no Elastix registration TXT file found in folder, please copy from GITHUB/ClinicalASL/ repository')
+    return
+end
+
+SUBJECT.locationBASILinfo='BASIL_OPTIONS.txt'; % location .txt file with addition model options for CBF quantification FSL BASIL
+if ~isfile(SUBJECT.locationBASILinfo)
+    warning('no BASIL_OPTIONS.txt file found in folder, please copy from GITHUB/ClinicalASL/ repository')
+    return
+end
+
 % set parameters
 SUBJECT.RegistrationMethod = 'elastix'; %choose: 'matlab_imreg', or 'elastix'
-SUBJECT.ElastixParameterFile = 'Par0001rigid_6DOF_MI_NIFTIGZ.txt'; % use 6DOF, rigidbody, Mutual information for registration
 SUBJECT.tau = 2; % Label duration
 SUBJECT.N_BS = 4; % Number of background suppression pulses
 SUBJECT.labeleff = 0.85; %PCASL label efficiency
@@ -28,12 +40,7 @@ SUBJECT.DICOMdir = fullfile(SUBJECT.SUBJECTdir,'/DICOM/'); % DICOM  path
 SUBJECT.NIFTIdir = fullfile(SUBJECT.SUBJECTdir,'/NIFTI/'); % NIFTI  path
 SUBJECT.ASLdir = fullfile(SUBJECT.SUBJECTdir,'/ASL/'); % ASL path
 SUBJECT.RESULTSdir = fullfile(SUBJECT.SUBJECTdir,'/ASL/FIGURE_RESULTS/'); % RESULTS path
-% % extra FSL BASIL options .txt location 
-SUBJECT.locationBASILinfo='BASIL_OPTIONS.txt'; % location .txt file with addition model options for CBF quantification BASIL
-if ~isfile(SUBJECT.locationBASILinfo)
-    warning('no BASIL_OPTIONS.txt file found in study folder (masterdir), please copy from GITHUB/ClinicalASL/ repository')
-    return
-end
+
 % create folders
 if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir})))
     mkdir(SUBJECT.NIFTIdir); % create NIFTI folder
