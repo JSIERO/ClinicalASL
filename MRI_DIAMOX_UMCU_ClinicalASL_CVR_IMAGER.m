@@ -5,10 +5,9 @@ function MRI_DIAMOX_UMCU_ClinicalASL_CVR_IMAGER(inputdir)
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Get subject folder name, select folder containing all patient data
-SUBJECT.SUBJECTdir = '/Fridge/users/jeroen/MOYAMOYA/IMAGER/ASLBOLD_MOYAMOYA_MR7_20250515_LEMSON';
+SUBJECT.SUBJECTdir = inputdir;
 
-%docker_compiled_app_location = '/app/compiled_matlab_app/';
-docker_compiled_app_location = '/home/jeroen/GITHUB/ClinicalASL/generalFunctions/';
+docker_compiled_app_location = '/app/compiled_matlab_app/';
 
 % location of registration Elastix File and FSL BASIL options
 SUBJECT.ElastixParameterFile = fullfile(docker_compiled_app_location,'Par0001rigid_6DOF_MI_NIFTIGZ.txt'); % use 6DOF, rigidbody, Mutual information for registration
