@@ -1,10 +1,7 @@
 function SUBJECT = ASLSaveResultsCBFAATCVR_FAST_Elastix(SUBJECT)
 % ClinicalASL toolbox 2025, JCWSiero
-='';
-%% CBF using 2ndtolast PLD, compute CVR
-% register postACZ to preACZ, save BASIl results: NIFTI and PNG - loops over smoothed BASIl data
 
-% Registration postACZ to preACZ space using T1fromM0 AFNI 3dAllineate, 6 dof wsinc interpolation, brain masks as weight
+% set paths to files for resgistration and output
 preACZ_T1fromM0_path = fullfile(SUBJECT.ASLdir,'preACZ_T1fromM0.nii.gz');
 postACZ_T1fromM0_path = fullfile(SUBJECT.ASLdir, 'postACZ_T1fromM0.nii.gz');
 postACZ_T1fromM0_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_T1fromM0_2preACZ.nii.gz');
@@ -15,79 +12,82 @@ postACZ_mask_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_M0_brain_mask_2pre
 
 preACZ_CBF_path = fullfile(SUBJECT.ASLdir, 'preACZ_BASIL_2tolastPLD_forCBF', '/native_space/perfusion_calib.nii.gz');
 postACZ_CBF_path = fullfile(SUBJECT.ASLdir, 'postACZ_BASIL_2tolastPLD_forCBF', '/native_space/perfusion_calib.nii.gz');
-postACZ_CBF_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_CBF', '_2preACZ.nii.gz');
+postACZ_CBF_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_CBF_2preACZ.nii.gz');
 
-preACZ_AAT_path = fullfile(SUBJECT.ASLdir, 'preACZ_BASIL_forAAT', '/native_space/arrival.nii.gz');
-postACZ_AAT_path = fullfile(SUBJECT.ASLdir, 'postACZ_BASIL_forAAT', '/native_space/arrival.nii.gz';
-postACZ_AAT_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_BASIL_forAAT', '/native_space/arrival_2preACZ.nii.gz');
+preACZ_AAT_path = fullfile(SUBJECT.ASLdir, 'preACZ_BASIL_allPLD_forAAT', '/native_space/arrival.nii.gz');
+postACZ_AAT_path = fullfile(SUBJECT.ASLdir, 'postACZ_BASIL_allPLD_forAAT', '/native_space/arrival.nii.gz');
+postACZ_AAT_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_AAT_2preACZ.nii.gz');
 
 % Registration postACZ to preACZ
-disp('Registration M0 postACZ to preACZ data')
-if strcmp(SUBJECT.RegistrationMethod,'elastix') % use elastix
- % use Elastix: S. Klein, M. Staring, K. Murphy, M.A. Viergever, J.P.W. Pluim, "elastix: a toolbox for intensity based medical image registration," IEEE Transactions on Medical Imaging, vol. 29, no. 1, pp. 196 - 205, January 2010
+if strcmp(SUBJECT.RegistrationMethod,'elastix')
+    % use Elastix: S. Klein, M. Staring, K. Murphy, M.A. Viergever, J.P.W. Pluim, "elastix: a toolbox for intensity based medical image registration," IEEE Transactions on Medical Imaging, vol. 29, no. 1, pp. 196 - 205, January 2010
 
- % Registration M0 postACZ to preACZ data
- system(['elastix -f ' preACZ_T1fromM0_path ' -m ' postACZ_T1fromM0_path ' -fMask ' preACZ_mask_path ' -p ' SUBJECT.ElastixParameterFile ' -loglevel info -out ' SUBJECT.ASLdir]);
- system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.0.nii.gz') ' ' postACZ_T1fromM0_2preACZ_path]);
- system(['fslcpgeom ' preACZ_T1fromM0_path ' ' postACZ_T1fromM0_2preACZ_path ' -d']);
+    disp('Registration T1fromM0 postACZ to preACZ data *********************************************************************')
+    system(['elastix -f ' preACZ_T1fromM0_path ' -m ' postACZ_T1fromM0_path ' -fMask ' preACZ_mask_path ' -p ' SUBJECT.ElastixParameterFile ' -loglevel info -out ' SUBJECT.ASLdir]);
+    system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.0.nii.gz') ' ' postACZ_T1fromM0_2preACZ_path]);
+    system(['fslcpgeom ' preACZ_T1fromM0_path ' ' postACZ_T1fromM0_2preACZ_path ' -d']);
 
- % Registration CBF postACZ to preACZ
- system(['transformix -in ' postACZ_CBF_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt')]);
- system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' postACZ_CBF_2preACZ_path]);
- system(['fslcpgeom ' preACZ_CBF_path ' ' postACZ_CBF_2preACZ_path ' -d']);
+    disp('Registration CBF postACZ to preACZ *********************************************************************')
+    system(['transformix -in ' postACZ_CBF_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt')]);
+    system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' postACZ_CBF_2preACZ_path]);
+    system(['fslcpgeom ' preACZ_CBF_path ' ' postACZ_CBF_2preACZ_path ' -d']);
 
- % Registration AAT postACZ to preACZ
- system(['transformix -in ' postACZ_AAT_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt')]);
- system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' postACZ_AAT_2preACZ_path]);
- system(['fslcpgeom ' preACZ_AAT_path ' ' postACZ_AAT_2preACZ_path ' -d']);
+    disp('Registration AAT postACZ to preACZ *********************************************************************')
+    system(['transformix -in ' postACZ_AAT_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt')]);
+    system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' postACZ_AAT_2preACZ_path]);
+    system(['fslcpgeom ' preACZ_AAT_path ' ' postACZ_AAT_2preACZ_path ' -d']);
 
- % Registration mask postACZ to preACZ
- % change ResampleInterpolator to nearestneighbour for binary mask transformation to preACZ
- oldTextLine = '(ResampleInterpolator "FinalBSplineInterpolator")';
- newTextLine = '(ResampleInterpolator "FinalNearestNeighborInterpolator")';
- ChangeElastixParameterFileEntry(fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt'), oldTextLine, newTextLine, fullfile(SUBJECT.ASLdir, 'TransformParameters.0.NN.txt'));
- system(['transformix -in ' postACZ_mask_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.NN.txt')]);
- system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' postACZ_mask_2preACZ_path]);
- system(['fslcpgeom ' preACZ_mask_path ' ' postACZ_mask_2preACZ_path ' -d']);
+    disp('Registration mask postACZ to preACZ *********************************************************************')
+    % change ResampleInterpolator to nearestneighbour for binary mask transformation to preACZ
+    oldTextLine = '(ResampleInterpolator "FinalBSplineInterpolator")';
+    newTextLine = '(ResampleInterpolator "FinalNearestNeighborInterpolator")';
+    ChangeElastixParameterFileEntry(fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt'), oldTextLine, newTextLine, fullfile(SUBJECT.ASLdir, 'TransformParameters.0.NN.txt'));
+    system(['transformix -in ' postACZ_mask_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.NN.txt')]);
+    system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' postACZ_mask_2preACZ_path]);
+    system(['fslcpgeom ' preACZ_mask_path ' ' postACZ_mask_2preACZ_path ' -d']);
 
 elseif strcmp(SUBJECT.RegistrationMethod,'matlab_imreg') % use Matlab imregtform
- optimizer = registration.optimizer.RegularStepGradientDescent;
- metric = registration.metric.MattesMutualInformation;
+    optimizer = registration.optimizer.RegularStepGradientDescent;
+    metric = registration.metric.MattesMutualInformation;
 
- fixed_im = SUBJECT.postACZ.M0.*SUBJECT.postACZ.brainmask;
- moving_im = SUBJECT.preACZ.M0.*SUBJECT.preACZ.brainmask;
- tform = imregtform(moving_im, imref3d(size(moving_im)), fixed_im, imref3d(size(fixed_im)), "rigid",optimizer,metric, "PyramidLevels",2);
+    disp('Registration T1fromM0 postACZ to preACZ data *********************************************************************')
+    fixed_im = SUBJECT.postACZ.M0.*SUBJECT.postACZ.brainmask;
+    moving_im = SUBJECT.preACZ.M0.*SUBJECT.preACZ.brainmask;
+    tform = imregtform(moving_im, imref3d(size(moving_im)), fixed_im, imref3d(size(fixed_im)), "rigid",optimizer,metric, "PyramidLevels",2);
 
- moving_reg = imwarp(moving_im, tform, "cubic","OutputView", imref3d(size(moving_im)));
- SaveDataNII(moving_reg, postACZ_M0_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_M0, scalesclope, [], SUBJECT.TR);
- system(['fslcpgeom ' preACZ_T1fromM0_path ' ' postACZ_T1fromM0_2preACZ_path ' -d']);
+    moving_reg = imwarp(moving_im, tform, "cubic","OutputView", imref3d(size(moving_im)));
+    SaveDataNII(moving_reg, postACZ_M0_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_M0, scalesclope, [], SUBJECT.TR);
+    system(['fslcpgeom ' preACZ_T1fromM0_path ' ' postACZ_T1fromM0_2preACZ_path ' -d']);
 
- moving_reg = imwarp(SUBJECT.postACZ.CBF, tform, "cubic","OutputView", imref3d(size(SUBJECT.postACZ.CBF)));
- SaveDataNII(moving_reg, postACZ_CBF_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_CBF, scalesclope, [], SUBJECT.TR);
- system(['fslcpgeom ' preACZ_CBF_path ' ' postACZ_CBF_2preACZ_path ' -d']);
+    disp('Registration CBF postACZ to preACZ *********************************************************************')
+    moving_reg = imwarp(SUBJECT.postACZ.CBF, tform, "cubic","OutputView", imref3d(size(SUBJECT.postACZ.CBF)));
+    SaveDataNII(moving_reg, postACZ_CBF_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_CBF, scalesclope, [], SUBJECT.TR);
+    system(['fslcpgeom ' preACZ_CBF_path ' ' postACZ_CBF_2preACZ_path ' -d']);
 
- moving_reg = imwarp(SUBJECT.postACZ.AAT, tform, "cubic","OutputView", imref3d(size(SUBJECT.postACZ.AAT)));
- SaveDataNII(moving_reg, postACZ_AAT_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_AAT, scalesclope, [], SUBJECT.TR);
- system(['fslcpgeom ' preACZ_AAT_path ' ' postACZ_AAT_2preACZ_path ' -d']);
+    disp('Registration AAT postACZ to preACZ *********************************************************************')
+    moving_reg = imwarp(SUBJECT.postACZ.AAT, tform, "cubic","OutputView", imref3d(size(SUBJECT.postACZ.AAT)));
+    SaveDataNII(moving_reg, postACZ_AAT_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_AAT, scalesclope, [], SUBJECT.TR);
+    system(['fslcpgeom ' preACZ_AAT_path ' ' postACZ_AAT_2preACZ_path ' -d']);
 
- moving_reg = imwarp(SUBJECT.postACZ.brainmask, tform, "nearest","OutputView", imref3d(size(SUBJECT.postACZ.CBF)));
- SaveDataNII(moving_reg, postACZ_mask_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_M0, 1, [], SUBJECT.TR);
- system(['fslcpgeom ' preACZ_mask_path ' ' postACZ_mask_2preACZ_path ' -d']);
+    disp('Registration mask postACZ to preACZ *********************************************************************')
+    moving_reg = imwarp(SUBJECT.postACZ.brainmask, tform, "nearest","OutputView", imref3d(size(SUBJECT.postACZ.CBF)));
+    SaveDataNII(moving_reg, postACZ_mask_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_M0, 1, [], SUBJECT.TR);
+    system(['fslcpgeom ' preACZ_mask_path ' ' postACZ_mask_2preACZ_path ' -d']);
 end
 disp('Registration finished..')
 
 % create figure .png to assess registration result
-SlicerPNGs(preACZ_T1fromM0_path, postACZ_T1fromM0_2preACZ_path, 'postACZ_T1fromM0', 'preACZ_T1fromM0', SUBJECT.ASLdir)
+SlicerPNGs(preACZ_T1fromM0_path, postACZ_T1fromM0_2preACZ_path, 'postACZ_T1fromM0', 'preACZ_T1fromM0', SUBJECT.RESULTSdir)
 
-% load BASIL CBF, AAT, masks and regsitration NIFTIs 
+% load BASIL CBF, AAT, masks and regsitration NIFTIs
 SUBJECT.preACZ.CBF = double(niftiread(preACZ_CBF_path));
 SUBJECT.postACZ.CBF = double(niftiread(postACZ_CBF_path));
 SUBJECT.postACZ.CBF_2preACZ = double(niftiread(postACZ_CBF_2preACZ_path));
 SUBJECT.preACZ.AAT = double(niftiread(preACZ_AAT_path));
 SUBJECT.postACZ.AAT = double(niftiread(postACZ_AAT_path));
 SUBJECT.postACZ.AAT_2preACZ = double(niftiread(postACZ_AAT_2preACZ_path));
+SUBJECT.postACZ.brainmask_2preACZ = double(niftiread(postACZ_mask_2preACZ_path));
 
-SUBJECT.postACZ.brainmask_2preACZ = double(niftiread(postACZ_2preACZ_mask_path));
 % make combined mask from registered pre/post ACZ
 SUBJECT.preACZ.nanmask = double(SUBJECT.preACZ.brainmask);
 SUBJECT.preACZ.nanmask(SUBJECT.preACZ.nanmask==0) = NaN;
@@ -108,24 +108,24 @@ SUBJECT.postACZ.AAT_2preACZ_smth = ASLSmoothImage(SUBJECT.postACZ.AAT_2preACZ.*S
 
 %% save final CBF, AAT, CVR NIFTI and .PNGs
 
-  SaveDataNII(SUBJECT.preACZ.CBF, [SUBJECT.ASLdir 'preACZ_CBF'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.postACZ.CBF, [SUBJECT.ASLdir 'postACZ_CBF'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.postACZ.CBF_2preACZ, [SUBJECT.ASLdir 'postACZ_CBF_2preACZ'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.preACZ.AAT, [SUBJECT.ASLdir 'preACZ_AAT'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.postACZ.AAT, [SUBJECT.ASLdir 'postACZ_AAT'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
-  SaveDataNII(SUBJECT.postACZ.AAT_2preACZ, [SUBJECT.ASLdir 'postACZ_AAT_2preACZ'], SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+SaveDataNII(SUBJECT.preACZ.CBF, fullfile(SUBJECT.ASLdir, 'preACZ_CBF'), SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+SaveDataNII(SUBJECT.postACZ.CBF, fullfile(SUBJECT.ASLdir, 'postACZ_CBF'), SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+SaveDataNII(SUBJECT.postACZ.CBF_2preACZ, fullfile(SUBJECT.ASLdir, 'postACZ_CBF_2preACZ'), SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+SaveDataNII(SUBJECT.preACZ.AAT, fullfile(SUBJECT.ASLdir, 'preACZ_AAT'), SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+SaveDataNII(SUBJECT.postACZ.AAT, fullfile(SUBJECT.ASLdir, 'postACZ_AAT'), SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+SaveDataNII(SUBJECT.postACZ.AAT_2preACZ, fullfile(SUBJECT.ASLdir, 'postACZ_AAT_2preACZ'), SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
 
-  SaveFIGUREtoPNG(SUBJECT.preACZ.CBF, SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
-  SaveFIGUREtoPNG(SUBJECT.preACZ.CBF, SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
-  SaveFIGUREtoPNG(SUBJECT.postACZ.CBF_2preACZ, SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF_2preACZ_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
-  SaveFIGUREtoPNG(SUBJECT.postACZ.CBF_2preACZ, SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF_2preACZ_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
+SaveFIGUREtoPNG(SUBJECT.preACZ.CBF, SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
+SaveFIGUREtoPNG(SUBJECT.preACZ.CBF, SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
+SaveFIGUREtoPNG(SUBJECT.postACZ.CBF_2preACZ, SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF_2preACZ_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
+SaveFIGUREtoPNG(SUBJECT.postACZ.CBF_2preACZ, SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF_2preACZ_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
 
-  SaveDataNII(SUBJECT.CVR_smth, [SUBJECT.ASLdir 'CVR_smth'], SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
-  SaveFIGUREtoPNG(SUBJECT.CVR_smth, SUBJECT.nanmask_reg, SUBJECT.range_cvr, SUBJECT.RESULTSdir, 'CVR_smth','CVR', 'vik');
-  SaveFIGUREtoPNG(SUBJECT.preACZ.AAT_smth, SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, 'preACZ_AAT_smth', 'time', 'devon');
-  SaveFIGUREtoPNG(SUBJECT.postACZ.AAT_2preACZ_smth, SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, 'postACZ_AAT_2preACZ_smth', 'time', 'devon'); 
+SaveDataNII(SUBJECT.CVR_smth, fullfile(SUBJECT.ASLdir, 'CVR_smth'), SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
+SaveFIGUREtoPNG(SUBJECT.CVR_smth, SUBJECT.nanmask_reg, SUBJECT.range_cvr, SUBJECT.RESULTSdir, 'CVR_smth','CVR', 'vik');
+SaveFIGUREtoPNG(SUBJECT.preACZ.AAT_smth, SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, 'preACZ_AAT_smth', 'time', 'devon');
+SaveFIGUREtoPNG(SUBJECT.postACZ.AAT_2preACZ_smth, SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, 'postACZ_AAT_2preACZ_smth', 'time', 'devon');
 
-disp('CBF, CVR Results: NIFTI and .PNGs created')
+disp('CBF, AAT, CVR Results: NIFTI and .PNGs created')
 
 %% Save to DICOMS: CBF, AAT, CVR, delta AAT
 % preACZ CBF
@@ -139,13 +139,13 @@ info.SeriesDescription = name;
 info.ProtocolName = name;
 
 for i=1:info.NumberOfFrames
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_adult_cbf);
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_adult_cbf);
- if i > size(image, 3) %remove extra frames larger than slice number input image
-  info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
- end
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_adult_cbf);
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_adult_cbf);
+    if i > size(image, 3) %remove extra frames larger than slice number input image
+        info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
+    end
 end
 info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
@@ -160,13 +160,13 @@ scalingfactor = (2^16)/max(image,[],'all')/10; % for conversion to unsigned int1
 info.SeriesDescription = name;
 info.ProtocolName = name;
 for i=1:info.NumberOfFrames
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_AAT);
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_AAT);
- if i > c %remove extra frames larger than slice number input image
-  info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
- end
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_AAT);
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_AAT);
+    if i > c %remove extra frames larger than slice number input image
+        info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
+    end
 end
 info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
@@ -182,13 +182,13 @@ info.SeriesDescription = name;
 info.ProtocolName = name;
 
 for i=1:info.NumberOfFrames
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_cvr);
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_cvr);
- if i > size(image, 3) %remove extra frames larger than slice number input image
-  info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
- end
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_cvr);
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_cvr);
+    if i > size(image, 3) %remove extra frames larger than slice number input image
+        info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
+    end
 end
 info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(int16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
@@ -204,13 +204,13 @@ scalingfactor = (2^16)/max(image,[],'all')/10; % for conversion to unsigned int1
 info.SeriesDescription = name;
 info.ProtocolName = name;
 for i=1:info.NumberOfFrames
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_adult_cbf);
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_adult_cbf);
- if i > size(image, 3) %remove extra frames larger than slice number input image
-  info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
- end
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_adult_cbf);
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_adult_cbf);
+    if i > size(image, 3) %remove extra frames larger than slice number input image
+        info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
+    end
 end
 info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
@@ -225,13 +225,13 @@ scalingfactor = (2^16)/max(image,[],'all')/10; % for conversion to unsigned int1
 info.SeriesDescription = name;
 info.ProtocolName = name;
 for i=1:info.NumberOfFrames
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_AAT);
- info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_AAT);
- if i > size(image, 3) %remove extra frames larger than slice number input image
-  info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
- end
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_AAT);
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_AAT);
+    if i > size(image, 3) %remove extra frames larger than slice number input image
+        info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
+    end
 end
 info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
