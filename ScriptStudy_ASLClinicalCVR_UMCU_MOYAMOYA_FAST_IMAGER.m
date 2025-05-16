@@ -1,14 +1,14 @@
 function ScriptStudy_ASLClinicalCVR_UMCU_MOYAMOYA_FAST_IMAGER(inputdir)
 % ClinicalASL toolbox 2025, JCWSiero
-%%%%%%%%%%%%%%%%%%%%% ASL Analysis %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% written by Jeroen Siero  25-05-2023 for the MOYAMOYA study
+% for MRI DIAMOX scans, via IMAGER
 % includes automatic DICOM file loading, anatomy segmentation and  registration, outlier removal, data construction, BASIL analysis, CBF, map smoothing, CVR registration, calculation and saving
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Get subject folder name, select folder containing all patient data
 
-SUBJECT.SUBJECTdir = inputdir;
+SUBJECT.SUBJECTdir = '/Fridge/users/jeroen/MOYAMOYA/ASLBOLD_MOYAMOYA_MR7_20240617_SNOEIJS_testIMAGER';
 SUBJECT.RegistrationMethod = 'elastix'; %choose: 'matlab_imreg', or 'elastix'
+SUBJECT.ElastixParameterFile = 'Par0001rigid_6DOF_MI_NIFTIGZ.txt'; % use 6DOF, rigidbody, Mutual information for registration
 
 % set parameters
 SUBJECT.tau = 2; % Label duration

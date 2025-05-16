@@ -1,16 +1,15 @@
 function MRI_DIAMOX_UMCU_ClinicalASL_CVR_IMAGER(inputdir)
 % ClinicalASL toolbox 2025, JCWSiero
-%%%%%%%%%%%%%%%%%%%%% ASL Analysis %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% written by Jeroen Siero  25-05-2023 for the MOYAMOYA study
+% for MRI DIAMOX scans, via IMAGER
 % includes automatic DICOM file loading, anatomy segmentation and  registration, outlier removal, data construction, BASIL analysis, CBF, map smoothing, CVR registration, calculation and saving
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Get subject folder name, select folder containing all patient data
-
 SUBJECT.SUBJECTdir = inputdir;
-SUBJECT.RegistrationMethod = 'elastix'; %choose: 'matlab_imreg', or 'elastix'
 
 % set parameters
+SUBJECT.RegistrationMethod = 'elastix'; %choose: 'matlab_imreg', or 'elastix'
+SUBJECT.ElastixParameterFile = 'Par0001rigid_6DOF_MI_NIFTIGZ.txt'; % use 6DOF, rigidbody, Mutual information for registration
 SUBJECT.tau = 2; % Label duration
 SUBJECT.N_BS = 4; % Number of background suppression pulses
 SUBJECT.labeleff = 0.85; %PCASL label efficiency
@@ -25,10 +24,10 @@ SUBJECT.range_cvr = [-50 50]; % colourbar range for CVR values
 SUBJECT.range_AAT = [0.5 2.5]; % time (s), arterial arrival time
 
 % create folder paths
-SUBJECT.DICOMdir = [SUBJECT.SUBJECTdir,'/DICOM/']; % DICOM  path
-SUBJECT.NIFTIdir = [SUBJECT.SUBJECTdir,'/NIFTI/']; % NIFTI  path
-SUBJECT.ASLdir = [SUBJECT.SUBJECTdir,'/ASL/']; % ASL path
-SUBJECT.RESULTSdir = [SUBJECT.SUBJECTdir,'/ASL/FIGURE_RESULTS/']; % RESULTS path
+SUBJECT.DICOMdir = fullfile(SUBJECT.SUBJECTdir,'/DICOM/'); % DICOM  path
+SUBJECT.NIFTIdir = fullfile(SUBJECT.SUBJECTdir,'/NIFTI/'); % NIFTI  path
+SUBJECT.ASLdir = fullfile(SUBJECT.SUBJECTdir,'/ASL/'); % ASL path
+SUBJECT.RESULTSdir = fullfile(SUBJECT.SUBJECTdir,'/ASL/FIGURE_RESULTS/'); % RESULTS path
 % % extra FSL BASIL options .txt location 
 SUBJECT.locationBASILinfo='BASIL_OPTIONS.txt'; % location .txt file with addition model options for CBF quantification BASIL
 if ~isfile(SUBJECT.locationBASILinfo)
