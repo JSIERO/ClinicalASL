@@ -1,5 +1,6 @@
 function output = ASLLookLockerCorrectionFactor_mDelayPCASL(SUBJECT)
-
+% ClinicalASL toolbox 2023, JCWSiero
+% compute Look Locker scaling per PLD
 flipangle = SUBJECT.FLIPANGLE;
 M0=1;
 PLD = SUBJECT.PLDS*1000; %in ms
