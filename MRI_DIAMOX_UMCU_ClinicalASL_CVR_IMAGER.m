@@ -5,7 +5,6 @@ function MRI_DIAMOX_UMCU_ClinicalASL_CVR_IMAGER(inputdir)
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Get subject folder name, select folder containing all patient data
-inputdir = '/Fridge/users/jeroen/MOYAMOYA/ASLBOLD_MOYAMOYA_MR7_20240617_SNOEIJS_testIMAGER';
 SUBJECT.SUBJECTdir = inputdir;
 
 % set parameters
