@@ -5,8 +5,10 @@ function MRI_DIAMOX_UMCU_ClinicalASL_CVR_IMAGER(inputdir)
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Get subject folder name, select folder containing all patient data
-SUBJECT.SUBJECTdir = inputdir;
-docker_compiled_app_location = '/app/compiled_matlab_app/';
+SUBJECT.SUBJECTdir = '/Fridge/users/jeroen/MOYAMOYA/IMAGER/ASLBOLD_MOYAMOYA_MR7_20250515_LEMSON';
+
+%docker_compiled_app_location = '/app/compiled_matlab_app/';
+docker_compiled_app_location = '/home/jeroen/GITHUB/ClinicalASL/generalFunctions/';
 
 % location of registration Elastix File and FSL BASIL options
 SUBJECT.ElastixParameterFile = fullfile(docker_compiled_app_location,'Par0001rigid_6DOF_MI_NIFTIGZ.txt'); % use 6DOF, rigidbody, Mutual information for registration
@@ -68,13 +70,13 @@ SUBJECT.postACZfilenameNIFTI = filepostACZ(end,1).name;
 SUBJECT.preACZfilenameDCM = filepreACZ(end,1).name(1:end-7); % DICOM ASL source file
 SUBJECT.postACZfilenameDCM = filepostACZ(end,1).name(1:end-7); % DICOM ASL source file
 
-dummydcm = dir([SUBJECT.DICOMdir, 'WIP*CBF*preACZ*']);
+dummydcm = dir([SUBJECT.DICOMdir, 'sWIP*CBF*preACZ*']);
 if size(dummydcm,1) > 0 % find DICOM dummy file names for CBF, CVR, AAT, pre/post ACZ created by immgeAlgebra in Philips Examcard
-    preACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'WIP*CBF*preACZ*']);% find SOURCE data ASL
-    preACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'WIP*AAT*preACZ*']);% find SOURCE data ASL
-    preACZfilenameDCM_CVR = dir([SUBJECT.DICOMdir, 'WIP*CVR*preACZ*']);% find SOURCE data ASL
-    postACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'WIP*CBF*postACZ*']);% find SOURCE data ASL
-    postACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'WIP*AAT*postACZ*']);% find SOURCE data ASL
+    preACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'sWIP*CBF*preACZ*']);% find SOURCE data ASL
+    preACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'sWIP*AAT*preACZ*']);% find SOURCE data ASL
+    preACZfilenameDCM_CVR = dir([SUBJECT.DICOMdir, 'sWIP*CVR*preACZ*']);% find SOURCE data ASL
+    postACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'sWIP*CBF*postACZ*']);% find SOURCE data ASL
+    postACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'sWIP*AAT*postACZ*']);% find SOURCE data ASL
 
     SUBJECT.preACZfilenameDCM_CBF = preACZfilenameDCM_CBF.name; % DICOM CBF dummy file
     SUBJECT.preACZfilenameDCM_AAT = preACZfilenameDCM_AAT.name; % DICOM AAT dummy file
