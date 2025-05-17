@@ -4,7 +4,7 @@
 (FixedInternalImagePixelType "float")
 (FixedImageDimension 3)
 (MovingInternalImagePixelType "float")
-(MoResultImageFormatvingImageDimension 3)
+(MovingImageDimension 3)
 //JCWS
 (ResultImageFormat "nii.gz")
 (ImageSampler "RandomSparseMask")
@@ -32,7 +32,7 @@
 (ErodeMask "false")
 
 (AutomaticScalesEstimation "true")
-(AutomaticTransformInitialization "false")
+(AutomaticTransformInitialization "true")
 
 (NumberOfResolutions 2)
 (ImagePyramidSchedule 2 2 2  1 1 1)

@@ -5,12 +5,24 @@ function ScriptStudy_ASLClinicalCVR_UMCU_MOYAMOYA_FAST_IMAGER(inputdir)
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Get subject folder name, select folder containing all patient data
+SUBJECT.SUBJECTdir = inputdir;
+docker_compiled_app_location = '/app/compiled_matlab_app/';
 
-SUBJECT.SUBJECTdir = '/Fridge/users/jeroen/MOYAMOYA/ASLBOLD_MOYAMOYA_MR7_20240617_SNOEIJS_testIMAGER';
-SUBJECT.RegistrationMethod = 'elastix'; %choose: 'matlab_imreg', or 'elastix'
-SUBJECT.ElastixParameterFile = 'Par0001rigid_6DOF_MI_NIFTIGZ.txt'; % use 6DOF, rigidbody, Mutual information for registration
+% location of registration Elastix File and FSL BASIL options
+SUBJECT.ElastixParameterFile = fullfile(docker_compiled_app_location,'Par0001rigid_6DOF_MI_NIFTIGZ.txt'); % use 6DOF, rigidbody, Mutual information for registration
+if ~isfile(SUBJECT.ElastixParameterFile)
+    warning(['no Elastix registration TXT file found in ' SUBJECT.ElastixParameterFile ' , please copy from GITHUB/ClinicalASL/ repository'])
+    return
+end
+
+SUBJECT.locationBASILinfo = fullfile(docker_compiled_app_location,'BASIL_OPTIONS.txt'); % location .txt file with addition model options for CBF quantification FSL BASIL
+if ~isfile(SUBJECT.locationBASILinfo)
+    warning(['no BASIL_OPTIONS.txt file found in ' SUBJECT.locationBASILinfo ', please copy from GITHUB/ClinicalASL/ repository'])
+    return
+end
 
 % set parameters
+SUBJECT.RegistrationMethod = 'elastix'; %choose: 'matlab_imreg', or 'elastix'
 SUBJECT.tau = 2; % Label duration
 SUBJECT.N_BS = 4; % Number of background suppression pulses
 SUBJECT.labeleff = 0.85; %PCASL label efficiency
@@ -29,12 +41,7 @@ SUBJECT.DICOMdir = [SUBJECT.SUBJECTdir,'/DICOM/']; % DICOM  path
 SUBJECT.NIFTIdir = [SUBJECT.SUBJECTdir,'/NIFTI/']; % NIFTI  path
 SUBJECT.ASLdir = [SUBJECT.SUBJECTdir,'/ASL/']; % ASL path
 SUBJECT.RESULTSdir = [SUBJECT.SUBJECTdir,'/ASL/FIGURE_RESULTS/']; % RESULTS path
-% % extra FSL BASIL options .txt location 
-SUBJECT.locationBASILinfo='BASIL_OPTIONS.txt'; % location .txt file with addition model options for CBF quantification BASIL
-if ~isfile(SUBJECT.locationBASILinfo)
-    warning('no BASIL_OPTIONS.txt file found in study folder (masterdir), please copy from GITHUB/ClinicalASL/ repository')
-    return
-end
+
 % create folders
 if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir})))
     mkdir(SUBJECT.NIFTIdir); % create NIFTI folder
@@ -61,13 +68,13 @@ SUBJECT.postACZfilenameNIFTI = filepostACZ(end,1).name;
 SUBJECT.preACZfilenameDCM = filepreACZ(end,1).name(1:end-7); % DICOM ASL source file
 SUBJECT.postACZfilenameDCM = filepostACZ(end,1).name(1:end-7); % DICOM ASL source file
 
-dummydcm = dir([SUBJECT.DICOMdir, 'WIP*CBF*preACZ*']);
+dummydcm = dir([SUBJECT.DICOMdir, 'sWIP*CBF*preACZ*']);
 if size(dummydcm,1) > 0 % find DICOM dummy file names for CBF, CVR, AAT, pre/post ACZ created by immgeAlgebra in Philips Examcard
-    preACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'WIP*CBF*preACZ*']);% find SOURCE data ASL
-    preACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'WIP*AAT*preACZ*']);% find SOURCE data ASL
-    preACZfilenameDCM_CVR = dir([SUBJECT.DICOMdir, 'WIP*CVR*preACZ*']);% find SOURCE data ASL
-    postACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'WIP*CBF*postACZ*']);% find SOURCE data ASL
-    postACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'WIP*AAT*postACZ*']);% find SOURCE data ASL
+    preACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'sWIP*CBF*preACZ*']);% find SOURCE data ASL
+    preACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'sWIP*AAT*preACZ*']);% find SOURCE data ASL
+    preACZfilenameDCM_CVR = dir([SUBJECT.DICOMdir, 'sWIP*CVR*preACZ*']);% find SOURCE data ASL
+    postACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'sWIP*CBF*postACZ*']);% find SOURCE data ASL
+    postACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'sWIP*AAT*postACZ*']);% find SOURCE data ASL
 
     SUBJECT.preACZfilenameDCM_CBF = preACZfilenameDCM_CBF.name; % DICOM CBF dummy file
     SUBJECT.preACZfilenameDCM_AAT = preACZfilenameDCM_AAT.name; % DICOM AAT dummy file
