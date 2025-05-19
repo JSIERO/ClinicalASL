@@ -48,6 +48,7 @@ if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir})
     mkdir(SUBJECT.NIFTIdir); % create NIFTI folder
     mkdir(SUBJECT.ASLdir); % create ASL folder
     mkdir(SUBJECT.RESULTSdir); % create RESULTS folder
+    mkdir(SUBJECT.DICOMRESULTSdir); % create DICOMRESULTS for IMAGER folder    
 end
 
 % convert and rename DICOM files in DICOM folder to NIFTI folder
