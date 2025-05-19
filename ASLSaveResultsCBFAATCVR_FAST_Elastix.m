@@ -149,6 +149,7 @@ for i=1:info.NumberOfFrames
 end
 info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.DICOMRESULTSdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 % preACZ AAT
 info = dicominfo([SUBJECT.DICOMdir, SUBJECT.preACZfilenameDCM_AAT]); % reference DICOM file
@@ -170,6 +171,7 @@ for i=1:info.NumberOfFrames
 end
 info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.DICOMRESULTSdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 % CVR
 info = dicominfo([SUBJECT.DICOMdir, SUBJECT.preACZfilenameDCM_CVR]); % reference DICOM file
@@ -192,6 +194,7 @@ for i=1:info.NumberOfFrames
 end
 info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(int16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+dicomwrite(flipud(permute(reshape(int16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.DICOMRESULTSdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 % postACZ CBF
 info_ref= dicominfo([SUBJECT.DICOMdir, SUBJECT.postACZfilenameDCM_CBF]); % reference DICOM file
@@ -214,6 +217,7 @@ for i=1:info.NumberOfFrames
 end
 info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.DICOMRESULTSdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 % postACZ AAT
 info = dicominfo([SUBJECT.DICOMdir, SUBJECT.postACZfilenameDCM_AAT]); % reference DICOM file
@@ -235,6 +239,7 @@ for i=1:info.NumberOfFrames
 end
 info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.DICOMRESULTSdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 disp('CBF, AAT, CVR Results: DICOMs created')
 

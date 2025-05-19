@@ -41,6 +41,7 @@ SUBJECT.DICOMdir = fullfile(SUBJECT.SUBJECTdir,'/DICOM/'); % DICOM  path
 SUBJECT.NIFTIdir = fullfile(SUBJECT.SUBJECTdir,'/NIFTI/'); % NIFTI  path
 SUBJECT.ASLdir = fullfile(SUBJECT.SUBJECTdir,'/ASL/'); % ASL path
 SUBJECT.RESULTSdir = fullfile(SUBJECT.SUBJECTdir,'/ASL/FIGURE_RESULTS/'); % RESULTS path
+SUBJECT.DICOMRESULTSdir = fullfile(SUBJECT.SUBJECTdir,'/DICOM_RESULTS_IMAGER/'); % RESULTS path
 
 % create folders
 if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir})))
