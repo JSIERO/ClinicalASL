@@ -55,6 +55,7 @@ end
 ASLConvertDICOMtoNIFTI(SUBJECT.DICOMdir, SUBJECT.NIFTIdir)
 
 % Get ASL nifti filenames
+
 % preACZ path
 filepreACZ = dir([SUBJECT.NIFTIdir, '*SOURCE_ASL*preACZ*2.nii.gz']);% find SOURCE data ASL
 % postACZ path
@@ -70,13 +71,13 @@ SUBJECT.postACZfilenameNIFTI = filepostACZ(end,1).name;
 SUBJECT.preACZfilenameDCM = filepreACZ(end,1).name(1:end-7); % DICOM ASL source file
 SUBJECT.postACZfilenameDCM = filepostACZ(end,1).name(1:end-7); % DICOM ASL source file
 
-dummydcm = dir([SUBJECT.DICOMdir, 'WIP*CBF*preACZ*']);
+dummydcm = dir([SUBJECT.DICOMdir, 'sWIP*CBF*preACZ*']);
 if size(dummydcm,1) > 0 % find DICOM dummy file names for CBF, CVR, AAT, pre/post ACZ created by immgeAlgebra in Philips Examcard
-    preACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'WIP*CBF*preACZ*']);% find SOURCE data ASL
-    preACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'WIP*AAT*preACZ*']);% find SOURCE data ASL
-    preACZfilenameDCM_CVR = dir([SUBJECT.DICOMdir, 'WIP*CVR*preACZ*']);% find SOURCE data ASL
-    postACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'WIP*CBF*postACZ*']);% find SOURCE data ASL
-    postACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'WIP*AAT*postACZ*']);% find SOURCE data ASL
+    preACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'sWIP*CBF*preACZ*']);% find SOURCE data ASL
+    preACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'sWIP*AAT*preACZ*']);% find SOURCE data ASL
+    preACZfilenameDCM_CVR = dir([SUBJECT.DICOMdir, 'sWIP*CVR*preACZ*']);% find SOURCE data ASL
+    postACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'sWIP*CBF*postACZ*']);% find SOURCE data ASL
+    postACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'sWIP*AAT*postACZ*']);% find SOURCE data ASL
 
     SUBJECT.preACZfilenameDCM_CBF = preACZfilenameDCM_CBF.name; % DICOM CBF dummy file
     SUBJECT.preACZfilenameDCM_AAT = preACZfilenameDCM_AAT.name; % DICOM AAT dummy file
