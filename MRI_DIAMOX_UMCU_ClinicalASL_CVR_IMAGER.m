@@ -1,4 +1,4 @@
-function MRI_DIAMOX_UMCU_ClinicalASL_CVR_IMAGER(inputdir)
+function MRI_DIAMOX_UMCU_ClinicalASL_CVR_IMAGER(inputdir, outputdir)
 % ClinicalASL toolbox 2025, JCWSiero
 % for MRI DIAMOX scans, via IMAGER
 % includes automatic DICOM file loading, anatomy segmentation and  registration, outlier removal, data construction, BASIL analysis, CBF, map smoothing, CVR registration, calculation and saving
@@ -6,6 +6,7 @@ function MRI_DIAMOX_UMCU_ClinicalASL_CVR_IMAGER(inputdir)
 %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Get subject folder name, select folder containing all patient data
 SUBJECT.SUBJECTdir = inputdir;
+SUBJECT.DICOMRESULTSdir = outputdir; % DICOM RESULTS path
 docker_compiled_app_location = '/app/compiled_matlab_app/';
 
 % location of registration Elastix File and FSL BASIL options
@@ -41,7 +42,6 @@ SUBJECT.DICOMdir = fullfile(SUBJECT.SUBJECTdir,'/DICOM/'); % DICOM  path
 SUBJECT.NIFTIdir = fullfile(SUBJECT.SUBJECTdir,'/NIFTI/'); % NIFTI  path
 SUBJECT.ASLdir = fullfile(SUBJECT.SUBJECTdir,'/ASL/'); % ASL path
 SUBJECT.RESULTSdir = fullfile(SUBJECT.SUBJECTdir,'/ASL/FIGURE_RESULTS/'); % RESULTS path
-SUBJECT.DICOMRESULTSdir = fullfile(SUBJECT.SUBJECTdir,'/DICOM_RESULTS_IMAGER/'); % RESULTS path
 
 % create folders
 if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir;SUBJECT.DICOMRESULTSdir})))
