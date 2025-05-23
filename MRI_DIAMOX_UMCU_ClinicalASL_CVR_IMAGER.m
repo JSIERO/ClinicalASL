@@ -43,6 +43,23 @@ SUBJECT.NIFTIdir = fullfile(SUBJECT.SUBJECTdir,'/NIFTI/'); % NIFTI  path
 SUBJECT.ASLdir = fullfile(SUBJECT.SUBJECTdir,'/ASL/'); % ASL path
 SUBJECT.RESULTSdir = fullfile(SUBJECT.SUBJECTdir,'/ASL/FIGURE_RESULTS/'); % RESULTS path
 
+% set paths to files for registration (preACZ, post ACZ) and output
+SUBJECT.preACZ_T1fromM0_path = fullfile(SUBJECT.ASLdir,'preACZ_T1fromM0.nii.gz');
+SUBJECT.postACZ_T1fromM0_path = fullfile(SUBJECT.ASLdir, 'postACZ_T1fromM0.nii.gz');
+SUBJECT.postACZ_T1fromM0_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_T1fromM0_2preACZ.nii.gz');
+
+SUBJECT.preACZ_mask_path = fullfile(SUBJECT.ASLdir, 'preACZ_M0_brain_mask.nii.gz');
+SUBJECT.postACZ_mask_path = fullfile(SUBJECT.ASLdir, 'postACZ_M0_brain_mask.nii.gz');
+SUBJECT.postACZ_mask_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_M0_brain_mask_2preACZ.nii.gz');
+
+SUBJECT.preACZ_CBF_path = fullfile(SUBJECT.ASLdir, 'preACZ_BASIL_2tolastPLD_forCBF', '/native_space/perfusion_calib.nii.gz');
+SUBJECT.postACZ_CBF_path = fullfile(SUBJECT.ASLdir, 'postACZ_BASIL_2tolastPLD_forCBF', '/native_space/perfusion_calib.nii.gz');
+SUBJECT.postACZ_CBF_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_CBF_2preACZ.nii.gz');
+
+SUBJECT.preACZ_AAT_path = fullfile(SUBJECT.ASLdir, 'preACZ_BASIL_allPLD_forAAT', '/native_space/arrival.nii.gz');
+SUBJECT.postACZ_AAT_path = fullfile(SUBJECT.ASLdir, 'postACZ_BASIL_allPLD_forAAT', '/native_space/arrival.nii.gz');
+SUBJECT.postACZ_AAT_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_AAT_2preACZ.nii.gz');
+
 % create folders
 if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir;SUBJECT.DICOMRESULTSdir})))
     mkdir(SUBJECT.NIFTIdir); % create NIFTI folder

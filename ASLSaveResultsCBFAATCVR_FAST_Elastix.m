@@ -1,50 +1,33 @@
 function SUBJECT = ASLSaveResultsCBFAATCVR_FAST_Elastix(SUBJECT)
 % ClinicalASL toolbox 2025, JCWSiero
 
-% set paths to files for resgistration and output
-preACZ_T1fromM0_path = fullfile(SUBJECT.ASLdir,'preACZ_T1fromM0.nii.gz');
-postACZ_T1fromM0_path = fullfile(SUBJECT.ASLdir, 'postACZ_T1fromM0.nii.gz');
-postACZ_T1fromM0_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_T1fromM0_2preACZ.nii.gz');
-
-preACZ_mask_path = fullfile(SUBJECT.ASLdir, 'preACZ_M0_brain_mask.nii.gz');
-postACZ_mask_path = fullfile(SUBJECT.ASLdir, 'postACZ_M0_brain_mask.nii.gz');
-postACZ_mask_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_M0_brain_mask_2preACZ.nii.gz');
-
-preACZ_CBF_path = fullfile(SUBJECT.ASLdir, 'preACZ_BASIL_2tolastPLD_forCBF', '/native_space/perfusion_calib.nii.gz');
-postACZ_CBF_path = fullfile(SUBJECT.ASLdir, 'postACZ_BASIL_2tolastPLD_forCBF', '/native_space/perfusion_calib.nii.gz');
-postACZ_CBF_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_CBF_2preACZ.nii.gz');
-
-preACZ_AAT_path = fullfile(SUBJECT.ASLdir, 'preACZ_BASIL_allPLD_forAAT', '/native_space/arrival.nii.gz');
-postACZ_AAT_path = fullfile(SUBJECT.ASLdir, 'postACZ_BASIL_allPLD_forAAT', '/native_space/arrival.nii.gz');
-postACZ_AAT_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_AAT_2preACZ.nii.gz');
-
 % Registration postACZ to preACZ
 if strcmp(SUBJECT.RegistrationMethod,'elastix')
     % use Elastix: S. Klein, M. Staring, K. Murphy, M.A. Viergever, J.P.W. Pluim, "elastix: a toolbox for intensity based medical image registration," IEEE Transactions on Medical Imaging, vol. 29, no. 1, pp. 196 - 205, January 2010
 
     disp('Registration T1fromM0 postACZ to preACZ data *********************************************************************')
-    system(['elastix -f ' preACZ_T1fromM0_path ' -m ' postACZ_T1fromM0_path ' -fMask ' preACZ_mask_path ' -p ' SUBJECT.ElastixParameterFile ' -loglevel info -out ' SUBJECT.ASLdir]);
-    system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.0.nii.gz') ' ' postACZ_T1fromM0_2preACZ_path]);
-    system(['fslcpgeom ' preACZ_T1fromM0_path ' ' postACZ_T1fromM0_2preACZ_path ' -d']);
+    system(['elastix -f ' SUBJECT.preACZ_T1fromM0_path ' -m ' SUBJECT.postACZ_T1fromM0_path ' -fMask ' SUBJECT.preACZ_mask_path ' -p ' SUBJECT.ElastixParameterFile ' -loglevel info -out ' SUBJECT.ASLdir]);
+    system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.0.nii.gz') ' ' SUBJECT.postACZ_T1fromM0_2preACZ_path]);
+    system(['fslcpgeom ' SUBJECT.preACZ_T1fromM0_path ' ' SUBJECT.postACZ_T1fromM0_2preACZ_path ' -d']);
 
     disp('Registration CBF postACZ to preACZ *********************************************************************')
-    system(['transformix -in ' postACZ_CBF_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt')]);
-    system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' postACZ_CBF_2preACZ_path]);
-    system(['fslcpgeom ' preACZ_CBF_path ' ' postACZ_CBF_2preACZ_path ' -d']);
+    system(['transformix -in ' SUBJECT.postACZ_CBF_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt')]);
+    system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' SUBJECT.postACZ_CBF_2preACZ_path]);
+    system(['fslcpgeom ' SUBJECT.preACZ_CBF_path ' ' SUBJECT.postACZ_CBF_2preACZ_path ' -d']);
 
     disp('Registration AAT postACZ to preACZ *********************************************************************')
-    system(['transformix -in ' postACZ_AAT_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt')]);
-    system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' postACZ_AAT_2preACZ_path]);
-    system(['fslcpgeom ' preACZ_AAT_path ' ' postACZ_AAT_2preACZ_path ' -d']);
+    system(['transformix -in ' SUBJECT.postACZ_AAT_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt')]);
+    system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' SUBJECT.postACZ_AAT_2preACZ_path]);
+    system(['fslcpgeom ' SUBJECT.preACZ_AAT_path ' ' SUBJECT.postACZ_AAT_2preACZ_path ' -d']);
 
     disp('Registration mask postACZ to preACZ *********************************************************************')
     % change ResampleInterpolator to nearestneighbour for binary mask transformation to preACZ
     oldTextLine = '(ResampleInterpolator "FinalBSplineInterpolator")';
     newTextLine = '(ResampleInterpolator "FinalNearestNeighborInterpolator")';
     ChangeElastixParameterFileEntry(fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt'), oldTextLine, newTextLine, fullfile(SUBJECT.ASLdir, 'TransformParameters.0.NN.txt'));
-    system(['transformix -in ' postACZ_mask_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.NN.txt')]);
-    system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' postACZ_mask_2preACZ_path]);
-    system(['fslcpgeom ' preACZ_mask_path ' ' postACZ_mask_2preACZ_path ' -d']);
+    system(['transformix -in ' SUBJECT.postACZ_mask_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.NN.txt')]);
+    system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' SUBJECT.postACZ_mask_2preACZ_path]);
+    system(['fslcpgeom ' SUBJECT.preACZ_mask_path ' ' SUBJECT.postACZ_mask_2preACZ_path ' -d']);
 
 elseif strcmp(SUBJECT.RegistrationMethod,'matlab_imreg') % use Matlab imregtform
     optimizer = registration.optimizer.RegularStepGradientDescent;
@@ -56,37 +39,37 @@ elseif strcmp(SUBJECT.RegistrationMethod,'matlab_imreg') % use Matlab imregtform
     tform = imregtform(moving_im, imref3d(size(moving_im)), fixed_im, imref3d(size(fixed_im)), "rigid",optimizer,metric, "PyramidLevels",2);
 
     moving_reg = imwarp(moving_im, tform, "cubic","OutputView", imref3d(size(moving_im)));
-    SaveDataNII(moving_reg, postACZ_M0_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_M0, scalesclope, [], SUBJECT.TR);
-    system(['fslcpgeom ' preACZ_T1fromM0_path ' ' postACZ_T1fromM0_2preACZ_path ' -d']);
+    SaveDataNII(moving_reg, SUBJECT.postACZ_M0_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_M0, scalesclope, [], SUBJECT.TR);
+    system(['fslcpgeom ' SUBJECT.preACZ_T1fromM0_path ' ' SUBJECT.postACZ_T1fromM0_2preACZ_path ' -d']);
 
     disp('Registration CBF postACZ to preACZ *********************************************************************')
     moving_reg = imwarp(SUBJECT.postACZ.CBF, tform, "cubic","OutputView", imref3d(size(SUBJECT.postACZ.CBF)));
-    SaveDataNII(moving_reg, postACZ_CBF_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_CBF, scalesclope, [], SUBJECT.TR);
-    system(['fslcpgeom ' preACZ_CBF_path ' ' postACZ_CBF_2preACZ_path ' -d']);
+    SaveDataNII(moving_reg, SUBJECT.postACZ_CBF_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_CBF, scalesclope, [], SUBJECT.TR);
+    system(['fslcpgeom ' SUBJECT.preACZ_CBF_path ' ' postACZ_CBF_2preACZ_path ' -d']);
 
     disp('Registration AAT postACZ to preACZ *********************************************************************')
     moving_reg = imwarp(SUBJECT.postACZ.AAT, tform, "cubic","OutputView", imref3d(size(SUBJECT.postACZ.AAT)));
     SaveDataNII(moving_reg, postACZ_AAT_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_AAT, scalesclope, [], SUBJECT.TR);
-    system(['fslcpgeom ' preACZ_AAT_path ' ' postACZ_AAT_2preACZ_path ' -d']);
+    system(['fslcpgeom ' SUBJECT.preACZ_AAT_path ' ' SUBJECT.postACZ_AAT_2preACZ_path ' -d']);
 
     disp('Registration mask postACZ to preACZ *********************************************************************')
     moving_reg = imwarp(SUBJECT.postACZ.brainmask, tform, "nearest","OutputView", imref3d(size(SUBJECT.postACZ.CBF)));
-    SaveDataNII(moving_reg, postACZ_mask_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_M0, 1, [], SUBJECT.TR);
-    system(['fslcpgeom ' preACZ_mask_path ' ' postACZ_mask_2preACZ_path ' -d']);
+    SaveDataNII(moving_reg, SUBJECT.postACZ_mask_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_M0, 1, [], SUBJECT.TR);
+    system(['fslcpgeom ' SUBJECT.preACZ_mask_path ' ' SUBJECT.postACZ_mask_2preACZ_path ' -d']);
 end
 disp('Registration finished..')
 
 % create figure .png to assess registration result
-SlicerPNGs(preACZ_T1fromM0_path, postACZ_T1fromM0_2preACZ_path, 'postACZ_T1fromM0', 'preACZ_T1fromM0', SUBJECT.RESULTSdir)
+SlicerPNGs(SUBJECT.preACZ_T1fromM0_path, SUBJECT.postACZ_T1fromM0_2preACZ_path, 'postACZ_T1fromM0', 'preACZ_T1fromM0', SUBJECT.RESULTSdir)
 
 % load BASIL CBF, AAT, masks and regsitration NIFTIs
-SUBJECT.preACZ.CBF = double(niftiread(preACZ_CBF_path));
-SUBJECT.postACZ.CBF = double(niftiread(postACZ_CBF_path));
-SUBJECT.postACZ.CBF_2preACZ = double(niftiread(postACZ_CBF_2preACZ_path));
-SUBJECT.preACZ.AAT = double(niftiread(preACZ_AAT_path));
-SUBJECT.postACZ.AAT = double(niftiread(postACZ_AAT_path));
-SUBJECT.postACZ.AAT_2preACZ = double(niftiread(postACZ_AAT_2preACZ_path));
-SUBJECT.postACZ.brainmask_2preACZ = double(niftiread(postACZ_mask_2preACZ_path));
+SUBJECT.preACZ.CBF = double(niftiread(SUBJECT.preACZ_CBF_path));
+SUBJECT.postACZ.CBF = double(niftiread(SUBJECT.postACZ_CBF_path));
+SUBJECT.postACZ.CBF_2preACZ = double(niftiread(SUBJECT.postACZ_CBF_2preACZ_path));
+SUBJECT.preACZ.AAT = double(niftiread(SUBJECT.preACZ_AAT_path));
+SUBJECT.postACZ.AAT = double(niftiread(SUBJECT.postACZ_AAT_path));
+SUBJECT.postACZ.AAT_2preACZ = double(niftiread(SUBJECT.postACZ_AAT_2preACZ_path));
+SUBJECT.postACZ.brainmask_2preACZ = double(niftiread(SUBJECT.postACZ_mask_2preACZ_path));
 
 % make combined mask from registered pre/post ACZ
 SUBJECT.preACZ.nanmask = double(SUBJECT.preACZ.brainmask);
