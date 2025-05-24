@@ -1,4 +1,4 @@
-function MRI_DIAMOX_UMCU_ClinicalASL_QASL_CVR_IMAGER(inputdir, outputdir)
+function MRI_DIAMOX_UMCU_ClinicalASL_SSVB_CVR_IMAGER(inputdir, outputdir)
 % ClinicalASL toolbox 2025, JCWSiero
 % for MRI DIAMOX scans, via IMAGER
 % includes automatic DICOM file loading, anatomy segmentation and  registration, outlier removal, data construction, BASIL analysis, CBF, map smoothing, CVR registration, calculation and saving
