@@ -68,7 +68,10 @@ SUBJECT.postACZ.CBF = double(niftiread(SUBJECT.postACZ_CBF_path));
 SUBJECT.postACZ.CBF_2preACZ = double(niftiread(SUBJECT.postACZ_CBF_2preACZ_path));
 SUBJECT.preACZ.AAT = double(niftiread(SUBJECT.preACZ_AAT_path));
 SUBJECT.postACZ.AAT = double(niftiread(SUBJECT.postACZ_AAT_path));
-SUBJECT.postACZ.AAT_2preACZ = double(niftiread(SUBJECT.postACZ_AAT_2preACZ_path));
+SUBJECT.postACZ.AAT_2preACZ = double(niftiread(SUBJECT.postACZ_ATA_2preACZ_path));
+SUBJECT.preACZ.ATA = double(niftiread(SUBJECT.preACZ_ATA_path));
+SUBJECT.postACZ.ATA = double(niftiread(SUBJECT.postACZ_ATA_path));
+SUBJECT.postACZ.ATA_2preACZ = double(niftiread(SUBJECT.postACZ_AAT_2preACZ_path));
 SUBJECT.postACZ.brainmask_2preACZ = double(niftiread(SUBJECT.postACZ_mask_2preACZ_path));
 
 % make combined mask from registered pre/post ACZ
