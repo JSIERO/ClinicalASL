@@ -62,7 +62,7 @@ SUBJECT.postACZ_AAT_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_AAT_2preACZ
 
 SUBJECT.preACZ_ATA_path = fullfile(SUBJECT.ASLdir, 'preACZ_BASIL_1to2PLD_forATA', '/native_space/perfusion_calib.nii.gz');
 SUBJECT.postACZ_ATA_path = fullfile(SUBJECT.ASLdir, 'postACZ_BASIL_1to2PLD_forATA', '/native_space/perfusion_calib.nii.gz');
-SUBJECT.postACZ_ATA_2preACZpath = fullfile(SUBJECT.ASLdir, 'postACZ_BASIL_1to2PLD_forATA', '/native_space/perfusion_calib_2preACZ.nii.gz');
+SUBJECT.postACZ_ATA_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_BASIL_1to2PLD_forATA', '/native_space/perfusion_calib_2preACZ.nii.gz');
 
 % create folders
 if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir;SUBJECT.DICOMRESULTSdir})))
