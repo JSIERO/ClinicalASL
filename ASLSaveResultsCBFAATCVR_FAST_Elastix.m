@@ -19,6 +19,11 @@ if strcmp(SUBJECT.RegistrationMethod,'elastix')
     system(['transformix -in ' SUBJECT.postACZ_AAT_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt')]);
     system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' SUBJECT.postACZ_AAT_2preACZ_path]);
     system(['fslcpgeom ' SUBJECT.preACZ_AAT_path ' ' SUBJECT.postACZ_AAT_2preACZ_path ' -d']);
+  
+    disp('Registration ATA postACZ to preACZ *********************************************************************')
+    system(['transformix -in ' SUBJECT.postACZ_ATA_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt')]);
+    system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' SUBJECT.postACZ_ATA_2preACZ_path]);
+    system(['fslcpgeom ' SUBJECT.preACZ_ATA_path ' ' SUBJECT.postACZ_ATA_2preACZ_path ' -d']);
 
     disp('Registration mask postACZ to preACZ *********************************************************************')
     % change ResampleInterpolator to nearestneighbour for binary mask transformation to preACZ
@@ -52,6 +57,11 @@ elseif strcmp(SUBJECT.RegistrationMethod,'matlab_imreg') % use Matlab imregtform
     SaveDataNII(moving_reg, postACZ_AAT_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_AAT, scalesclope, [], SUBJECT.TR);
     system(['fslcpgeom ' SUBJECT.preACZ_AAT_path ' ' SUBJECT.postACZ_AAT_2preACZ_path ' -d']);
 
+    disp('Registration ATA postACZ to preACZ *********************************************************************')
+    moving_reg = imwarp(SUBJECT.postACZ.ATA, tform, "cubic","OutputView", imref3d(size(SUBJECT.postACZ.ATA)));
+    SaveDataNII(moving_reg, postACZ_ATA_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_ATA, scalesclope, [], SUBJECT.TR);
+    system(['fslcpgeom ' SUBJECT.preACZ_ATA_path ' ' SUBJECT.postACZ_ATA_2preACZ_path ' -d']);
+
     disp('Registration mask postACZ to preACZ *********************************************************************')
     moving_reg = imwarp(SUBJECT.postACZ.brainmask, tform, "nearest","OutputView", imref3d(size(SUBJECT.postACZ.CBF)));
     SaveDataNII(moving_reg, SUBJECT.postACZ_mask_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_M0, 1, [], SUBJECT.TR);
@@ -68,10 +78,10 @@ SUBJECT.postACZ.CBF = double(niftiread(SUBJECT.postACZ_CBF_path));
 SUBJECT.postACZ.CBF_2preACZ = double(niftiread(SUBJECT.postACZ_CBF_2preACZ_path));
 SUBJECT.preACZ.AAT = double(niftiread(SUBJECT.preACZ_AAT_path));
 SUBJECT.postACZ.AAT = double(niftiread(SUBJECT.postACZ_AAT_path));
-SUBJECT.postACZ.AAT_2preACZ = double(niftiread(SUBJECT.postACZ_ATA_2preACZ_path));
+SUBJECT.postACZ.AAT_2preACZ = double(niftiread(SUBJECT.postACZ_AAT_2preACZ_path));
 SUBJECT.preACZ.ATA = double(niftiread(SUBJECT.preACZ_ATA_path));
 SUBJECT.postACZ.ATA = double(niftiread(SUBJECT.postACZ_ATA_path));
-SUBJECT.postACZ.ATA_2preACZ = double(niftiread(SUBJECT.postACZ_AAT_2preACZ_path));
+SUBJECT.postACZ.ATA_2preACZ = double(niftiread(SUBJECT.postACZ_ATA_2preACZ_path));
 SUBJECT.postACZ.brainmask_2preACZ = double(niftiread(SUBJECT.postACZ_mask_2preACZ_path));
 
 % make combined mask from registered pre/post ACZ
