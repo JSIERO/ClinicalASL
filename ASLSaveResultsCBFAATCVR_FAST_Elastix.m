@@ -97,20 +97,24 @@ SaveDataNII(SUBJECT.postACZ.CBF_2preACZ, fullfile(SUBJECT.ASLdir, 'postACZ_CBF_2
 SaveDataNII(SUBJECT.preACZ.AAT, fullfile(SUBJECT.ASLdir, 'preACZ_AAT'), SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
 SaveDataNII(SUBJECT.postACZ.AAT, fullfile(SUBJECT.ASLdir, 'postACZ_AAT'), SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
 SaveDataNII(SUBJECT.postACZ.AAT_2preACZ, fullfile(SUBJECT.ASLdir, 'postACZ_AAT_2preACZ'), SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+SaveDataNII(SUBJECT.preACZ.ATA, fullfile(SUBJECT.ASLdir, 'preACZ_ATA'), SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+SaveDataNII(SUBJECT.postACZ.ATA, fullfile(SUBJECT.ASLdir, 'postACZ_ATA'), SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+SaveDataNII(SUBJECT.postACZ.ATA_2preACZ, fullfile(SUBJECT.ASLdir, 'postACZ_ATA_2preACZ'), SUBJECT.dummyfilenameSaveNII, 1, [], SUBJECT.TR);
+SaveDataNII(SUBJECT.CVR_smth, fullfile(SUBJECT.ASLdir, 'CVR_smth'), SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
 
 SaveFIGUREtoPNG(SUBJECT.preACZ.CBF, SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
 SaveFIGUREtoPNG(SUBJECT.preACZ.CBF, SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['preACZ_CBF_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
 SaveFIGUREtoPNG(SUBJECT.postACZ.CBF_2preACZ, SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF_2preACZ_' num2str(SUBJECT.range_child_cbf(2))], 'CBF', 'viridis');
 SaveFIGUREtoPNG(SUBJECT.postACZ.CBF_2preACZ, SUBJECT.nanmask_reg, SUBJECT.range_adult_cbf, SUBJECT.RESULTSdir, ['postACZ_CBF_2preACZ_' num2str(SUBJECT.range_adult_cbf(2))], 'CBF', 'viridis');
-
-SaveDataNII(SUBJECT.CVR_smth, fullfile(SUBJECT.ASLdir, 'CVR_smth'), SUBJECT.dummyfilenameSaveNII,1,[], SUBJECT.TR);
 SaveFIGUREtoPNG(SUBJECT.CVR_smth, SUBJECT.nanmask_reg, SUBJECT.range_cvr, SUBJECT.RESULTSdir, 'CVR_smth','CVR', 'vik');
 SaveFIGUREtoPNG(SUBJECT.preACZ.AAT_smth, SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, 'preACZ_AAT_smth', 'time', 'devon');
-SaveFIGUREtoPNG(SUBJECT.postACZ.AAT_2preACZ_smth, SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, 'postACZ_AAT_2preACZ_smth', 'time', 'devon');
+SaveFIGUREtoPNG(SUBJECT.postACZ.AAT_2preACZ_smth, SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, 'postACZ_AAT_2preACZ', 'time', 'devon');
+SaveFIGUREtoPNG(SUBJECT.preACZ.ATA, SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, 'preACZ_ATA', 'CBF', 'viridis');
+SaveFIGUREtoPNG(SUBJECT.postACZ.ATA_2preACZ, SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, 'postACZ_ATA_2preACZ', 'CBF', 'viridis');
 
 disp('CBF, AAT, CVR Results: NIFTI and .PNGs created')
 
-%% Save to DICOMS: CBF, AAT, CVR, delta AAT
+%% Save to DICOMS: CBF, AAT, ATA, CVR, 
 % preACZ CBF
 info = dicominfo([SUBJECT.DICOMdir, SUBJECT.preACZfilenameDCM_CBF]); % reference DICOM file
 image = SUBJECT.preACZ.CBF;
@@ -179,6 +183,28 @@ info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(int16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 dicomwrite(flipud(permute(reshape(int16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.DICOMRESULTSdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
+% preACZ ATA
+info = dicominfo([SUBJECT.DICOMdir, SUBJECT.preACZfilenameDCM_ATA]); % reference DICOM file, change when dummy ImageAlgebra Job exists
+image = SUBJECT.preACZ.ATA;
+name = 'WIP preACZ ATA MD-ASL';
+dicomname = [SUBJECT.preACZfilenameDCM_ATA '.dcm'];
+[a,b,c] = size(image);
+scalingfactor = (2^16)/max(image,[],'all'); % for conversion to unsigned int16, divided by 10 otherwize clipping
+info.SeriesDescription = name;
+info.ProtocolName = name;
+for i=1:info.NumberOfFrames
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_adult_cbf);
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_adult_cbf);
+    if i > size(image, 3) %remove extra frames larger than slice number input image
+        info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
+    end
+end
+info.NumberOfFrames = size(image, 3);
+dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.DICOMRESULTSdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+
 % postACZ CBF
 info_ref= dicominfo([SUBJECT.DICOMdir, SUBJECT.postACZfilenameDCM_CBF]); % reference DICOM file
 info = info_ref; %copy DICOM info of reference DICOM
@@ -224,6 +250,29 @@ info.NumberOfFrames = size(image, 3);
 dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.DICOMRESULTSdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
-disp('CBF, AAT, CVR Results: DICOMs created')
+% postACZ ATA
+info_ref= dicominfo([SUBJECT.DICOMdir, SUBJECT.postACZfilenameDCM_ATA]); % reference DICOM file
+info = info_ref; %copy DICOM info of reference DICOM
+image = SUBJECT.postACZ.ATA;
+name = 'WIP postACZ ATA MD-ASL';
+dicomname = [SUBJECT.postACZfilenameDCM_ATA '.dcm'];
+[a,b,c] = size(image);
+scalingfactor = (2^16)/max(image,[],'all')/10; % for conversion to unsigned int16, divided by 10 otherwize clipping
+info.SeriesDescription = name;
+info.ProtocolName = name;
+for i=1:info.NumberOfFrames
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).PixelValueTransformationSequence.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).Private_2005_140f.Item_1.RescaleSlope = 1/scalingfactor;
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowCenter = mean(SUBJECT.range_adult_cbf);
+    info.PerFrameFunctionalGroupsSequence.("Item_"+ num2str(i)).FrameVOILUTSequence.Item_1.WindowWidth = range(SUBJECT.range_adult_cbf);
+    if i > size(image, 3) %remove extra frames larger than slice number input image
+        info.PerFrameFunctionalGroupsSequence = rmfield(info.PerFrameFunctionalGroupsSequence,("Item_"+ num2str(i)));
+    end
+end
+info.NumberOfFrames = size(image, 3);
+dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.ASLdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+dicomwrite(flipud(permute(reshape(uint16(image*scalingfactor),[a,b,1,c]),[2,1,3,4])),fullfile(SUBJECT.DICOMRESULTSdir, dicomname),info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
+
+disp('CBF, AAT, ATA, CVR Results: DICOMs created')
 
 
