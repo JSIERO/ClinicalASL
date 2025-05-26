@@ -23,15 +23,12 @@ for i = 1:SUBJECT.NPLDS
     SaveDataNII(squeeze(SUBJECT.(prefix).ASL_label1label2_allPLD(:,:,:,:,i)), [SUBJECT.ASLdir prefix '_PLD0' num2str(i) '_label1label2'], SUBJECT.dummyfilenameSaveNII, 1,[], SUBJECT.TR)  % save M0 image , only first PLDs
 end
 
-disp('Saving ASL data interleaved label control: all PLDs')
+disp('Saving ASL data interleaved label control: all PLDs for AAT maps')
 SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD, DIMS(1),DIMS(2), DIMS(3), SUBJECT.NPLDS*SUBJECT.NREPEATS*2), [SUBJECT.ASLdir prefix '_allPLD_label1label2'], SUBJECT.dummyfilenameSaveNII, 1,[], SUBJECT.TR)  % save interleaved control label and for all PLDs as 4th dimension
 
-if strcmp(fast, 'fast')
-    % skip saving the 1-to-2 PLDs for ATA, aCBF maps, and spatial COV
-else
-    disp('Saving ASL data interleaved label control: 1-to-2 PLDs    for ATA, aCBF maps, and spatial COV ')
-    SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD(:,:,:,:,1:2), DIMS(1),DIMS(2), DIMS(3), 2*SUBJECT.NREPEATS*2), [SUBJECT.ASLdir prefix '_1to2PLD_label1label2'], SUBJECT.dummyfilenameSaveNII, 1,[], SUBJECT.TR)  % save interleaved control label and for all PLDs as 4th dimension
-end
+disp('Saving ASL data interleaved label control: 1-to-2 PLDs for ATA maps')
+SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD(:,:,:,:,1:2), DIMS(1),DIMS(2), DIMS(3), 2*SUBJECT.NREPEATS*2), [SUBJECT.ASLdir prefix '_1to2PLD_label1label2'], SUBJECT.dummyfilenameSaveNII, 1,[], SUBJECT.TR)  % save interleaved control label and for all PLDs as 4th dimension
+
 disp('Saving ASL data interleaved label control: 2-to-last PLDs for CBF maps, "free" of arterial transit artefacts')
 SaveDataNII(reshape(SUBJECT.(prefix).ASL_label1label2_allPLD(:,:,:,:,2:end), DIMS(1),DIMS(2), DIMS(3), (SUBJECT.NPLDS-1)*SUBJECT.NREPEATS*2), [SUBJECT.ASLdir prefix '_2tolastPLD_label1label2'], SUBJECT.dummyfilenameSaveNII, 1,[], SUBJECT.TR)  % save interleaved control label and for all PLDs as 4th dimension
 
