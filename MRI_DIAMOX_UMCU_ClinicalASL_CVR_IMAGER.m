@@ -5,10 +5,15 @@ function MRI_DIAMOX_UMCU_ClinicalASL_CVR_IMAGER(inputdir, outputdir)
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Get subject folder name, select folder containing all patient data
-SUBJECT.SUBJECTdir = inputdir;
-SUBJECT.DICOMRESULTSdir = outputdir; % DICOM RESULTS path
-docker_compiled_app_location = '/app/compiled_matlab_app/';
+%SUBJECT.SUBJECTdir = inputdir;
+SUBJECT.SUBJECTdir = '/home/jeroen/FRIDGE_jeroen/MOYAMOYA/IMAGER/ASLBOLD_LEMSON_ATA/';
 
+SUBJECT.DICOMRESULTSdir = '/home/jeroen/FRIDGE_jeroen/MOYAMOYA/IMAGER/ASLBOLD_LEMSON_ATA/'; % DICOM RESULTS path
+%SUBJECT.DICOMRESULTSdir = outputdir; % DICOM RESULTS path
+
+%docker_compiled_app_location = '/app/compiled_matlab_app/';
+
+docker_compiled_app_location = '/home/jeroen/GITHUB/ClinicalASL/generalFunctions'
 % location of registration Elastix File and FSL BASIL options
 SUBJECT.ElastixParameterFile = fullfile(docker_compiled_app_location,'Par0001rigid_6DOF_MI_NIFTIGZ.txt'); % use 6DOF, rigidbody, Mutual information for registration
 if ~isfile(SUBJECT.ElastixParameterFile)
@@ -62,7 +67,7 @@ SUBJECT.postACZ_AAT_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_AAT_2preACZ
 
 SUBJECT.preACZ_ATA_path = fullfile(SUBJECT.ASLdir, 'preACZ_BASIL_1to2PLD_forATA', '/native_space/perfusion_calib.nii.gz');
 SUBJECT.postACZ_ATA_path = fullfile(SUBJECT.ASLdir, 'postACZ_BASIL_1to2PLD_forATA', '/native_space/perfusion_calib.nii.gz');
-SUBJECT.postACZ_ATA_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_BASIL_1to2PLD_forATA', '/native_space/perfusion_calib_2preACZ.nii.gz');
+SUBJECT.postACZ_ATA_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_ATA_2preACZ.nii.gz');
 
 % create folders
 if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir;SUBJECT.DICOMRESULTSdir})))
@@ -92,36 +97,24 @@ SUBJECT.postACZfilenameNIFTI = filepostACZ(end,1).name;
 SUBJECT.preACZfilenameDCM = filepreACZ(end,1).name(1:end-7); % DICOM ASL source file
 SUBJECT.postACZfilenameDCM = filepostACZ(end,1).name(1:end-7); % DICOM ASL source file
 
-dummydcm = dir([SUBJECT.DICOMdir, 'sWIP*CBF*preACZ*']);
-if size(dummydcm,1) > 0 % find DICOM dummy file names for CBF, CVR, AAT, pre/post ACZ created by immgeAlgebra in Philips Examcard
-    preACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'sWIP*CBF*preACZ*']);% find dummy data CBF preACZ
-    preACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'sWIP*AAT*preACZ*']);% find dummy data AAT preACZ
-    preACZfilenameDCM_CVR = dir([SUBJECT.DICOMdir, 'sWIP*CVR*preACZ*']);% find dummy data CVR preACZ
-    preACZfilenameDCM_ATA = dir([SUBJECT.DICOMdir, 'sWIP*ATA*preACZ*']);% find dummy data ATA preACZ
-    
-    postACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'sWIP*CBF*postACZ*']);% find dummy data CBF postACZ
-    postACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'sWIP*AAT*postACZ*']);% find dummy data AAT postACZ
-    postACZfilenameDCM_ATA = dir([SUBJECT.DICOMdir, 'sWIP*ATA*postACZ*']);% find dummy data ATA postACZ
+preACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'sWIP*CBF*preACZ*']);% find dummy data CBF preACZ
+preACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'sWIP*AAT*preACZ*']);% find dummy data AAT preACZ
+preACZfilenameDCM_CVR = dir([SUBJECT.DICOMdir, 'sWIP*CVR*preACZ*']);% find dummy data CVR preACZ
+preACZfilenameDCM_ATA = dir([SUBJECT.DICOMdir, 'sWIP*ATA*preACZ*']);% find dummy data ATA preACZ
 
-    SUBJECT.preACZfilenameDCM_CBF = preACZfilenameDCM_CBF.name; % DICOM CBF dummy file preACZ
-    SUBJECT.preACZfilenameDCM_AAT = preACZfilenameDCM_AAT.name; % DICOM AAT dummy file preACZ
-    SUBJECT.preACZfilenameDCM_CVR = preACZfilenameDCM_CVR.name; % DICOM CVR dummy file preACZ
-    SUBJECT.preACZfilenameDCM_ATA = preACZfilenameDCM_ATA.name; % DICOM ATA dummy file preACZ
-    
-    SUBJECT.postACZfilenameDCM_CBF = postACZfilenameDCM_CBF.name; % DICOM CBF dummy file postACZ
-    SUBJECT.postACZfilenameDCM_AAT = postACZfilenameDCM_AAT.name; % DICOM AAT dummy file postACZ
-    SUBJECT.postACZfilenameDCM_ATA = postACZfilenameDCM_ATA.name; % DICOM CVR dummy file postACZ
-    
-else % use original source ASL DICOM, takes longer to load
-    SUBJECT.preACZfilenameDCM_CBF = SUBJECT.preACZfilenameDCM; % DICOM CBF dummy file preACZ
-    SUBJECT.preACZfilenameDCM_AAT = SUBJECT.preACZfilenameDCM; % DICOM AAT dummy file preACZ
-    SUBJECT.preACZfilenameDCM_CVR = SUBJECT.preACZfilenameDCM; % DICOM CVR dummy file preACZ
-    SUBJECT.preACZfilenameDCM_ATA = SUBJECT.preACZfilenameDCM; % DICOM ATA dummy file preACZ
-    
-    SUBJECT.postACZfilenameDCM_CBF = SUBJECT.postACZfilenameDCM; % DICOM CBF dummy file postACZ
-    SUBJECT.postACZfilenameDCM_AAT = SUBJECT.postACZfilenameDCM; % DICOM AAT dummy file postACZ
-    SUBJECT.postACZfilenameDCM_ATA = SUBJECT.postACZfilenameDCM; % DICOM ATA dummy file postACZ   
-end
+postACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'sWIP*CBF*postACZ*']);% find dummy data CBF postACZ
+postACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'sWIP*AAT*postACZ*']);% find dummy data AAT postACZ
+postACZfilenameDCM_ATA = dir([SUBJECT.DICOMdir, 'sWIP*ATA*postACZ*']);% find dummy data ATA postACZ
+
+SUBJECT.preACZfilenameDCM_CBF = preACZfilenameDCM_CBF.name; % DICOM CBF dummy file preACZ
+SUBJECT.preACZfilenameDCM_AAT = preACZfilenameDCM_AAT.name; % DICOM AAT dummy file preACZ
+SUBJECT.preACZfilenameDCM_CVR = preACZfilenameDCM_CVR.name; % DICOM CVR dummy file preACZ
+SUBJECT.preACZfilenameDCM_ATA = preACZfilenameDCM_ATA.name; % DICOM ATA dummy file preACZ
+
+SUBJECT.postACZfilenameDCM_CBF = postACZfilenameDCM_CBF.name; % DICOM CBF dummy file postACZ
+SUBJECT.postACZfilenameDCM_AAT = postACZfilenameDCM_AAT.name; % DICOM AAT dummy file postACZ
+SUBJECT.postACZfilenameDCM_ATA = postACZfilenameDCM_ATA.name; % DICOM CVR dummy file postACZ
+
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 2. Extract DICOM information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Fetch scan parameters
