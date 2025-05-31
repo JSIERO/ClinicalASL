@@ -13,7 +13,7 @@ Meq_LLblood=M0*(1-exp(-deltaPLD/T1blood))/(1-cosd(flipangle)*exp(-deltaPLD/T1blo
 
 Mz_noLL_C = M0*(1 - exp(-t/T1blood)); % control data
 Mz_noLL_L = M0*(1 - 2* exp(-t/T1blood)); % label data
-deltaM_noLL = M0*exp(-t/T1blood);
+deltaM_noLL = Mz_noLL_C - Mz_noLL_L ;     
 
 t1=1:PLD(1);
 Mz_LL_C(t1) = M0*(1 - exp(-t1/T1blood));
