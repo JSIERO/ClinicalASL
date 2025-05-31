@@ -3,9 +3,9 @@ function output = ASLLookLockerCorrectionFactor_mDelayPCASL(SUBJECT)
 % compute Look Locker scaling per PLD
 flipangle = SUBJECT.FLIPANGLE;
 M0=1;
+T1blood= SUBJECT.T1b*1000; % in ms
 PLD = SUBJECT.PLDS*1000; %in ms
 t = 1:1:PLD(end)*1.1;
-T1blood= 1.65*1000;
 
 deltaPLD=mean(diff(PLD));
 T1effblood=1/(1/T1blood-log(cosd(flipangle))/deltaPLD);
