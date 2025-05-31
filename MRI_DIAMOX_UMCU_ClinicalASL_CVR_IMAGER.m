@@ -5,15 +5,10 @@ function MRI_DIAMOX_UMCU_ClinicalASL_CVR_IMAGER(inputdir, outputdir)
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Get subject folder name, select folder containing all patient data
-%SUBJECT.SUBJECTdir = inputdir;
-SUBJECT.SUBJECTdir = '/home/jeroen/FRIDGE_jeroen/MOYAMOYA/IMAGER/ASLBOLD_LEMSON_ATA/';
+SUBJECT.SUBJECTdir = inputdir;
+SUBJECT.DICOMRESULTSdir = outputdir; % DICOM RESULTS path
+docker_compiled_app_location = '/app/compiled_matlab_app/';
 
-SUBJECT.DICOMRESULTSdir = '/home/jeroen/FRIDGE_jeroen/MOYAMOYA/IMAGER/ASLBOLD_LEMSON_ATA/'; % DICOM RESULTS path
-%SUBJECT.DICOMRESULTSdir = outputdir; % DICOM RESULTS path
-
-%docker_compiled_app_location = '/app/compiled_matlab_app/';
-
-docker_compiled_app_location = '/home/jeroen/GITHUB/ClinicalASL/generalFunctions'
 % location of registration Elastix File and FSL BASIL options
 SUBJECT.ElastixParameterFile = fullfile(docker_compiled_app_location,'Par0001rigid_6DOF_MI_NIFTIGZ.txt'); % use 6DOF, rigidbody, Mutual information for registration
 if ~isfile(SUBJECT.ElastixParameterFile)
