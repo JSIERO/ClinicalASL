@@ -5,9 +5,10 @@ function MRI_DIAMOX_UMCU_ClinicalASL_CVR_IMAGER(inputdir, outputdir)
 
 %% %%%%%%%%%%%%%%%%%%%%%%% 1. Subject information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Get subject folder name, select folder containing all patient data
-SUBJECT.SUBJECTdir = inputdir;
-SUBJECT.DICOMRESULTSdir = outputdir; % DICOM RESULTS path
+SUBJECT.DICOMdir = inputdir; % input folder for extracted PACS DICOM
+SUBJECT.SUBJECTdir = outputdir; 
 docker_compiled_app_location = '/app/compiled_matlab_app/';
+docker_compiled_app_location = '/Fridge/users/jeroen/MOYAMOYA/IMAGER/compiled_matlab_app';
 
 % location of registration Elastix File and FSL BASIL options
 SUBJECT.ElastixParameterFile = fullfile(docker_compiled_app_location,'Par0001rigid_6DOF_MI_NIFTIGZ.txt'); % use 6DOF, rigidbody, Mutual information for registration
@@ -38,10 +39,10 @@ SUBJECT.range_cvr = [-50 50]; % colourbar range for CVR values
 SUBJECT.range_AAT = [0.5 2.5]; % time (s), arterial arrival time
 
 % create folder paths
-SUBJECT.DICOMdir = fullfile(SUBJECT.SUBJECTdir,'/DICOM/'); % DICOM  path
 SUBJECT.NIFTIdir = fullfile(SUBJECT.SUBJECTdir,'/NIFTI/'); % NIFTI  path
 SUBJECT.ASLdir = fullfile(SUBJECT.SUBJECTdir,'/ASL/'); % ASL path
 SUBJECT.RESULTSdir = fullfile(SUBJECT.SUBJECTdir,'/ASL/FIGURE_RESULTS/'); % RESULTS path
+SUBJECT.DICOMRESULTSdir = fullfile(SUBJECT.SUBJECTdir); % DICOM RESULTS path
 
 % set paths to files for registration (preACZ, post ACZ) and output
 SUBJECT.preACZ_T1fromM0_path = fullfile(SUBJECT.ASLdir,'preACZ_T1fromM0.nii.gz');
@@ -65,15 +66,14 @@ SUBJECT.postACZ_ATA_path = fullfile(SUBJECT.ASLdir, 'postACZ_BASIL_1to2PLD_forAT
 SUBJECT.postACZ_ATA_2preACZ_path = fullfile(SUBJECT.ASLdir, 'postACZ_ATA_2preACZ.nii.gz');
 
 % create folders
-if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir;SUBJECT.DICOMRESULTSdir})))
+if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir})))
     mkdir(SUBJECT.NIFTIdir); % create NIFTI folder
     mkdir(SUBJECT.ASLdir); % create ASL folder
     mkdir(SUBJECT.RESULTSdir); % create RESULTS folder
-    mkdir(SUBJECT.DICOMRESULTSdir); % create DICOMRESULTS for IMAGER folder    
 end
 
 % convert and rename DICOM files in DICOM folder to NIFTI folder
-ASLConvertDICOMtoNIFTI(SUBJECT.DICOMdir, SUBJECT.NIFTIdir)
+SUBJECT = ASLConvertDICOMtoNIFTI(SUBJECT,'IMAGER')
 
 % Get ASL nifti filenames
 
@@ -92,14 +92,14 @@ SUBJECT.postACZfilenameNIFTI = filepostACZ(end,1).name;
 SUBJECT.preACZfilenameDCM = filepreACZ(end,1).name(1:end-7); % DICOM ASL source file
 SUBJECT.postACZfilenameDCM = filepostACZ(end,1).name(1:end-7); % DICOM ASL source file
 
-preACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'sWIP*CBF*preACZ*']);% find dummy data CBF preACZ
-preACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'sWIP*AAT*preACZ*']);% find dummy data AAT preACZ
-preACZfilenameDCM_CVR = dir([SUBJECT.DICOMdir, 'sWIP*CVR*preACZ*']);% find dummy data CVR preACZ
-preACZfilenameDCM_ATA = dir([SUBJECT.DICOMdir, 'sWIP*ATA*preACZ*']);% find dummy data ATA preACZ
+preACZfilenameDCM_CBF = dir(fullfile(SUBJECT.DICOMdir, 'sWIP*CBF*preACZ*'));% find dummy data CBF preACZ
+preACZfilenameDCM_AAT = dir(fullfile(SUBJECT.DICOMdir, 'sWIP*AAT*preACZ*'));% find dummy data AAT preACZ
+preACZfilenameDCM_CVR = dir(fullfile(SUBJECT.DICOMdir, 'sWIP*CVR*preACZ*'));% find dummy data CVR preACZ
+preACZfilenameDCM_ATA = dir(fullfile(SUBJECT.DICOMdir, 'sWIP*ATA*preACZ*'));% find dummy data ATA preACZ
 
-postACZfilenameDCM_CBF = dir([SUBJECT.DICOMdir, 'sWIP*CBF*postACZ*']);% find dummy data CBF postACZ
-postACZfilenameDCM_AAT = dir([SUBJECT.DICOMdir, 'sWIP*AAT*postACZ*']);% find dummy data AAT postACZ
-postACZfilenameDCM_ATA = dir([SUBJECT.DICOMdir, 'sWIP*ATA*postACZ*']);% find dummy data ATA postACZ
+postACZfilenameDCM_CBF = dir(fullfile(SUBJECT.DICOMdir, 'sWIP*CBF*postACZ*'));% find dummy data CBF postACZ
+postACZfilenameDCM_AAT = dir(fullfile(SUBJECT.DICOMdir, 'sWIP*AAT*postACZ*'));% find dummy data AAT postACZ
+postACZfilenameDCM_ATA = dir(fullfile(SUBJECT.DICOMdir, 'sWIP*ATA*postACZ*'));% find dummy data ATA postACZ
 
 SUBJECT.preACZfilenameDCM_CBF = preACZfilenameDCM_CBF.name; % DICOM CBF dummy file preACZ
 SUBJECT.preACZfilenameDCM_AAT = preACZfilenameDCM_AAT.name; % DICOM AAT dummy file preACZ
@@ -114,7 +114,7 @@ SUBJECT.postACZfilenameDCM_ATA = postACZfilenameDCM_ATA.name; % DICOM CVR dummy 
 %% %%%%%%%%%%%%%%%%%%%%%%% 2. Extract DICOM information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Fetch scan parameters
 SUBJECT = ASLExtractParamsDICOM(SUBJECT, SUBJECT.preACZfilenameDCM);
-SUBJECT.dummyfilenameSaveNII = [SUBJECT.NIFTIdir SUBJECT.preACZfilenameNIFTI]; % location .nii.gz NIFTI to be used as dummy template for saving NII's in the tool
+SUBJECT.dummyfilenameSaveNII = fullfile(SUBJECT.NIFTIdir, SUBJECT.preACZfilenameNIFTI); % location .nii.gz NIFTI to be used as dummy template for saving NII's in the tool
 % Obtain Look-Locker correction factor
 SUBJECT.LookLocker_correction_factor_perPLD = ASLLookLockerCorrectionFactor_mDelayPCASL(SUBJECT); % LookLocker correction factor, depending on the flipangle and PLDs
 

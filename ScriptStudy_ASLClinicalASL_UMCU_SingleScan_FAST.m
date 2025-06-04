@@ -41,7 +41,7 @@ if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir})
 end
 
 % convert and rename DICOM files in DICOM folder to NIFTI folder
-ASLConvertDICOMtoNIFTI(SUBJECT.DICOMdir, SUBJECT.NIFTIdir)
+SUBJECT = ASLConvertDICOMtoNIFTI(SUBJECT)
 
 % Get ASL nifti filenames
 % SOURCE ASL NIFTI path

@@ -2,7 +2,7 @@ function [SUBJECT] = ASLExtractParamsDICOM(SUBJECT, filename)
 % ClinicalASL toolbox 2023, JCWSiero
 tic
 disp('  Reading DICOM info... ')
-info = dicominfo([SUBJECT.DICOMdir filename]);
+info = dicominfo(fullfile(SUBJECT.DICOMdir, filename));
 elapsedTime = toc;
 disp(['..this took: '  num2str(round(elapsedTime)) ' s'])
 

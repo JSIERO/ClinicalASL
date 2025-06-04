@@ -41,13 +41,13 @@ else
 end
 
 % Update DICOM metadata
-info.SeriesInstanceUID     = dicomuid;
-info.SOPClassUID           = '1.2.840.10008.5.1.4.1.1.4.1';
+info.SeriesInstanceUID     = dicomuid; % generate UID
+info.SOPClassUID           = '1.2.840.10008.5.1.4.1.1.4.1'; % code for Enhanced MR Image Storage
 info.SeriesDescription     = [name ' [' unit_str ']'];
 info.ProtocolName          = name;
-info.ContentDescription    = ['ASL derived map: ' upper(content_label) ' (' unit_str ')'];
+info.ContentDescription    = ['ASL derived map: ' upper(content_label) ' [' unit_str ']'];
 info.ContentLabel          = upper(content_label);
-info.ImageType             = {'DERIVED', 'SECONDARY', 'QUANTITATIVE'};
+info.ImageType             = 'DERIVED\SECONDARY\QUANTITATIVE';
 info.NumberOfFrames        = c;
 info.RescaleSlope          = 1 / scalingfactor;
 info.RescaleIntercept      = 0;
@@ -56,9 +56,8 @@ info.BitsAllocated         = 16;
 info.BitsStored            = 16;
 info.HighBit               = 15;
 
-% Automatically create ReferencedSeriesSequence from reference
-info.ReferencedSeriesSequence = struct('ReferencedSeriesInstanceUID', info.SeriesInstanceUID, 'ReferencedInstanceSequence', struct([]));
-
+% Add ReferencedSeriesSequence using valid DICOM structure
+info.ReferencedSeriesSequence = struct('Item_1', struct('SeriesInstanceUID', info.SeriesInstanceUID,'ReferencedInstanceSequence', struct()));
 % Per-frame updates
 for i = 1:c
     frame = info.PerFrameFunctionalGroupsSequence.("Item_" + i);
@@ -73,5 +72,5 @@ end
 pixeldata = flipud(permute(reshape(image_scaled, [a, b, 1, c]), [2, 1, 3, 4])); % SANINTY CHECK THIS!
 dicomwrite(pixeldata, output_dicom_path, info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
-fprintf('✅ DICOM written to: %s\n  Content: %s (%s), Slope: %.6f\n', output_dicom_path, upper(content_label), unit_str, 1 / scalingfactor);
+fprintf('DICOM written to: %s\n  Content: %s (%s), Slope: %.6f\n', output_dicom_path, upper(content_label), unit_str, 1 / scalingfactor);
 end

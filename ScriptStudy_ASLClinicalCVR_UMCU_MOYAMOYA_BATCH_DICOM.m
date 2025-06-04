@@ -69,7 +69,7 @@ for subj=1:length(subjnames)
         warning('No DICOM folder found, try manual conversion from  PARREC folder when possible')
         return
     else
-        ASLConvertDICOMtoNIFTI(SUBJECT.DICOMdir, SUBJECT.NIFTIdir)
+        SUBJECT = ASLConvertDICOMtoNIFTI(SUBJECT)
     end
 
     %Get ASL nifti filenames

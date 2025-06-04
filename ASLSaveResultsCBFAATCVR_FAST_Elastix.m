@@ -124,7 +124,7 @@ SaveFIGUREtoPNG(SUBJECT.preACZ.AAT_smth, SUBJECT.nanmask_reg, SUBJECT.range_AAT,
 SaveFIGUREtoPNG(SUBJECT.postACZ.AAT_2preACZ_smth, SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, 'postACZ_AAT_2preACZ', 'time', 'devon');
 SaveFIGUREtoPNG(SUBJECT.preACZ.ATA, SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, 'preACZ_ATA', 'CBF', 'viridis');
 SaveFIGUREtoPNG(SUBJECT.postACZ.ATA_2preACZ, SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, 'postACZ_ATA_2preACZ', 'CBF', 'viridis');
-
+% 
 disp('CBF, AAT, CVR Results: NIFTI and .PNGs created')
 
 %% Save to DICOMS: CBF, AAT, ATA, CVR
@@ -136,7 +136,7 @@ SaveDataDICOM(SUBJECT.preACZ.CBF, fullfile(SUBJECT.DICOMdir, SUBJECT.preACZfilen
 SaveDataDICOM(SUBJECT.preACZ.AAT_smth, fullfile(SUBJECT.DICOMdir, SUBJECT.preACZfilenameDCM_AAT), fullfile(SUBJECT.DICOMRESULTSdir, [SUBJECT.preACZfilenameDCM_AAT '.dcm']), 'WIP preACZ AAT MD-ASL', SUBJECT.range_AAT, 'AAT')
 
 % CVR
-SaveDataDICOM(SUBJECT.preACZ.CVR_smth, fullfile(SUBJECT.DICOMdir, SUBJECT.preACZfilenameDCM_CVR), fullfile(SUBJECT.DICOMRESULTSdir, [SUBJECT.preACZfilenameDCM_CVR '.dcm']), 'WIP CVR MD-ASL' , SUBJECT.range_cvr, 'CVR')
+SaveDataDICOM(SUBJECT.CVR_smth, fullfile(SUBJECT.DICOMdir, SUBJECT.preACZfilenameDCM_CVR), fullfile(SUBJECT.DICOMRESULTSdir, [SUBJECT.preACZfilenameDCM_CVR '.dcm']), 'WIP CVR MD-ASL' , SUBJECT.range_cvr, 'CVR')
 
 % preACZ ATA
 SaveDataDICOM(SUBJECT.preACZ.ATA, fullfile(SUBJECT.DICOMdir, SUBJECT.preACZfilenameDCM_ATA), fullfile(SUBJECT.DICOMRESULTSdir, [SUBJECT.preACZfilenameDCM_ATA '.dcm']), 'WIP ATA MD-ASL' , SUBJECT.range_adult_cbf, 'ATA')

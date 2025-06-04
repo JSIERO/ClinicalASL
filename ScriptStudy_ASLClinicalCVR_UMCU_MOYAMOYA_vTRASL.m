@@ -50,7 +50,7 @@ if logical(max(~isfolder({SUBJECT.NIFTIdir; SUBJECT.ASLdir; SUBJECT.RESULTSdir})
 end
 
 % convert and rename DICOM files in DICOM folder to NIFTI folder
-ASLConvertDICOMtoNIFTI(SUBJECT.DICOMdir, SUBJECT.NIFTIdir, 'vTR_only');
+SUBJECT = ASLConvertDICOMtoNIFTI(SUBJECT, [], 'vTR_only')
 
 % Get vTR-ASL nifti filenames
 filenames_vTR = dir(fullfile(SUBJECT.NIFTIdir, '*PRIDE*SOURCE*vTR*.nii.gz'));% find SOURCE data ASL
