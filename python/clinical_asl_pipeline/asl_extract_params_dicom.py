@@ -1,0 +1,125 @@
+import os
+import pydicom
+import time
+import numpy as np
+
+
+def asl_extract_params_dicom(subject, filename):
+    """
+    Python version of ASLExtractParamsDICOM.
+    subject: dict containing at least 'DICOMdir', 'tau', 'labeleff', and 'N_BS'
+    filename: string, name of the DICOM file
+    """
+    start_time = time.time()
+    print('  Reading DICOM info... ')
+
+    # ? Safely join paths to avoid missing slashes
+    dicom_path = os.path.join(subject['DICOMdir'], filename)
+    if not os.path.exists(dicom_path):
+        raise FileNotFoundError(f"DICOM file not found: {dicom_path}")
+
+    # Load DICOM metadata
+    info = pydicom.dcmread(dicom_path, stop_before_pixels=True)
+    elapsed_time = round(time.time() - start_time)
+    print(f'..DICOM read completed in: {elapsed_time} s')   
+
+    # Access the tags (nested)
+    TR = info.CardiacRRIntervalSpecified
+    print("TR:", TR/1e3, "s")
+    
+    nplds = info.get((0x2001, 0x1017)).value
+    print("NPLDS (Number of PLDs):", nplds) # Number of PLDS 
+   
+    private_seq = info.PerFrameFunctionalGroupsSequence[0].get((0x2005, 0x140f))
+    
+    echo_time = float(private_seq[0].get((0x0018, 0x0081)).value)  # EchoTime tag
+    print("EchoTime:", echo_time, "ms")
+
+    ndyns =  int(private_seq[0].get((0x0020, 0x0105)).value)  # Number of Temporal Positions
+    print("NDYNS (Number of Dynamics):", ndyns)
+
+    # Extract values
+    voxel_spacing_xy = private_seq[0].PixelSpacing  # MultiValue of two elements
+    slice_thickness = private_seq[0].SliceThickness  # single float
+
+    # Combine and convert to NumPy array of floats
+    voxelsize = np.array(list(voxel_spacing_xy) + [slice_thickness], dtype=np.float32)
+    print("Voxel Size (XYZ in mm):", voxelsize)
+
+    nslices = info.get((0x2001, 0x1018)).value
+    print("NSLICES (Number of Slices):", nslices)
+
+    flipangle = float(private_seq[0].get((0x0018, 0x1314)).value)
+    print("FlipAngle:", flipangle, "degrees")
+
+    # Save values to subject
+    
+    subject['TR'] = TR/1e3 # in s
+    subject['TE'] = echo_time# in ms
+    subject['NPLDS'] = nplds
+    subject['NDYNS'] = ndyns
+    subject['NREPEATS'] = subject['NDYNS'] - 1
+    subject['VOXELSIZE'] = voxelsize # in mm
+    subject['NSLICES'] = nslices
+    subject['FLIPANGLE'] = flipangle
+
+    # --- 1.  PLD and slice timing extraction ---      
+    # Read all frametimes from DICOM
+    frametimes = []
+    
+    num_frames = subject['NSLICES'] * subject['NPLDS'] * subject['NDYNS'] * 2
+    
+    for t in range(num_frames):
+        try:
+            frame = info.PerFrameFunctionalGroupsSequence[t]
+            private_elem = frame.get((0x2005, 0x140f))
+            private_seq = private_elem.value if private_elem else None
+    
+            if private_seq and len(private_seq) > 0:
+                item = private_seq[0]
+                trigger_elem = item.get((0x0018, 0x1060))  # TriggerTime
+                if trigger_elem:
+                    frametimes.append(float(trigger_elem.value))
+                else:
+                    frametimes.append(None)
+            else:
+                frametimes.append(None)
+        except IndexError:
+            frametimes.append(None)
+    
+    # Save raw frametimes
+    subject['frametimes'] = frametimes
+    
+    # Step 2: Extract PLDs (first NPLDS frames), convert to seconds
+    subject['PLDS'] = np.array([
+        ft / 1e3 for ft in frametimes[:subject['NPLDS']] if ft is not None
+    ], dtype=np.float32)
+    
+    # Step 3: Compute TIs = PLD + tau
+    subject['TIS'] = subject['PLDS'] + subject['tau']
+    
+    # Step 4: Estimate slice timing
+    # Unique + sorted frametimes for first NSLICES frames
+    clean_frametimes = [ft for ft in frametimes if ft is not None]
+    unique_sorted = np.unique(np.sort(clean_frametimes))
+    
+    if len(unique_sorted) >= subject['NSLICES']:
+        diffs = np.diff(unique_sorted[:subject['NSLICES']])
+        subject['slicetime'] = float(np.mean(diffs))  # ms
+        print("Estimated slice timing (ms):", subject['slicetime'])
+    else:
+        subject['slicetime'] = None
+        print("Not enough valid frame times to estimate slice timing.")
+      
+    # Labeling efficiencies
+    subject['alpha_inv'] = subject['labeleff']
+    subject['alpha_BS'] = 0.95 ** subject['N_BS']
+    subject['alpha'] = subject['alpha_inv'] * subject['alpha_BS']
+
+    # M0 timing
+    subject['TR_M0'] = subject['tau'] + subject['PLDS']
+
+    # Store full DICOM info
+    subject[f"{filename}_DCMinfo"] = info
+
+    return subject

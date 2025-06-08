@@ -1,0 +1,64 @@
+import subprocess
+import time
+
+
+def asl_qasl_analysis(
+    subject,
+    location_asl_labelcontrol_pld_nifti,
+    location_m0,
+    location_mask,
+    output_map,
+    pld_list,
+    inference_method='ssvb', # or basil, for BASIL method output
+    artoff=None,
+):
+
+    # Generate comma-separated PLD string
+    pld_string = ",".join([f"{pld:.5g}" for pld in pld_list])
+
+    # Arterial component off (optional)
+    artoff_string = " --artoff" if artoff == "artoff" else ""
+
+    # Extract parameter values and convert to string
+    T1t = str(subject['T1t'])
+    T1b = str(subject['T1b'])
+    tau = str(subject['tau'])
+    TR_M0 = str(subject['TR_M0'][0])
+    alpha = str(subject['alpha'])
+    slicetime = str(subject['slicetime'] / 1000)  # convert ms to seconds
+
+    # Timing the execution
+    start_time = time.time()
+
+    # Build oxford_asl command
+    cmd = (
+        f"qasl -i {location_asl_labelcontrol_pld_nifti} "
+        f"-c {location_m0} "
+        f"-m {location_mask} "
+        f"-o {output_map} "
+        f" --inference-method={inference_method} "
+        f"{artoff_string} "
+        f"--bolus={tau} "
+        f"--slicedt={slicetime} "
+        f"--t1={T1t} "
+        f"--t1b={T1b} "
+        f"--t1t={T1t} "
+        f"--plds={pld_string} "
+        f"--tr={TR_M0} "
+        f" --alpha={alpha} "
+        f"--iaf=ct "
+        f"--ibf=tis "
+        f"--casl "
+        f"--cgain 1.00 "
+        f"--readout=2D "
+        f"--save-calib "
+        f"--overwrite"
+    )
+
+    # Run command
+    print("Running QASL analysis...")
+    subprocess.run(cmd, shell=True, check=True)
+
+    print("QASL analysis finished")
+    elapsed = round(time.time() - start_time, 2)
+    print(f"..this took: {elapsed} s")

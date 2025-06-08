@@ -1,0 +1,72 @@
+import numpy as np
+
+def asl_look_locker_correction(subject):
+    """
+    Compute Look-Locker scaling correction per PLD for mDelay PCASL
+    """
+
+    # Flip angle in degrees
+    flip_angle = subject['FLIPANGLE']
+
+    # Assume M0 = 1
+    M0 = 1
+
+    # PLDs in milliseconds
+    PLD = np.array(subject['PLDS']) * 1000  # convert from s to ms
+
+    # Time vector t
+    t = np.arange(1, int(PLD[-1] * 1.1) + 1)  # MATLAB-style 1:PLD(end)*1.1
+
+    # Blood T1 in ms
+    T1_blood = subject['T1b'] * 1e3  # 1.65 * 1000
+
+    # Average delta PLD
+    delta_PLD = np.mean(np.diff(PLD))
+
+    # Effective T1 during Look-Locker
+    T1_eff_blood = 1 / (1 / T1_blood - np.log(np.cos(np.radians(flip_angle))) / delta_PLD)
+
+    # Equilibrium magnetization during LL readout, # Brix et al MRI 1990
+    Meq_LL_blood = M0 * (1 - np.exp(-delta_PLD / T1_blood)) / (1 - np.cos(np.radians(flip_angle)) * np.exp(-delta_PLD / T1_blood))
+
+    # Magnetization without Look-Locker
+    Mz_noLL_C = M0 * (1 - np.exp(-t / T1_blood)) # control data
+    Mz_noLL_L = M0 * (1 - 2 * np.exp(-t / T1_blood)) # label data
+    deltaM_noLL = Mz_noLL_C - Mz_noLL_L      
+
+    # With Look-Locker
+    Mz_LL_C = np.zeros_like(t, dtype=np.float64)
+    Mz_LL_L = np.zeros_like(t, dtype=np.float64)
+
+    t1 = np.arange(1, int(PLD[0]) + 1)
+    Mz_LL_C[t1 - 1] = M0 * (1 - np.exp(-t1 / T1_blood))
+    Mz_LL_L[t1 - 1] = M0 * (1 - 2 * np.exp(-t1 / T1_blood))
+
+    t2 = np.arange(int(PLD[0]) + 1, int(t[-1]) + 1)
+    offset = int(round(PLD[0]))
+    decay = np.exp(-t[t2 - 1 - offset] / T1_eff_blood)
+    recovery = Meq_LL_blood * (1 - decay)
+    Mz_LL_C[t2 - 1] = Mz_LL_C[offset - 1] * decay + recovery
+    Mz_LL_L[t2 - 1] = Mz_LL_L[offset - 1] * decay + recovery
+
+    deltaM_LL = Mz_LL_C - Mz_LL_L
+
+    with np.errstate(divide='ignore', invalid='ignore'):
+        deltaM_ratio_LL_noLL = deltaM_LL / deltaM_noLL
+        deltaM_ratio_LL_noLL[~np.isfinite(deltaM_ratio_LL_noLL)] = 0
+  
+    # Convert to Mxy using flip angle
+    deltaMxy_ratio_LL_noLL = deltaM_ratio_LL_noLL * np.sin(np.radians(flip_angle))
+
+    # Extract values at PLD time points (rounded to nearest integer indices)
+    tpointsMxy = PLD.astype(int)
+    deltaMxy_ratio_LL_noLL_for_BASIL = deltaMxy_ratio_LL_noLL[tpointsMxy - 1]  # -1 for 0-based index
+    
+    # Display summary
+    print(
+        f" Look-Locker correction factor for flipangle = {flip_angle} (deg), "
+        f"PLDs(ms) : {PLD.tolist()}, and deltaPLD(ms) = {delta_PLD}:  "
+        f"{deltaMxy_ratio_LL_noLL_for_BASIL}"
+    )
+
+    return deltaMxy_ratio_LL_noLL_for_BASIL
