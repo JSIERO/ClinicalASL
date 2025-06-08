@@ -9,11 +9,11 @@ if isunix  % unix
     if nargin == 2
         if strcmp(imager, 'IMAGER')
             % make copy of original DICOM folder (otherwise can't load in VM or scanners)
-            if ~isfolder(fullfile(SUBJECTdir,'DICOM'))
-                system(['mkdir ' fullfile(SUBJECTdir,'DICOM')]); % make DICOM folder in outputfolder SUBJECTdir
+            if ~isfolder(fullfile(SUBJECTdir,'DICOMORIG'))
+                system(['mkdir ' fullfile(SUBJECTdir,'DICOMORIG')]); % make DICOM folder in outputfolder SUBJECTdir
             end
-            system(['cp ' DICOMinputdir '/* ' fullfile(SUBJECTdir,'DICOM')]);  %copy PACS fetched DICOMS to outputfolder SUBJECTdir
-            DICOMinputdir = fullfile(SUBJECTdir,'DICOM');% make this the DICOM input folder in output SUBJECTdir for NIFTI conversion
+            system(['cp ' DICOMinputdir '/* ' fullfile(SUBJECTdir,'DICOMORIG')]);  %copy PACS fetched DICOMS to outputfolder SUBJECTdir
+            DICOMinputdir = fullfile(SUBJECTdir,'DICOMORIG');% make this the DICOM input folder in output SUBJECTdir for NIFTI conversion
             SUBJECT.DICOMdir = DICOMinputdir; % make fullfile(SUBJECTdir,'DICOM') the new SUBJECT.DICOMdir for extracting scan parameters and such
 
             if ~isfolder(fullfile(DICOMinputdir,'ORIG'))

@@ -69,7 +69,7 @@ for i = 1:c
 end
 
 % Orient and write
-pixeldata = flipud(permute(reshape(image_scaled, [a, b, 1, c]), [2, 1, 3, 4])); % SANINTY CHECK THIS!
+pixeldata = flipud(permute(reshape(image_scaled, [a, b, 1, c]), [2, 1, 3, 4])); 
 dicomwrite(pixeldata, output_dicom_path, info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 fprintf('DICOM written to: %s\n  Content: %s (%s), Slope: %.6f\n', output_dicom_path, upper(content_label), unit_str, 1 / scalingfactor);
