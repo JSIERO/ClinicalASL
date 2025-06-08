@@ -131,18 +131,18 @@ SUBJECT = ASLT1fromM0Processing(SUBJECT, 'postACZ','fast');
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 5. BASIL CBF Analysis for both Original and Outlier removed ASL data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('Perform BASIL analysis for both original and outlier removed ASL data')
-% 
-% session = {'preACZ', 'postACZ'};
-% 
-% for i=1:length(session)
-%     prefix = char(session(i));
-%     % %%%% % all PLD for AAT (arterial arrival time map) % %%%%%
-%     ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_allPLD_label1label2.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_allPLD_forAAT'], [1:SUBJECT.NPLDS], SUBJECT.locationBASILinfo)
-%     % %%%% % 2tolast PLD for CBF map % %%%% %
-%     ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_2tolastPLD_label1label2.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_2tolastPLD_forCBF'], [2:SUBJECT.NPLDS], SUBJECT.locationBASILinfo)
-%     % %%%% % 1to2 PLDs for ATA map ->  then do no fit for the arterial component 'artoff' % %%%% %
-%     ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_1to2PLD_label1label2.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_1to2PLD_forATA'], [1:2], SUBJECT.locationBASILinfo,'artoff')
-% end
+
+session = {'preACZ', 'postACZ'};
+
+for i=1:length(session)
+    prefix = char(session(i));
+    % %%%% % all PLD for AAT (arterial arrival time map) % %%%%%
+    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_allPLD_label1label2.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_allPLD_forAAT'], [1:SUBJECT.NPLDS], SUBJECT.locationBASILinfo)
+    % %%%% % 2tolast PLD for CBF map % %%%% %
+    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_2tolastPLD_label1label2.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_2tolastPLD_forCBF'], [2:SUBJECT.NPLDS], SUBJECT.locationBASILinfo)
+    % %%%% % 1to2 PLDs for ATA map ->  then do no fit for the arterial component 'artoff' % %%%% %
+    ASLBASILanalysis(SUBJECT, [SUBJECT.ASLdir prefix '_1to2PLD_label1label2.nii.gz'], [SUBJECT.ASLdir prefix '_M0.nii.gz'], [SUBJECT.ASLdir prefix '_M0_brain_mask.nii.gz'], [SUBJECT.ASLdir prefix '_BASIL_1to2PLD_forATA'], [1:2], SUBJECT.locationBASILinfo,'artoff')
+end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 6. Generate resulting CBF/CVR/AAT/aCBV .png images %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 SUBJECT = ASLSaveResultsCBFAATCVR_FAST_Elastix(SUBJECT); %
