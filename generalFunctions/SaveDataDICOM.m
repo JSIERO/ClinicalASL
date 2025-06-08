@@ -27,6 +27,8 @@ end
 
 info = dicominfo(template_dicom_path);
 [a, b, c] = size(image);
+%Replace NaNs with 0 before scaling
+image(isnan(image)) = 0;
 
 % Scaling and cast
 if use_signed
