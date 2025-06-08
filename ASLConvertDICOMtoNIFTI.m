@@ -33,7 +33,6 @@ if isunix  % unix
             system(['rename -v -f '  '''s/-//g''' ' ' fullfile(DICOMinputdir,'*')]);
 
             system(['dcm2niix -w 1 -z y -b y -f %p_%s  -o ' NIFTIoutputdir ' ' DICOMinputdir '> ' NIFTIoutputdir 'dcm2niix.log 2>&1']);
-
         end
     else
         % make copy of original DICOM folder (otherwise can't load in VM or scanners)
