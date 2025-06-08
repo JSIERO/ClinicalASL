@@ -1,0 +1,62 @@
+// Description: Cleaned for Elastix 5.2.0, using Euler transform with Adv. Norm. Corr
+// JCWS ClinicalASL 2025
+// Image types
+(FixedInternalImagePixelType "float")
+(FixedImageDimension 3)
+(MovingInternalImagePixelType "float")
+(MovingImageDimension 3)
+
+// Output options
+(ResultImageFormat "nii.gz")
+(ResultImagePixelType "double")
+(WriteResultImage "true")
+(WriteResultImageAfterEachResolution "false") 
+(WriteTransformParametersEachIteration "false")
+(WriteTransformParametersEachResolution "false")
+
+// Transform & registration setup
+(Transform "EulerTransform")
+(Registration "MultiResolutionRegistration")
+(HowToCombineTransforms "Compose")
+(AutomaticTransformInitialization "true")
+(AutomaticTransformInitializationMethod "CenterOfGravity")
+
+// Pyramid & resolutions
+(NumberOfResolutions 2)
+(ImagePyramidSchedule 2 2 2  1 1 1)
+(FixedImagePyramid "FixedSmoothingImagePyramid")
+(MovingImagePyramid "MovingSmoothingImagePyramid")
+
+// Optimizer & metric
+(Metric "AdvancedNormalizedCorrelation")
+(Optimizer "AdaptiveStochasticGradientDescent")
+(MaximumNumberOfIterations 500)
+(AutomaticScalesEstimation "true")
+
+// Interpolation
+(Interpolator "BSplineInterpolator")
+(ResampleInterpolator "FinalBSplineInterpolator")
+(Resampler "DefaultResampler")
+(FixedImageBSplineInterpolationOrder 1)
+(BSplineInterpolationOrder 3)
+(FinalBSplineInterpolationOrder 3)
+
+// Sampling
+(ImageSampler "RandomSparseMask")  // or RandomCoordinate if preferred
+(UseRandomSampleRegion "true")
+(SampleRegionSize 50.0)
+(NewSamplesEveryIteration "true")
+(CheckNumberOfSamples "false")
+(NumberOfSpatialSamples 8000)
+
+// Histogram (for mutual information)
+(NumberOfHistogramBins 32)
+
+// Defaults
+(DefaultPixelValue 0)
+(ErodeMask "false")
+
+// Optimizer parameters (for AdaptiveStochasticGradientDescent)
+(SP_a 2000.0)
+(SP_A 200.0)
+(SP_alpha 0.6)

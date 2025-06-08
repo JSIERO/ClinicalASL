@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE registry [
+<!ELEMENT registry (entry*,folder*)>
+<!ELEMENT folder (entry*,folder*)>
+<!ELEMENT entry EMPTY>
+<!ATTLIST folder key CDATA #REQUIRED>
+<!ATTLIST entry key CDATA #REQUIRED>
+<!ATTLIST entry value CDATA #REQUIRED>
+]>
+<registry>
+  <entry key="NumberOfControlPoints" value="10" />
+  <entry key="Preset" value="Custom" />
+  <folder key="ControlPoint[0000]" >
+    <entry key="Index" value="0" />
+    <entry key="Type" value="Discontinuous" />
+    <folder key="Left" >
+      <entry key="A" value="0" />
+      <entry key="B" value="0" />
+      <entry key="G" value="0" />
+      <entry key="R" value="0" />
+    </folder>
+    <folder key="Right" >
+      <entry key="A" value="255" />
+      <entry key="B" value="0" />
+      <entry key="G" value="0" />
+      <entry key="R" value="0" />
+    </folder>
+  </folder>
+  <folder key="ControlPoint[0001]" >
+    <entry key="Index" value="0" />
+    <entry key="Type" value="Continuous" />
+    <folder key="Left" >
+      <entry key="A" value="255" />
+      <entry key="B" value="97" />
+      <entry key="G" value="18" />
+      <entry key="R" value="0" />
+    </folder>
+    <folder key="Right" >
+      <entry key="A" value="255" />
+      <entry key="B" value="97" />
+      <entry key="G" value="18" />
+      <entry key="R" value="0" />
+    </folder>
+  </folder>
+  <folder key="ControlPoint[0002]" >
+    <entry key="Index" value="0.125" />
+    <entry key="Type" value="Continuous" />
+    <folder key="Left" >
+      <entry key="A" value="255" />
+      <entry key="B" value="129" />
+      <entry key="G" value="68" />
+      <entry key="R" value="3" />
+    </folder>
+    <folder key="Right" >
+      <entry key="A" value="255" />
+      <entry key="B" value="129" />
+      <entry key="G" value="68" />
+      <entry key="R" value="3" />
+    </folder>
+  </folder>
+  <folder key="ControlPoint[0003]" >
+    <entry key="Index" value="0.25" />
+    <entry key="Type" value="Continuous" />
+    <folder key="Left" >
+      <entry key="A" value="255" />
+      <entry key="B" value="166" />
+      <entry key="G" value="125" />
+      <entry key="R" value="48" />
+    </folder>
+    <folder key="Right" >
+      <entry key="A" value="255" />
+      <entry key="B" value="166" />
+      <entry key="G" value="125" />
+      <entry key="R" value="48" />
+    </folder>
+  </folder>
+  <folder key="ControlPoint[0004]" >
+    <entry key="Index" value="0.375" />
+    <entry key="Type" value="Continuous" />
+    <folder key="Left" >
+      <entry key="A" value="255" />
+      <entry key="B" value="210" />
+      <entry key="G" value="190" />
+      <entry key="R" value="148" />
+    </folder>
+    <folder key="Right" >
+      <entry key="A" value="255" />
+      <entry key="B" value="210" />
+      <entry key="G" value="190" />
+      <entry key="R" value="148" />
+    </folder>
+  </folder>
+  <folder key="ControlPoint[0005]" >
+    <entry key="Index" value="0.5" />
+    <entry key="Type" value="Continuous" />
+    <folder key="Left" >
+      <entry key="A" value="255" />
+      <entry key="B" value="224" />
+      <entry key="G" value="229" />
+      <entry key="R" value="236" />
+    </folder>
+    <folder key="Right" >
+      <entry key="A" value="255" />
+      <entry key="B" value="224" />
+      <entry key="G" value="229" />
+      <entry key="R" value="236" />
+    </folder>
+  </folder>
+  <folder key="ControlPoint[0006]" >
+    <entry key="Index" value="0.625" />
+    <entry key="Type" value="Continuous" />
+    <folder key="Left" >
+      <entry key="A" value="255" />
+      <entry key="B" value="141" />
+      <entry key="G" value="170" />
+      <entry key="R" value="219" />
+    </folder>
+    <folder key="Right" >
+      <entry key="A" value="255" />
+      <entry key="B" value="141" />
+      <entry key="G" value="170" />
+      <entry key="R" value="219" />
+    </folder>
+  </folder>
+  <folder key="ControlPoint[0007]" >
+    <entry key="Index" value="0.75" />
+    <entry key="Type" value="Continuous" />
+    <folder key="Left" >
+      <entry key="A" value="255" />
+      <entry key="B" value="65" />
+      <entry key="G" value="112" />
+      <entry key="R" value="194" />
+    </folder>
+    <folder key="Right" >
+      <entry key="A" value="255" />
+      <entry key="B" value="65" />
+      <entry key="G" value="112" />
+      <entry key="R" value="194" />
+    </folder>
+  </folder>
+  <folder key="ControlPoint[0008]" >
+    <entry key="Index" value="0.875" />
+    <entry key="Type" value="Continuous" />
+    <folder key="Left" >
+      <entry key="A" value="255" />
+      <entry key="B" value="6" />
+      <entry key="G" value="45" />
+      <entry key="R" value="145" />
+    </folder>
+    <folder key="Right" >
+      <entry key="A" value="255" />
+      <entry key="B" value="6" />
+      <entry key="G" value="45" />
+      <entry key="R" value="145" />
+    </folder>
+  </folder>
+  <folder key="ControlPoint[0009]" >
+    <entry key="Index" value="1" />
+    <entry key="Type" value="Continuous" />
+    <folder key="Left" >
+      <entry key="A" value="255" />
+      <entry key="B" value="8" />
+      <entry key="G" value="0" />
+      <entry key="R" value="89" />
+    </folder>
+    <folder key="Right" >
+      <entry key="A" value="255" />
+      <entry key="B" value="8" />
+      <entry key="G" value="0" />
+      <entry key="R" value="89" />
+    </folder>
+  </folder>
+  <folder key="NaNColor" >
+    <entry key="A" value="255" />
+    <entry key="B" value="0" />
+    <entry key="G" value="0" />
+    <entry key="R" value="0" />
+  </folder>
+</registry>
