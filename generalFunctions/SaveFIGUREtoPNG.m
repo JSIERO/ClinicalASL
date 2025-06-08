@@ -12,17 +12,11 @@ switch COLORMAP
         COLORMAP_black=vik;
     case 'jet'
         COLORMAP_black=jet;
-    case 'imola'
-        load('imola.mat');
-        COLORMAP_black=imola;
     case 'parula'
         COLORMAP_black=parula;
     case 'devon'
         load('devon.mat');
         COLORMAP_black=devon;
-    case 'turku'
-        load('turku.mat');
-        COLORMAP_black=turku;
 end
 
 COLORMAP_black(1,:)=[0 0 0];
