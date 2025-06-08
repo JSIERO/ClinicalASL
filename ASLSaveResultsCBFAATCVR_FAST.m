@@ -1,4 +1,4 @@
-function SUBJECT = ASLSaveResultsCBFAATCVR_FAST_Elastix(SUBJECT)
+function SUBJECT = ASLSaveResultsCBFAATCVR_FAST(SUBJECT)
 % ClinicalASL toolbox 2025, JCWSiero
 
 % Registration postACZ to preACZ
@@ -32,39 +32,6 @@ if strcmp(SUBJECT.RegistrationMethod,'elastix')
     ChangeElastixParameterFileEntry(fullfile(SUBJECT.ASLdir, 'TransformParameters.0.txt'), oldTextLine, newTextLine, fullfile(SUBJECT.ASLdir, 'TransformParameters.0.NN.txt'));
     system(['transformix -in ' SUBJECT.postACZ_mask_path ' -out ' SUBJECT.ASLdir ' -tp ' fullfile(SUBJECT.ASLdir, 'TransformParameters.0.NN.txt')]);
     system(['mv -f ' fullfile(SUBJECT.ASLdir, 'result.nii.gz') ' ' SUBJECT.postACZ_mask_2preACZ_path]);
-    system(['fslcpgeom ' SUBJECT.preACZ_mask_path ' ' SUBJECT.postACZ_mask_2preACZ_path ' -d']);
-
-elseif strcmp(SUBJECT.RegistrationMethod,'matlab_imreg') % use Matlab imregtform
-    optimizer = registration.optimizer.RegularStepGradientDescent;
-    metric = registration.metric.MattesMutualInformation;
-
-    disp('Registration T1fromM0 postACZ to preACZ data *********************************************************************')
-    fixed_im = SUBJECT.postACZ.M0.*SUBJECT.postACZ.brainmask;
-    moving_im = SUBJECT.preACZ.M0.*SUBJECT.preACZ.brainmask;
-    tform = imregtform(moving_im, imref3d(size(moving_im)), fixed_im, imref3d(size(fixed_im)), "rigid",optimizer,metric, "PyramidLevels",2);
-
-    moving_reg = imwarp(moving_im, tform, "cubic","OutputView", imref3d(size(moving_im)));
-    SaveDataNII(moving_reg, SUBJECT.postACZ_M0_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_M0, scalesclope, [], SUBJECT.TR);
-    system(['fslcpgeom ' SUBJECT.preACZ_T1fromM0_path ' ' SUBJECT.postACZ_T1fromM0_2preACZ_path ' -d']);
-
-    disp('Registration CBF postACZ to preACZ *********************************************************************')
-    moving_reg = imwarp(SUBJECT.postACZ.CBF, tform, "cubic","OutputView", imref3d(size(SUBJECT.postACZ.CBF)));
-    SaveDataNII(moving_reg, SUBJECT.postACZ_CBF_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_CBF, scalesclope, [], SUBJECT.TR);
-    system(['fslcpgeom ' SUBJECT.preACZ_CBF_path ' ' postACZ_CBF_2preACZ_path ' -d']);
-
-    disp('Registration AAT postACZ to preACZ *********************************************************************')
-    moving_reg = imwarp(SUBJECT.postACZ.AAT, tform, "cubic","OutputView", imref3d(size(SUBJECT.postACZ.AAT)));
-    SaveDataNII(moving_reg, postACZ_AAT_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_AAT, scalesclope, [], SUBJECT.TR);
-    system(['fslcpgeom ' SUBJECT.preACZ_AAT_path ' ' SUBJECT.postACZ_AAT_2preACZ_path ' -d']);
-
-    disp('Registration ATA postACZ to preACZ *********************************************************************')
-    moving_reg = imwarp(SUBJECT.postACZ.ATA, tform, "cubic","OutputView", imref3d(size(SUBJECT.postACZ.ATA)));
-    SaveDataNII(moving_reg, postACZ_ATA_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_ATA, scalesclope, [], SUBJECT.TR);
-    system(['fslcpgeom ' SUBJECT.preACZ_ATA_path ' ' SUBJECT.postACZ_ATA_2preACZ_path ' -d']);
-
-    disp('Registration mask postACZ to preACZ *********************************************************************')
-    moving_reg = imwarp(SUBJECT.postACZ.brainmask, tform, "nearest","OutputView", imref3d(size(SUBJECT.postACZ.CBF)));
-    SaveDataNII(moving_reg, SUBJECT.postACZ_mask_2preACZ_path(1:end-7), SUBJECT.dummyfilenameSaveNII_M0, 1, [], SUBJECT.TR);
     system(['fslcpgeom ' SUBJECT.preACZ_mask_path ' ' SUBJECT.postACZ_mask_2preACZ_path ' -d']);
 end
 disp('Registration finished..')
@@ -124,33 +91,24 @@ SaveFIGUREtoPNG(SUBJECT.preACZ.AAT_smth, SUBJECT.nanmask_reg, SUBJECT.range_AAT,
 SaveFIGUREtoPNG(SUBJECT.postACZ.AAT_2preACZ_smth, SUBJECT.nanmask_reg, SUBJECT.range_AAT, SUBJECT.RESULTSdir, 'postACZ_AAT_2preACZ', 'time', 'devon');
 SaveFIGUREtoPNG(SUBJECT.preACZ.ATA, SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, 'preACZ_ATA', 'CBF', 'viridis');
 SaveFIGUREtoPNG(SUBJECT.postACZ.ATA_2preACZ, SUBJECT.nanmask_reg, SUBJECT.range_child_cbf, SUBJECT.RESULTSdir, 'postACZ_ATA_2preACZ', 'CBF', 'viridis');
-% 
 disp('CBF, AAT, CVR Results: NIFTI and .PNGs created')
 
 %% Save to DICOMS: CBF, AAT, ATA, CVR
 
 % preACZ CBF
 SaveDataDICOM(SUBJECT.preACZ.CBF, fullfile(SUBJECT.DICOMdir, SUBJECT.preACZfilenameDCM_CBF), fullfile(SUBJECT.DICOMRESULTSdir, [SUBJECT.preACZfilenameDCM_CBF '.dcm']), 'WIP preACZ CBF MD-ASL', SUBJECT.range_adult_cbf, 'CBF')
-
 % preACZ AAT
 SaveDataDICOM(SUBJECT.preACZ.AAT_smth, fullfile(SUBJECT.DICOMdir, SUBJECT.preACZfilenameDCM_AAT), fullfile(SUBJECT.DICOMRESULTSdir, [SUBJECT.preACZfilenameDCM_AAT '.dcm']), 'WIP preACZ AAT MD-ASL', SUBJECT.range_AAT, 'AAT')
-
 % CVR
 SaveDataDICOM(SUBJECT.CVR_smth, fullfile(SUBJECT.DICOMdir, SUBJECT.preACZfilenameDCM_CVR), fullfile(SUBJECT.DICOMRESULTSdir, [SUBJECT.preACZfilenameDCM_CVR '.dcm']), 'WIP CVR MD-ASL' , SUBJECT.range_cvr, 'CVR')
-
 % preACZ ATA
 SaveDataDICOM(SUBJECT.preACZ.ATA, fullfile(SUBJECT.DICOMdir, SUBJECT.preACZfilenameDCM_ATA), fullfile(SUBJECT.DICOMRESULTSdir, [SUBJECT.preACZfilenameDCM_ATA '.dcm']), 'WIP ATA MD-ASL' , SUBJECT.range_adult_cbf, 'ATA')
-
 % postACZ CBF
 SaveDataDICOM(SUBJECT.postACZ.CBF, fullfile(SUBJECT.DICOMdir, SUBJECT.postACZfilenameDCM_CBF), fullfile(SUBJECT.DICOMRESULTSdir, [SUBJECT.postACZfilenameDCM_CBF '.dcm']), 'WIP postACZ CBF MD-ASL', SUBJECT.range_adult_cbf, 'CBF')
-
 % postACZ AAT
 SaveDataDICOM(SUBJECT.postACZ.AAT_smth, fullfile(SUBJECT.DICOMdir, SUBJECT.postACZfilenameDCM_AAT), fullfile(SUBJECT.DICOMRESULTSdir, [SUBJECT.postACZfilenameDCM_AAT '.dcm']), 'WIP postACZ AAT MD-ASL', SUBJECT.range_AAT, 'AAT')
-
 % postACZ ATA
 SaveDataDICOM(SUBJECT.postACZ.ATA, fullfile(SUBJECT.DICOMdir, SUBJECT.postACZfilenameDCM_ATA), fullfile(SUBJECT.DICOMRESULTSdir, [SUBJECT.postACZfilenameDCM_ATA '.dcm']), 'WIP ATA MD-ASL' , SUBJECT.range_adult_cbf, 'ATA')
-
-
 disp('CBF, AAT, ATA, CVR Results: DICOMs created')
 
 

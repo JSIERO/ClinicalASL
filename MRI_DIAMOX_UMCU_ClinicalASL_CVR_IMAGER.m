@@ -145,7 +145,7 @@ for i=1:length(session)
 end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 6. Generate resulting CBF/CVR/AAT/aCBV .png images %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-SUBJECT = ASLSaveResultsCBFAATCVR_FAST_Elastix(SUBJECT); %
+SUBJECT = ASLSaveResultsCBFAATCVR_FAST(SUBJECT); %
 
 disp('-- Finished --');
 
