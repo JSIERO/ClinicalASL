@@ -1,24 +1,96 @@
 # ClinicalASL
 
-?? **Current version:** Python (actively developed)  
-??? **Legacy version:** MATLAB (maintenance only)
+ClinicalASL is an open-source processing tool for **Arterial Spin Labeling (ASL) MRI data**, designed to support clinical research and reproducible imaging pipelines.
 
-ClinicalASL is an open-source processing tool for **Arterial Spin Labeling (ASL) MRI data**, designed to support clinical research and facilitate reproducible workflows.
+It provides tools for data conversion, motion correction, parameter extraction, ASL quantification, visualization, and more.
 
----
+The project is currently transitioning from an original MATLAB-based implementation to a new, actively developed Python version.
 
-## Project Status
+## Project Versions
 
-We are currently **migrating ClinicalASL to Python** to enable:
+| Version | Folder | Status | Notes |
+|---------|--------|--------|-------|
+| Python  | [python/](./python) | Actively developed | Primary version — supports modern pipelines and reproducibility |
+| MATLAB  | [matlab/](./matlab) | Legacy (deprecated) | Provided for legacy users — no new features planned |
+
+## Migration Notice
+
+We are transitioning ClinicalASL to a fully Python-based pipeline to enable:
 
 - Easier installation and portability
-- Better integration with modern imaging tools
+- Better integration with modern neuroimaging tools
 - Improved maintainability and extensibility
 
-?? The Python version is now the *primary* version and will receive all new feature development.  
-?? The MATLAB version is provided in a legacy state for users with existing MATLAB-based pipelines.
+New users and contributors should start with the [python/](./python) version.
 
----
+The [matlab/](./matlab) version is preserved for compatibility with existing pipelines, but will not receive new features.
 
-## Repository Structure
+## Project Structure
 
+```
+ClinicalASL/
+  python/      - Actively developed Python version
+    run_pipeline.py           - Main entry point
+    clinical_asl_pipeline/    - Python pipeline modules
+    requirements.txt          - Python dependencies
+    README.md                 - Python-specific instructions
+  matlab/      - Legacy MATLAB version (deprecated)
+    *.m        - MATLAB scripts
+    README.md  - MATLAB-specific instructions
+  LICENSE      - BSD 3-Clause License
+  README.md    - Project overview and instructions
+```
+
+## Python Version
+
+### Installation
+
+It is recommended to install ClinicalASL in a Conda environment:
+
+```
+conda create -n clinicalasl python=3.10
+conda activate clinicalasl
+conda install -c conda-forge antspyx
+pip install -r requirements.txt
+```
+
+### Usage
+
+```
+python run_pipeline.py --input <data_dir> --output <results_dir> [other options]
+```
+
+### Dependencies
+
+- numpy
+- scipy
+- matplotlib
+- nibabel
+- pydicom
+- antspyx (install via Conda)
+
+See [python/requirements.txt](./python/requirements.txt) for full list.
+
+## MATLAB Version (Legacy)
+
+The original MATLAB version of ClinicalASL is preserved in the [matlab/](./matlab) folder.
+
+It is no longer actively developed and is provided only for compatibility with existing MATLAB-based pipelines.
+
+## License
+
+This project is licensed under the terms of the [BSD 3-Clause License](./LICENSE).
+
+## Contributing
+
+Contributions are welcome — especially to the Python version.
+
+Please open an Issue or Discussion if you would like to contribute.
+
+## Acknowledgments
+
+ClinicalASL is developed and maintained by JSIERO and contributors.
+
+## How to cite
+
+If you use ClinicalASL in your research, please cite this repository or any related publications (to be added).
