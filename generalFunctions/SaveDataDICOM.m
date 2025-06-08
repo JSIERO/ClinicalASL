@@ -41,6 +41,8 @@ else
     image_scaled = uint16(image * scalingfactor);
     pixel_representation = 0;
 end
+% Orient and write
+pixeldata = flipud(permute(reshape(image_scaled, [a, b, 1, c]), [2, 1, 3, 4])); 
 
 % Update DICOM metadata
 info.SeriesInstanceUID     = dicomuid; % generate UID
@@ -69,9 +71,7 @@ for i = 1:c
     frame.FrameVOILUTSequence.Item_1.WindowWidth               = diff(value_range);
     info.PerFrameFunctionalGroupsSequence.("Item_" + i) = frame;
 end
-
-% Orient and write
-pixeldata = flipud(permute(reshape(image_scaled, [a, b, 1, c]), [2, 1, 3, 4])); 
+% Write dicom
 dicomwrite(pixeldata, output_dicom_path, info, 'CreateMode', 'Copy', 'MultiframeSingleFile', true);
 
 fprintf('DICOM written to: %s\n  Content: %s (%s), Slope: %.6f\n', output_dicom_path, upper(content_label), unit_str, 1 / scalingfactor);
