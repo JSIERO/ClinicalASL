@@ -45,12 +45,10 @@ ClinicalASL/
 
 ### Installation
 
-It is recommended to install ClinicalASL in a Conda environment:
+It is recommended to install ClinicalASL in a Conda QI (Quantified Imaging QASL) environment:
 
 ```
-conda create -n clinicalasl python=3.10
-conda activate clinicalasl
-conda install -c conda-forge antspyx
+conda activate qi
 pip install -r requirements.txt
 ```
 
