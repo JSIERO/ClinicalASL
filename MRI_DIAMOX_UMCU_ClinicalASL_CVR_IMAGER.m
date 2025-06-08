@@ -130,7 +130,7 @@ SUBJECT = ASLT1fromM0Processing(SUBJECT, 'preACZ', 'fast');
 SUBJECT = ASLT1fromM0Processing(SUBJECT, 'postACZ','fast');
 
 %% %%%%%%%%%%%%%%%%%%%%%%%% 5. BASIL CBF Analysis for both Original and Outlier removed ASL data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-disp('Perform BASIL analysis for both original and outlier removed ASL data')
+disp('Perform BASIL analysis')
 
 session = {'preACZ', 'postACZ'};
 
