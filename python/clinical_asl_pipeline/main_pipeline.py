@@ -140,9 +140,9 @@ def mri_diamox_umcu_clinicalasl_cvr_imager(inputdir, outputdir):
 
     for prefix in ['preACZ', 'postACZ']:
     # Step 8: Motion Correction
-        asl_motioncorrection_ants(subject[f'{prefix}_PLDall_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_PLDall_labelcontrol_path'])
-        asl_motioncorrection_ants(subject[f'{prefix}_PLD2tolast_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_PLD2tolast_labelcontrol_path'])
-        asl_motioncorrection_ants(subject[f'{prefix}_PLD1to2_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_PLD1to2_labelcontrol_path'])
+        #asl_motioncorrection_ants(subject[f'{prefix}_PLDall_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_PLDall_labelcontrol_path'])
+        #asl_motioncorrection_ants(subject[f'{prefix}_PLD2tolast_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_PLD2tolast_labelcontrol_path'])
+        #asl_motioncorrection_ants(subject[f'{prefix}_PLD1to2_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_PLD1to2_labelcontrol_path'])
 
     # Step 9: ASL Quantification analysis
         # all PLD for AAT (arterial arrival time map)
