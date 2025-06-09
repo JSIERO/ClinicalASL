@@ -18,6 +18,7 @@ License: BSD 3-Clause License
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import importlib.resources as pkg_resources
 from matplotlib.colors import ListedColormap
 from scipy.io import loadmat
 
@@ -51,11 +52,16 @@ def save_figure_to_png(data, mask, datarange, outputloc, suffix, label, colormap
     elif colormap.lower() == 'jet':
         cmap = plt.get_cmap('jet')
     elif colormap.lower() in ['vik', 'devon']:
-        matfile = os.path.join(current_dir, f'{colormap.lower()}.mat')
-        mat = loadmat(matfile)
+        try:
+            with pkg_resources.files('clinical_asl_pipeline.colormaps').joinpath(f'{colormap.lower()}.mat').open('rb') as f:
+                mat = loadmat(f)
+        except FileNotFoundError:
+            raise ValueError(f"Missing colormap file: {colormap.lower()}.mat")
+
         cmap_data = mat.get(colormap.lower())
         if cmap_data is None:
-            raise ValueError(f"Could not find colormap data in {matfile}.")
+            raise ValueError(f"Could not find colormap data in {colormap.lower()}.mat")
+        
         cmap = ListedColormap(cmap_data)
     else:
         raise ValueError(f"Unknown colormap: {colormap}")
