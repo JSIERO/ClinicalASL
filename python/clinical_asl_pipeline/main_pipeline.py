@@ -129,7 +129,7 @@ def mri_diamox_umcu_clinicalasl_cvr_imager(inputdir, outputdir):
         asl_motioncorrection_ants(PLD1to2, m0, PLD1to2)
 
     # Step 9: ASL Quantification analysis
-    # all PLD for AAT (arterial arrival time map) test
+    # all PLD for AAT (arterial arrival time map)
         #asl_basil_analysis(subject, PLDall, m0, mask, os.path.join(subject['ASLdir'], f'{prefix}_BASIL_allPLD_forAAT'), subject['PLDS'][0:], subject['locationBASILinfo'])
         asl_qasl_analysis(subject, PLDall, m0, mask, os.path.join(subject['ASLdir'], f'{prefix}_BASIL_allPLD_forAAT'), subject['PLDS'][0:], 'ssvb')
        
