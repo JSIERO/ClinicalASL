@@ -15,7 +15,7 @@ Description:
 License: BSD 3-Clause License
 """
 
-import ants # type: ignore
+import ants 
 
 def asl_motioncorrection_ants(inputdata, refdata, outputdata):
     # Perform motion correction using ANTs
