@@ -1,9 +1,11 @@
 import numpy as np
 
 def asl_look_locker_correction(subject):
-    """
-    Compute Look-Locker scaling correction per PLD for mDelay PCASL
-    """
+    # Compute Look-Locker scaling correction per PLD for mDelay PCASL
+    # subject: dictionary containing ASL parameters and data
+    # Returns: Look-Locker correction factor for each PLD, to be used in ALS quantification (QASL)
+    # Ensure subject dictionary has required keys
+    # required_keys = ['FLIPANGLE', 'PLDS', 'T1b', 'tau']    
 
     # Flip angle in degrees
     flip_angle = subject['FLIPANGLE']
@@ -60,13 +62,13 @@ def asl_look_locker_correction(subject):
 
     # Extract values at PLD time points (rounded to nearest integer indices)
     tpointsMxy = PLD.astype(int)
-    deltaMxy_ratio_LL_noLL_for_BASIL = deltaMxy_ratio_LL_noLL[tpointsMxy - 1]  # -1 for 0-based index
+    LookLocker_correction_factor_perPLD = deltaMxy_ratio_LL_noLL[tpointsMxy - 1]  # -1 for 0-based index
     
     # Display summary
     print(
         f" Look-Locker correction factor for flipangle = {flip_angle} (deg), "
         f"PLDs(ms) : {PLD.tolist()}, and deltaPLD(ms) = {delta_PLD}:  "
-        f"{deltaMxy_ratio_LL_noLL_for_BASIL}"
+        f"{LookLocker_correction_factor_perPLD}"
     )
 
-    return deltaMxy_ratio_LL_noLL_for_BASIL
+    return LookLocker_correction_factor_perPLD

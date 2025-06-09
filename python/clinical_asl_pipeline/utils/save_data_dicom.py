@@ -8,18 +8,36 @@ from pydicom.dataelem import DataElement
 from pydicom.tag import Tag
 import subprocess
 
-def save_data_dicom(image, template_dicom_path, output_dicom_path, name, value_range, content_label):
-    """
-    Save ASL-derived image as multiframe DICOM using Philips reference and DCMTK.
+def save_data_dicom(image, template_dicom_path, output_dicom_path, name, value_range, content_label):    #
+    # Save a 3D ASL-derived image as a multiframe DICOM file using a Philips reference DICOM and DCMTK tools.
+    # This function prepares and scales a quantitative ASL image (e.g., CBF, CVR, AAT, ATA), injects it into a DICOM
+    # Enhanced MR Image template, and updates relevant DICOM metadata fields for quantitative analysis and visualization.
+    #
+    # Parameters:
+    #     image (np.ndarray): 
+    #         3D ASL image array with shape (Height, Width, Slices), typically loaded from a NIfTI file.
+    #     template_dicom_path (str): 
+    #         Path to a reference DICOM file to use as a template for metadata and structure.
+    #     output_dicom_path (str): 
+    #         Path where the output DICOM file will be saved.
+    #     name (str): 
+    #         Series or protocol name to be set in the DICOM metadata.
+    #     value_range (tuple): 
+    #         Tuple (min, max) specifying the value range for the VOI LUT (windowing) in the DICOM.
+    #     content_label (str): 
+    #         Label describing the quantitative map type, e.g., 'CBF', 'CVR', 'AAT', or 'ATA'.
+    #
+    # Raises:
+    #     ValueError: If content_label is not provided.
+    #
+    # Notes:
+    #     - The function uses DCMTK command-line tools (`dcmodify`) to update robust DICOM tags and inject pixel data.
+    #     - Pixel data is scaled to fit into 16-bit signed or unsigned integer range, depending on the map type.
+    #     - Metadata fields such as SeriesDescription, ProtocolName, RescaleSlope, and VOI LUT are updated for quantitative interpretation.
+    #     - Fragile or complex DICOM fields are updated using pydicom after DCMTK modifications.
+    #     - The function expects the input image orientation and shape to match the reference DICOM after empirical adjustment.
+    #     - Temporary files are created for pixel data injection and are cleaned up after use.
 
-    Parameters:
-        image (np.ndarray): 3D ASL image (H x W x S), loaded from NIfTI
-        template_dicom_path (str): path to reference DICOM file
-        output_dicom_path (str): path to output DICOM
-        name (str): series/protocol name
-        value_range (tuple): (min, max) for VOI LUT
-        content_label (str): 'CBF', 'CVR', 'AAT', 'ATA'
-    """
     if not content_label:
         raise ValueError("Please supply a content_label such as 'CBF', 'CVR', 'AAT', or 'ATA'")
 

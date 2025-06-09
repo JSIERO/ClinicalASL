@@ -1,21 +1,21 @@
 import numpy as np
-from scipy.signal import convolve2d
 from scipy.ndimage import convolve, gaussian_filter
 import warnings
 
 def asl_smooth_image(data, spatialdim, FWHM, voxelsize):
-    """
-    Faithful port of ASLSmoothImage.m → Python.
-
-    Parameters:
-    - data: input array
-    - spatialdim: 2 or 3
-    - FWHM: full width at half maximum in mm
-    - voxelsize: voxel size (list or array)
-
-    Returns:
-    - output: smoothed image, dtype=float
-    """
+    # Smooth an ASL image using a Gaussian filter.
+    # This function handles NaN values in the input data and applies a Gaussian smoothing
+    # filter based on the specified full width at half maximum (FWHM) and voxel size.    
+    # The function supports both 2D and 3D data, and uses a NaN-aware convolution method
+    # to ensure that NaN values do not affect the smoothing process.
+    #  Parameters:
+    # - data: input array
+    # - spatialdim: 2 or 3
+    # - FWHM: full width at half maximum in mm
+    # - voxelsize: voxel size (list or array)
+    # Returns:
+    # - output: smoothed image, dtype=float
+    
     def nanconvn(a, k, *args):
         """NaN-aware N-dimensional convolution, integrated from nanconvn.m."""
         edge = False

@@ -1,21 +1,19 @@
 import numpy as np
 
-
 def asl_interleave_control_tag(ctrl, tag=None):
-    """
-    Interleave CTRL and TAG ASL data:
-    CTRL1, TAG1, CTRL2, TAG2, ...
-
-    Parameters:
-    - ctrl: 5D numpy array (x, y, z, time, 2) if tag is None
-            or (x, y, z, time) if tag is provided separately
-    - tag:  Optional. Same shape as ctrl if provided.
-
-    Returns:
-    - output: 4D numpy array (x, y, z, time*2) with interleaved volumes
-    """
-
-    # dims = size(CTRL)
+    # Interleave control and tag ASL data for analysis.
+    # This function takes ASL data from control and tag volumes and interleaves them
+    # such that the output has alternating control and tag volumes.
+    # Interleave CTRL and TAG ASL data:
+    # CTRL1, TAG1, CTRL2, TAG2, ...
+    # Parameters:
+    # - ctrl: 5D numpy array (x, y, z, time, 2) if tag is None
+    #        or (x, y, z, time) if tag is provided separately
+    #- tag:  Optional. Same shape as ctrl if provided.
+    #
+    # Returns:
+    #- output: 4D numpy array (x, y, z, time*2) with interleaved volumes
+   
     dims = ctrl.shape
 
     # Determine interleaving indices

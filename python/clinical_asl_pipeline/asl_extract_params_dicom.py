@@ -3,13 +3,16 @@ import pydicom
 import time
 import numpy as np
 
-
 def asl_extract_params_dicom(subject, filename):
-    """
-    Python version of ASLExtractParamsDICOM.
-    subject: dict containing at least 'DICOMdir', 'tau', 'labeleff', and 'N_BS'
-    filename: string, name of the DICOM file
-    """
+    #   Extract parameters from DICOM metadata for ASL data.
+    #   This function reads DICOM metadata, extracts relevant parameters such as TR, TE, PLDs, slice timing, and voxel size,
+    #   and saves them into the provided subject dictionary.
+    #   Parameters:
+    #   subject: dict containing at least 'DICOMdir', 'tau', 'labeleff', and 'N_BS'
+    #   filename: string, name of the DICOM file    
+    #   Returns: updated subject dictionary with extracted parameters and DICOM info    
+    #
+
     start_time = time.time()
     print('  Reading DICOM info... ')
 

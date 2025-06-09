@@ -1,7 +1,6 @@
 import subprocess
 import time
 
-
 def asl_qasl_analysis(
     subject,
     location_asl_labelcontrol_pld_nifti,
@@ -12,6 +11,26 @@ def asl_qasl_analysis(
     inference_method='ssvb', # or basil, for BASIL method output
     artoff=None,
 ):
+    # Perform QASL analysis on ASL data using the Oxford ASL toolbox.
+    # Parameters:
+    # subject: dict containing subject information including    
+    #   - 'T1t': T1 tissue relaxation time in seconds
+    #   - 'T1b': T1 blood relaxation time in seconds
+    #   - 'tau': bolus duration in seconds
+    #   - 'TR_M0': list or tuple, first element is TR for M0 scan
+    #   - 'alpha': labeling efficiency
+    #   - 'slicetime': slice timing in milliseconds
+    # location_asl_labelcontrol_pld_nifti: path to ASL label/control NIfTI file
+    # location_m0: path to M0 NIfTI file
+    # location_mask: path to brain mask NIfTI file
+    # output_map: output directory for QASL results
+    # pld_list: list of post-labeling delays (PLDs) in seconds
+    # inference_method: inference method for QASL ('ssvb' or 'basil')
+    # artoff: optional, set to 'artoff' to disable arterial component modeling
+    #
+    # This function builds and runs a command-line call to the QASL tool,
+    # passing all relevant parameters for quantification. It times the execution,
+    # prints progress messages, and ensures the command is run with error checking.    
 
     # Generate comma-separated PLD string
     pld_string = ",".join([f"{pld:.5g}" for pld in pld_list])
@@ -23,7 +42,7 @@ def asl_qasl_analysis(
     T1t = str(subject['T1t'])
     T1b = str(subject['T1b'])
     tau = str(subject['tau'])
-    TR_M0 = str(subject['TR_M0'][0])
+    TR_m0 = str(subject['TR_M0'][0])
     alpha = str(subject['alpha'])
     slicetime = str(subject['slicetime'] / 1000)  # convert ms to seconds
 
@@ -44,7 +63,7 @@ def asl_qasl_analysis(
         f"--t1b={T1b} "
         f"--t1t={T1t} "
         f"--plds={pld_string} "
-        f"--tr={TR_M0} "
+        f"--tr={TR_m0} "
         f" --alpha={alpha} "
         f"--iaf=ct "
         f"--ibf=tis "

@@ -5,9 +5,27 @@ from matplotlib.colors import ListedColormap
 from scipy.io import loadmat
 
 def save_figure_to_png(data, mask, datarange, outputloc, suffix, label, colormap='viridis'):
-    """
-    Save a 3D data montage to PNG with black background and white labels.
-    """
+    # Save a 3D data montage to PNG with black background and white labels.
+    #
+    # Args:
+    #     data (np.ndarray): 3D array (H x W x S) of image data to visualize.
+    #     mask (np.ndarray or None): 3D mask array (same shape as data), or None for no mask.
+    #     datarange (tuple): (min, max) values for color scaling.
+    #     outputloc (str): Directory to save the PNG file.
+    #     suffix (str): Suffix for the output filename.
+    #     label (str): Label for the colorbar.
+    #     colormap (str): Name of colormap ('viridis', 'jet', 'vik', 'devon', etc.).
+    #
+    # The function:
+    #   - Loads a colormap (including custom .mat colormaps if needed).
+    #   - Sets the background color (zero values) to black.
+    #   - Applies a mask if provided.
+    #   - Builds a montage of all slices in the 3D data.
+    #   - Scales and clamps data to the specified range.
+    #   - Converts the montage to an RGB image using the colormap.
+    #   - Plots the montage with a horizontal colorbar (white labels/ticks).
+    #   - Saves the figure as a PNG with a black background.
+    # -----------------------------------------------------------------------------
     current_dir = os.path.dirname(os.path.abspath(__file__))
     
     # Load colormap

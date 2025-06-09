@@ -4,19 +4,29 @@ import subprocess
 from glob import glob
 
 def asl_convert_dicom_to_nifti(dicom_input_dir, nifti_output_dir, vtr_only=None, imager=None, subject_dir=None):
-    """
-    Updated version to match MATLAB code.
-    If imager == 'IMAGER', will copy DICOMs to SUBJECTdir/DICOMORIG and process from there.
-
-    Args:
-        dicom_input_dir: original input dir
-        nifti_output_dir: output dir for NIfTI
-        vtr_only: 'vTR_only' or None
-        imager: 'IMAGER' or None
-        subject_dir: SUBJECTdir full path (required if imager == 'IMAGER')
-    Returns:
-    - output: DICOMORIG directoy with renamed DICOMS for further processing
-    """
+    # Convert DICOM files to NIfTI format using dcm2niix.
+    # This function handles the conversion and organization of DICOM files into NIfTI format.
+    # It also manages the renaming of files and the removal of unwanted files based on specific patterns.   
+    #   
+    # This function performs the following steps:           
+    # 1. If `imager` is 'IMAGER', it copies DICOM files to a 'DICOMORIG' directory within the subject directory.
+    # 2. It creates an 'ORIG' subdirectory within 'DICOMORIG' for original DICOM files.
+    # 3. It runs `dcm2niix` to convert DICOM files to NIfTI format, renaming them in the process.
+    # 4. It removes files matching specific patterns from the DICOMORIG directory.
+    # 5. It moves files matching certain patterns to the 'ORIG' directory.
+    # 6. It renames files in the DICOMORIG directory to remove unwanted characters.         
+    # 7. It runs `dcm2niix` again to convert DICOM files to NIfTI format, compressing and organizing them.  
+    # 8. It performs final cleanup by renaming files in the NIfTI output directory and removing any raw files.
+    # Parameters:
+    #    - dicom_input_dir: Directory containing the original DICOM files.
+    #    - nifti_output_dir: Directory where the converted NIfTI files will be saved.
+    #    - vtr_only: If set to 'vTR_only', will only process vTR ASL files.
+    #    - imager: If set to 'IMAGER', will copy DICOMs to a specific subject directory for further processing.
+    #    - subject_dir: Full path to the SUBJECTdir, required if imager is 'IMAGER'. 
+    #    
+    # Returns:
+    #- output: DICOMORIG directoy with renamed DICOMS for further processing
+    #
 
     def run_command(cmd):
         print(f"Running command: {cmd}")
@@ -90,7 +100,8 @@ def asl_convert_dicom_to_nifti(dicom_input_dir, nifti_output_dir, vtr_only=None,
             remove_files_by_pattern(nifti_output_dir, ['*SOURCE*M0*.*'])
             for file_path in files_m0:
                 run_command(f'dcm2niix -w 2 -z y -b y -f %p_%s -s y -o {nifti_output_dir} {file_path} > {os.path.join(nifti_output_dir, "dcm2niix.log")} 2>&1')
-    
+
+    print('DICOMs converted to NIFTI')
     # Final cleanup
     rename_files(nifti_output_dir)
     remove_files_by_pattern(nifti_output_dir, ['*Raw*'])
