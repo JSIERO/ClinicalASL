@@ -41,7 +41,7 @@ def asl_bet_t1_from_m0(subject, prefix, fast):
         subject[prefix] = {}  # Ensure key exists before assigning
      
     # Brain extraction on M0 image using FSL's BET
-    m0 = subject[f'{prefix}_m0_path']
+    m0 = subject[f'{prefix}_M0_path']
     mask = subject[f'{prefix}_mask_path']
     m0_brain_path = os.path.join(subject['ASLdir'], f'{prefix}_M0_brain')
 

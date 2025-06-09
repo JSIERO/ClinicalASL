@@ -131,8 +131,8 @@ def mri_diamox_umcu_clinicalasl_cvr_imager(inputdir, outputdir):
     subject['LookLocker_correction_factor_perPLD'] = asl_look_locker_correction(subject)
 
     # Step 6: Split/control-label, save NIFTI
-    subject = asl_prepare_asl_data(subject, subject['preACZ_sourceNIFTI_path'], 'preACZ', 'fast')
-    subject = asl_prepare_asl_data(subject, subject['postACZ_sourceNIFTI_path'], 'postACZ', 'fast')
+    subject = asl_prepare_asl_data(subject, subject['preACZ_sourceNIFTI_path'], 'preACZ')
+    subject = asl_prepare_asl_data(subject, subject['postACZ_sourceNIFTI_path'], 'postACZ')
 
     # Step 7: Brain extraction for mask and T1 from M0
     subject = asl_bet_t1_from_m0(subject,'preACZ', 'fast') 

@@ -40,7 +40,7 @@ def asl_registration_prepostACZ(subject):
             subject['elastix_parameter_file'] = tmpfile.name
 
     except FileNotFoundError:
-        print(f'Missing Elastix file: {subject['elastix_parameter_file']}')
+        print(f"Missing Elastix file: {subject['elastix_parameter_file']}")
         return
     
     # Elastix registration
