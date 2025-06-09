@@ -1,6 +1,12 @@
+# Core packages
 numpy>=1.23
 scipy>=1.9
 matplotlib>=3.7
 nibabel>=5.2
 pydicom>=2.4
-antspyx>=>=0.3.9
+antspyx>=0.3.9
+
+# Optional (good practice)
+# tqdm>=4.64         # for progress bars if used
+# pandas>=1.5       # if any dataframe use
+# pytest>=7         # if you use testing
