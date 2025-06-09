@@ -1,17 +1,17 @@
 # ClinicalASL
 
 ClinicalASL is an open-source processing tool for **Arterial Spin Labeling (ASL) MRI data**, designed to support clinical research and reproducible imaging pipelines.
+ClinicalASL generates multidelay ASL derived images on CBF, arrival time, and cerebrovascular reactivy CVR, o.a., ready for PACS for clinical use
 
 It provides tools for data conversion, motion correction, parameter extraction, ASL quantification, visualization, and more.
-
 The project is currently transitioning from an original MATLAB-based implementation to a new, actively developed Python version.
 
 ## Project Versions
 
 | Version | Folder | Status | Notes |
 |---------|--------|--------|-------|
-| Python  | [python/](./python) | Actively developed | Primary version — supports modern pipelines and reproducibility |
-| MATLAB  | [matlab/](./matlab) | Legacy (deprecated) | Provided for legacy users — no new features planned |
+| Python  | [python/](./python) | Actively developed | Primary version â€” supports modern pipelines and reproducibility |
+| MATLAB  | [matlab/](./matlab) | Legacy (deprecated) | Provided for legacy users â€” no new features planned |
 
 ## Migration Notice
 
@@ -81,7 +81,7 @@ This project is licensed under the terms of the [BSD 3-Clause License](./LICENSE
 
 ## Contributing
 
-Contributions are welcome — especially to the Python version.
+Contributions are welcome â€” especially to the Python version.
 
 Please open an Issue or Discussion if you would like to contribute.
 
