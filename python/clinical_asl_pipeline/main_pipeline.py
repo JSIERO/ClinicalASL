@@ -6,19 +6,16 @@ from clinical_asl_pipeline.asl_prepare_asl_data import asl_prepare_asl_data
 from python.clinical_asl_pipeline.asl_bet_t1_from_m0 import asl_bet_t1_from_m0
 from clinical_asl_pipeline.asl_qasl_analysis import asl_qasl_analysis
 from clinical_asl_pipeline.asl_motioncorrection_ants import asl_motioncorrection_ants
+from clinical_asl_pipeline.asl_registration_prepostACZ import asl_registration_prepostACZ
 from clinical_asl_pipeline.asl_save_results_cbfaatcvr import asl_save_results_cbfaatcvr
 
 def mri_diamox_umcu_clinicalasl_cvr_imager(inputdir, outputdir):
     subject = {}
     subject['DICOMdir'] = inputdir # input folder for extracted PACS DICOM
     subject['SUBJECTdir'] = outputdir # inpput folder for results and generated DICOMS of ALS derived imaged for PACS
-    docker_compiled_app_location = '/home/jeroen/GITHUB/ClinicalASL_Python/clinical_asl_pipeline/'
     
-    # Load registration (Elastix) settings
-    subject['ElastixParameterFile'] = os.path.join(docker_compiled_app_location, 'Par0001rigid_6DOF_MI_NIFTIGZ.txt')
-    if not os.path.isfile(subject['ElastixParameterFile']):
-        print(f'Missing Elastix file: {subject['ElastixParameterFile']}')
-        return
+    # Set registration (Elastix) settings
+    subject['elastix_parameter_file'] = 'Par0001rigid_6DOF_MI_NIFTIGZ.txt'
 
     # Default parameters
     subject.update({
@@ -33,7 +30,8 @@ def mri_diamox_umcu_clinicalasl_cvr_imager(inputdir, outputdir):
         'range_cbf': [0, 100],  # in [ml/100g/min]
         'range_cvr': [-50, 50], # in [ml/100g/min]
         'range_AAT': [0, 3.5],  # in [s]
-        'range_ATA': [0, 125]   # in [ml/100g/min]
+        'range_ATA': [0, 125],  # in [ml/100g/min]
+        'inference_method': 'ssvb', # method for ASL quantification, choices: ssvb, basil
     })
 
     # Set Folder paths
@@ -122,26 +120,25 @@ def mri_diamox_umcu_clinicalasl_cvr_imager(inputdir, outputdir):
     subject = asl_bet_t1_from_m0(subject,'postACZ', 'fast')
 
     for prefix in ['preACZ', 'postACZ']:
-        m0 = subject[f'{prefix}_M0_path']
-        mask = subject[f'{prefix}_mask_path'] 
+    # Step 8: Motion Correction
+        asl_motioncorrection_ants(subject[f'{prefix}_PLDall_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_PLDall_labelcontrol_path'])
+        asl_motioncorrection_ants(subject[f'{prefix}_PLD2tolast_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_PLD2tolast_labelcontrol_path'])
+        asl_motioncorrection_ants(subject[f'{prefix}_PLD1to2_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_PLD1to2_labelcontrol_path'])
 
-        # Step 8: Motion Correction
-        asl_motioncorrection_ants(subject[f'{prefix}_PLDall_labelcontrol_path'], m0, subject[f'{prefix}_PLDall_labelcontrol_path'])
-        asl_motioncorrection_ants(subject[f'{prefix}_PLD2tolast_labelcontrol_path'], m0, subject[f'{prefix}_PLD2tolast_labelcontrol_path'])
-        asl_motioncorrection_ants(subject[f'{prefix}_PLD1to2_labelcontrol_path'], m0, subject[f'{prefix}_PLD1to2_labelcontrol_path'])
-
-        # Step 9: ASL Quantification analysis
-
+    # Step 9: ASL Quantification analysis
         # all PLD for AAT (arterial arrival time map)
-        asl_qasl_analysis(subject, subject[f'{prefix}_PLDall_labelcontrol_path'], m0, mask, os.path.join(subject['ASLdir'], f'{prefix}_QASL_allPLD_forAAT'), subject['PLDS'][0:], 'ssvb')
+        asl_qasl_analysis(subject, subject[f'{prefix}_PLDall_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_mask_path'] , os.path.join(subject['ASLdir'], f'{prefix}_QASL_allPLD_forAAT'), subject['PLDS'][0:], subject['inference_method'])
        
         # 2-to-last PLD for CBF map
-        asl_qasl_analysis(subject, subject[f'{prefix}_PLD2tolast_labelcontrol_path'], m0, mask, os.path.join(subject['ASLdir'], f'{prefix}_QASL_2tolastPLD_forCBF'), subject['PLDS'][1:], 'ssvb')
+        asl_qasl_analysis(subject, subject[f'{prefix}_PLD2tolast_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_mask_path'] , os.path.join(subject['ASLdir'], f'{prefix}_QASL_2tolastPLD_forCBF'), subject['PLDS'][1:], subject['inference_method'])
        
         # 1to2 PLDs for ATA map ->  then do no fit for the arterial component 'artoff'
-        asl_qasl_analysis(subject, subject[f'{prefix}Z_PLD1to2_labelcontrol_path'], m0, mask, os.path.join(subject['ASLdir'], f'{prefix}_QASL_1to2PLD_forATA'), subject['PLDS'][0:2], 'ssvb', artoff='artoff')
+        asl_qasl_analysis(subject, subject[f'{prefix}Z_PLD1to2_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_mask_path'] , os.path.join(subject['ASLdir'], f'{prefix}_QASL_1to2PLD_forATA'), subject['PLDS'][0:2], subject['inference_method'], artoff='artoff')
     
-    # Step  10: Generate CBF/AAT/ATA/CVR results (nifti, dicom PACS, .pngs) for pre- and postACZ, including registration of postACZ to preACZ as reference data, and target for computed CVR map
+    # Step 10: register post-ACZ ASL data to pre-ACZ ASL data using Elastix 
+    asl_registration_prepostACZ(subject)
+
+    # Step 11: Generate CBF/AAT/ATA/CVR results (nifti, dicom PACS, .pngs) for pre- and postACZ, including registration of postACZ to preACZ as reference data, and target for computed CVR map
     subject = asl_save_results_cbfaatcvr(subject)
 
     print('-- Finished --')

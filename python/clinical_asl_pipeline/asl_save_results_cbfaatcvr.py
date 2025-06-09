@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import nibabel as nib
-import subprocess
 from clinical_asl_pipeline.asl_smooth_image import asl_smooth_image
 from clinical_asl_pipeline.utils.save_figure_to_png import save_figure_to_png  
 from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
@@ -10,50 +9,15 @@ from clinical_asl_pipeline.utils.save_data_dicom import save_data_dicom
 def asl_save_results_cbfaatcvr(subject):
 # Save CBF, AAT, ATA, and CVR results for a subject.
 # Steps:
-# 1. Register postACZ images to preACZ space (T1, CBF, AAT, ATA, mask).
-# 2. Load registered and original NIfTI images into subject dict.
-# 3. Create combined masks for valid voxels.
-# 4. Compute CVR as difference between postACZ and preACZ CBF.
-# 5. Smooth CVR, AAT images using Gaussian smoothing.
-# 6. Save results as NIfTI files.
-# 7. Save visualizations as PNG images.
-# 8. Save results as DICOM files.
-   
-    # Elastix registration
-    print("Registration T1fromM0 postACZ to preACZ data *********************************************************************")
-    subprocess.run(f"elastix -f {subject['preACZ_T1fromM0_path']} -m {subject['postACZ_T1fromM0_path']} -fMask {subject['preACZ_mask_path']} -p {subject['ElastixParameterFile']} -loglevel error -out {subject['ASLdir']}", shell=True, check=True)
-    os.rename(os.path.join(subject['ASLdir'], 'result.0.nii.gz'), subject['postACZ_T1fromM0_2preACZ_path'])
-    subprocess.run(f"fslcpgeom {subject['preACZ_T1fromM0_path']} {subject['postACZ_T1fromM0_2preACZ_path']} -d", shell=True, check=True)
+# 1. Load registered and original NIfTI images into subject dict.
+# 2. Create combined masks for valid voxels.
+# 3. Compute CVR as difference between postACZ and preACZ CBF.
+# 4. Smooth CVR, AAT images using Gaussian smoothing.
+# 5. Save results as NIfTI files.
+# 6. Save visualizations as PNG images.
+# 7. Save results as DICOM files for Philips multi-frame export for PACS
 
-    print("Registration CBF postACZ to preACZ *********************************************************************")
-    subprocess.run(f"transformix -in {subject['postACZ_CBF_path']} -out {subject['ASLdir']} -tp {os.path.join(subject['ASLdir'], 'TransformParameters.0.txt')} -loglevel error", shell=True, check=True)
-    os.rename(os.path.join(subject['ASLdir'], 'result.nii.gz'), subject['postACZ_CBF_2preACZ_path'])
-    subprocess.run(f"fslcpgeom {subject['preACZ_CBF_path']} {subject['postACZ_CBF_2preACZ_path']} -d", shell=True, check=True)
-
-    print("Registration AAT postACZ to preACZ *********************************************************************")
-    subprocess.run(f"transformix -in {subject['postACZ_AAT_path']} -out {subject['ASLdir']} -tp {os.path.join(subject['ASLdir'], 'TransformParameters.0.txt')} -loglevel error", shell=True, check=True)
-    os.rename(os.path.join(subject['ASLdir'], 'result.nii.gz'), subject['postACZ_AAT_2preACZ_path'])
-    subprocess.run(f"fslcpgeom {subject['preACZ_AAT_path']} {subject['postACZ_AAT_2preACZ_path']} -d", shell=True, check=True)
-    
-    print("Registration ATA postACZ to preACZ *********************************************************************")
-    subprocess.run(f"transformix -in {subject['postACZ_ATA_path']} -out {subject['ASLdir']} -tp {os.path.join(subject['ASLdir'], 'TransformParameters.0.txt')} -loglevel error", shell=True, check=True)
-    os.rename(os.path.join(subject['ASLdir'], 'result.nii.gz'), subject['postACZ_ATA_2preACZ_path'])
-    subprocess.run(f"fslcpgeom {subject['preACZ_ATA_path']} {subject['postACZ_ATA_2preACZ_path']} -d", shell=True, check=True)
-
-    print("Registration mask postACZ to preACZ *********************************************************************")
-    with open(os.path.join(subject['ASLdir'], 'TransformParameters.0.txt'), 'r') as f:
-        lines = f.readlines()
-    with open(os.path.join(subject['ASLdir'], 'TransformParameters.0.NN.txt'), 'w') as f:
-        for line in lines:
-            if 'FinalBSplineInterpolator' in line:
-                f.write('(ResampleInterpolator "FinalNearestNeighborInterpolator")\n')
-            else:
-                f.write(line)
-    subprocess.run(f"transformix -in {subject['postACZ_mask_path']} -out {subject['ASLdir']} -tp {os.path.join(subject['ASLdir'], 'TransformParameters.0.NN.txt')} -loglevel error", shell=True, check=True)
-    os.rename(os.path.join(subject['ASLdir'], 'result.nii.gz'), subject['postACZ_mask_2preACZ_path'])
-    subprocess.run(f"fslcpgeom {subject['preACZ_mask_path']} {subject['postACZ_mask_2preACZ_path']} -d", shell=True, check=True)
-    
-    # Load CBF, AAT, masks, and registration NIFTIs
+    # Load CBF, AAT, masks, and registered post- to preACZ NIFTIs
     subject['preACZ']['CBF'] = nib.load(subject['preACZ_CBF_path']).get_fdata()
     subject['postACZ']['CBF'] = nib.load(subject['postACZ_CBF_path']).get_fdata()
     subject['postACZ']['CBF_2preACZ'] = nib.load(subject['postACZ_CBF_2preACZ_path']).get_fdata()
@@ -77,9 +41,8 @@ def asl_save_results_cbfaatcvr(subject):
     subject['preACZ']['AAT_smth'] = asl_smooth_image(subject['preACZ']['AAT'] * subject['preACZ']['nanmask'], 2, subject['FWHM'], subject['VOXELSIZE'])
     subject['postACZ']['AAT_smth'] = asl_smooth_image(subject['postACZ']['AAT'] * subject['postACZ']['nanmask'], 2, subject['FWHM'], subject['VOXELSIZE'])
     subject['postACZ']['AAT_2preACZ_smth'] = asl_smooth_image(subject['postACZ']['AAT_2preACZ'] * subject['postACZ']['nanmask_2preACZ'], 2, subject['FWHM'], subject['VOXELSIZE'])
-    subject['CVR_smth'] = asl_smooth_image(subject['CVR'] * subject['nanmask_combined'], 2, subject['FWHM'], subject['VOXELSIZE'])
 
-    # Save results as NIfTI
+    # Save results as NIfTI in ASLdir
     save_data_nifti(subject['preACZ']['CBF'], os.path.join(subject['ASLdir'], 'preACZ_CBF.nii.gz'), subject[f'preACZ_templateNII_path'], 1, None, subject['TR'])
     save_data_nifti(subject['postACZ']['CBF'], os.path.join(subject['ASLdir'], 'postACZ_CBF.nii.gz'), subject[f'postACZ_templateNII_path'], 1, None, subject['TR'])
     save_data_nifti(subject['postACZ']['CBF_2preACZ'], os.path.join(subject['ASLdir'], 'postACZ_CBF_2preACZ.nii.gz'), subject[f'preACZ_templateNII_path'], 1, None, subject['TR'])
@@ -92,8 +55,8 @@ def asl_save_results_cbfaatcvr(subject):
     save_data_nifti(subject['CVR_smth'], os.path.join(subject['ASLdir'], 'CVR_smth.nii.gz'), subject[f'preACZ_templateNII_path'], 1, None, subject['TR'])
 
     # Save PNGs
-    save_figure_to_png(subject['preACZ']['CBF'], subject['nanmask_combined'], subject['range_cbf'], subject['RESULTSdir'], f"preACZ_CBF_{subject['range_cbf'][1]}", 'CBF', 'viridis')
-    save_figure_to_png(subject['postACZ']['CBF_2preACZ'], subject['nanmask_combined'], subject['range_cbf'], subject['RESULTSdir'], f"postACZ_CBF_2preACZ_{subject['range_cbf'][1]}", 'CBF', 'viridis')
+    save_figure_to_png(subject['preACZ']['CBF'], subject['nanmask_combined'], subject['range_cbf'], subject['RESULTSdir'], f"preACZ_CBF", 'CBF', 'viridis')
+    save_figure_to_png(subject['postACZ']['CBF_2preACZ'], subject['nanmask_combined'], subject['range_cbf'], subject['RESULTSdir'], f"postACZ_CBF_2preACZ", 'CBF', 'viridis')
     save_figure_to_png(subject['CVR_smth'], subject['nanmask_combined'], subject['range_cvr'], subject['RESULTSdir'], 'CVR_smth', 'CVR', 'vik')
     save_figure_to_png(subject['preACZ']['AAT_smth'], subject['nanmask_combined'], subject['range_AAT'], subject['RESULTSdir'], 'preACZ_AAT_smth', 'time', 'devon')
     save_figure_to_png(subject['postACZ']['AAT_2preACZ_smth'], subject['nanmask_combined'], subject['range_AAT'], subject['RESULTSdir'], 'postACZ_AAT_2preACZ_smth', 'time', 'devon')
