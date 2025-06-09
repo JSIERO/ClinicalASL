@@ -1,3 +1,21 @@
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+
+ASL data preparation module.
+
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMCU (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    Functions for preparing ASL MRI data, including interleaving control/label images,
+    Look-Locker correction, and saving processed NIfTI files.
+
+License: BSD 3-Clause License
+"""
+
 import numpy as np
 import os
 import nibabel as nib

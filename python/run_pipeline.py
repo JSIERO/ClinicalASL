@@ -1,4 +1,22 @@
 #!/usr/bin/env python3
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+
+Main pipeline script for processing ASL MRI data.
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMC Utrecht (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    This script runs the main pipeline for processing ASL data, including DICOM to NIfTI conversion,
+    parameter extraction, Look-Locker correction, data preparation, brain extraction, motion correction,
+    quantification, registration, and saving of CBF, AAT, ATA, and CVR results for a subject.
+    Results are saved as NIfTI, PNG, and DICOM files for further analysis and PACS export.
+
+License: BSD 3-Clause License
+"""
 import argparse
 from clinical_asl_pipeline import main_pipeline
 

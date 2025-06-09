@@ -1,3 +1,19 @@
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMCU (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    This script saves CBF, AAT, ATA, and CVR results for a subject after ASL processing.
+    It loads registered and original NIfTI images, creates combined masks, computes CVR,
+    applies smoothing, and saves results as NIfTI, PNG, and DICOM files for further analysis and PACS export.
+
+License: BSD 3-Clause License
+"""
+
 import os
 import numpy as np
 import nibabel as nib

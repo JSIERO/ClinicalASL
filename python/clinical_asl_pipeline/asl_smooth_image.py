@@ -1,3 +1,19 @@
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMCU (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    This script provides a function to smooth ASL images using a Gaussian filter.
+    It handles NaN values in the input data and supports both 2D and 3D smoothing,
+    applying a NaN-aware convolution method to ensure robust processing.
+
+License: BSD 3-Clause License
+"""
+
 import numpy as np
 from scipy.ndimage import convolve, gaussian_filter
 import warnings

@@ -1,3 +1,19 @@
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMCU (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    Performs QASL - by Quantified Imaginge (T.Kirk) (Quantitative Arterial Spin Labeling) analysis on ASL data using the Oxford ASL toolbox.
+    This script provides the asl_qasl_analysis() function, which builds and runs a command-line call to the QASL tool,
+    passing all relevant parameters for quantification.
+
+License: BSD 3-Clause License
+"""
+
 import subprocess
 import time
 

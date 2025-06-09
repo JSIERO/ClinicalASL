@@ -1,3 +1,20 @@
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+
+ASL BASIL analysis module.
+
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMCU (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    Function for running BASIL (Bayesian Inference for Arterial Spin Labeling) analysis using FSL's oxford_asl tool.
+
+License: BSD 3-Clause License
+"""
+
 import subprocess
 import time
 

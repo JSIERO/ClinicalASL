@@ -1,3 +1,20 @@
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+
+ASL motion correction module.
+
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMCU (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    Function for motion correction of ASL MRI data using ANTs.
+
+License: BSD 3-Clause License
+"""
+
 import ants # type: ignore
 
 def asl_motioncorrection_ants(inputdata, refdata, outputdata):

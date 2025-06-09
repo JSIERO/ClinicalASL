@@ -1,3 +1,20 @@
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+
+ASL control/tag interleaving module.
+
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMCU (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    Function for interleaving control and tag ASL MRI data volumes.
+
+License: BSD 3-Clause License
+"""
+
 import numpy as np
 
 def asl_interleave_control_tag(ctrl, tag=None):

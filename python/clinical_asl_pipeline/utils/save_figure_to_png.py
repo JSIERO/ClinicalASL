@@ -1,3 +1,20 @@
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+
+Figure saving utility module.
+
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMCU (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    Utility function to save 3D data montages as PNG images with custom colormaps and labels.
+
+License: BSD 3-Clause License
+"""
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt

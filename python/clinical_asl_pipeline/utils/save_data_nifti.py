@@ -1,7 +1,24 @@
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+
+NIfTI saving utility module.
+
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMCU (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    Utility function to save data as NIfTI files using header information from a template file.
+
+License: BSD 3-Clause License
+"""
+
 import numpy as np
 import nibabel as nib
 
-def save_data_nifti(data, output_filename, dummy_filename, scaleslope, datarange=None, TR=None):
+def save_data_nifti(data, output_filename, templateNII_filename, scaleslope, datarange=None, TR=None):
     # Save data to a NIfTI file using header information from a reference (dummy) file.
     #
     # Parameters:
@@ -29,8 +46,8 @@ def save_data_nifti(data, output_filename, dummy_filename, scaleslope, datarange
     #   - The function updates header dimensions and calibration min/max as needed.
     #   - If TR is provided, it is set in the header.
     
-    data_info = nib.load(dummy_filename).header.copy()
-    affine = nib.load(dummy_filename).affine
+    data_info = nib.load(templateNII_filename).header.copy()
+    affine = nib.load(templateNII_filename).affine
 
     if np.issubdtype(data.dtype, np.floating):
         data = data.astype(np.float64)

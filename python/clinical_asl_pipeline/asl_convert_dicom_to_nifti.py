@@ -1,3 +1,20 @@
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+
+DICOM to NIfTI conversion module.
+
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMCU (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    Function for converting ASL MRI DICOM files to NIfTI format using dcm2niix.
+
+License: BSD 3-Clause License
+"""
+
 import os
 import shutil
 import subprocess

@@ -1,3 +1,20 @@
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+
+ASL T1-from-M0 computation module.
+
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMCU (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    Functions for brain extraction, computing T1-weighted images from multi-PLD M0 data, and tissue segmentation.
+
+License: BSD 3-Clause License
+"""
+
 import os
 import numpy as np
 import nibabel as nib
@@ -5,6 +22,7 @@ import subprocess
 from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
 
 def asl_bet_t1_from_m0(subject, prefix, fast):  
+    
     # Process M0 image to compute T1w image from multi-PLD M0 data.
     #
     # This includes brain extraction, Look-Locker correction, and T1w from mPLD M0 computation.

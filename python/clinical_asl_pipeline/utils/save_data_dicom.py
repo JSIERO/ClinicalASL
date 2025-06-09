@@ -1,3 +1,20 @@
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+
+DICOM saving utility module.
+
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMCU (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    Utility function to save data as DICOM files using header information from a template file.
+
+License: BSD 3-Clause License
+"""
+
 import os
 import numpy as np
 import pydicom

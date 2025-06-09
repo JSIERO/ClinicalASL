@@ -1,3 +1,17 @@
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMCU (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    Performs registration post-ACZ ASL data to pre-ACZ ASL data using Elastix
+
+License: BSD 3-Clause License
+"""
+
 import os
 import subprocess
 import importlib.resources as pkg_resources

@@ -1,3 +1,20 @@
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+
+ASL Look-Locker correction module.
+
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMCU (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    Function for computing Look-Locker correction factors for ASL MRI data.
+
+License: BSD 3-Clause License
+"""
+
 import numpy as np
 
 def asl_look_locker_correction(subject):

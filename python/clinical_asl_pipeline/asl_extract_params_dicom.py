@@ -1,3 +1,20 @@
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+
+DICOM parameter extraction module.
+
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMCU (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    Function for extracting ASL MRI parameters from DICOM Philips multiframe metadata.
+
+License: BSD 3-Clause License
+"""
+
 import os
 import pydicom
 import time
