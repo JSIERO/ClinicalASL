@@ -44,7 +44,6 @@ def save_figure_to_png(data, mask, datarange, outputloc, suffix, label, colormap
     #   - Plots the montage with a horizontal colorbar (white labels/ticks).
     #   - Saves the figure as a PNG with a black background.
     # -----------------------------------------------------------------------------
-    current_dir = os.path.dirname(os.path.abspath(__file__))
     
     # Load colormap
     if colormap.lower() == 'viridis':
