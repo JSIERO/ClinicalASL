@@ -27,7 +27,7 @@ from clinical_asl_pipeline.asl_prepare_asl_data import asl_prepare_asl_data
 from clinical_asl_pipeline.asl_bet_t1_from_m0 import asl_bet_t1_from_m0
 from clinical_asl_pipeline.asl_qasl_analysis import asl_qasl_analysis
 from clinical_asl_pipeline.asl_motioncorrection_ants import asl_motioncorrection_ants
-from clinical_asl_pipeline.asl_registration_prepostACZ import asl_registration_prepostACZ
+from clinical_asl_pipeline.asl_registration_prepostACZ_ANTS import asl_registration_prepostACZ_ANTS
 from clinical_asl_pipeline.asl_save_results_cbfaatcvr import asl_save_results_cbfaatcvr
 from clinical_asl_pipeline.utils.utils import append_mc
 
@@ -48,19 +48,16 @@ DEFAULT_PARAMETERS = {
     'range_AAT': [0, 3.5],   # Display/analysis range for AAT [s], arterial arrival time map
     'range_ATA': [0, 125],   # Display/analysis range for ATA [m], arterial transit artefacts map
     'inference_method': 'ssvb', # Inference method for quantification ('ssvb' or 'basil')
-    'elastix_parameter_file': 'Par0001rigid_6DOF_MI_NIFTIGZ.txt' # Elastix registration parameter file
 }
 
 def prepare_subject_paths(subject):
-    """
-    Prepare output folder structure for subject.
-
-    Creates the following subfolders:
-    - NIFTI
-    - ASL
-    - FIGURE_RESULTS
-    - (reuses SUBJECTdir as DICOMoutputdir)
-    """
+    # Prepare output folder structure for subject.
+    #
+    # Creates the following subfolders:
+    # - NIFTI
+    # - ASL
+    # - FIGURE_RESULTS
+    # - (reuses SUBJECTdir as DICOMoutputdir)
     subject['DICOMoutputdir'] = subject['SUBJECTdir'] #     
     subject['DICOMsubjectdir'] = os.path.join(subject['SUBJECTdir'], 'DICOMORIG') # folder for original DICOMS in subject output fodler
     subject['NIFTIdir'] = os.path.join(subject['SUBJECTdir'], 'NIFTI')
@@ -80,16 +77,15 @@ def prepare_subject_paths(subject):
     return subject
 
 def prepare_input_output_paths(subject):
-    """
-    Prepare standard input and derived ASL file paths in subject dictionary.
-
-    Adds keys:
-    - preACZ and postACZ PLD label-control paths
-    - preACZ and postACZ M0 paths
-    - preACZ and postACZ T1fromM0 paths
-    - preACZ and postACZ masks
-    - preACZ and postACZ CBF/AAT/ATA paths
-    """
+    # Prepare standard input and derived ASL file paths in subject dictionary.
+    #
+    # Adds keys:
+    # - preACZ and postACZ PLD label-control paths
+    # - preACZ and postACZ M0 paths
+    # - preACZ and postACZ T1fromM0 paths
+    # - preACZ and postACZ masks
+    # - preACZ and postACZ CBF/AAT/ATA paths
+    
     # Initialize phase_tags in subject dictionary
     for phase_tag in ['preACZ', 'postACZ']:
         subject[phase_tag] = {}
@@ -113,9 +109,9 @@ def prepare_input_output_paths(subject):
         subject[phase_tag]['T1fromM0_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_T1fromM0.nii.gz')
 
         # QASL ASL derived quantification output paths after QASL analysis for CBF/AAT/ATA
-        subject[phase_tag]['QASL_CBF_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_2tolastPLD_forCBF/native_space/perfusion_calib.nii.gz')
-        subject[phase_tag]['QASL_AAT_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_allPLD_forAAT/native_space/arrival.nii.gz')
-        subject[phase_tag]['QASL_ATA_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_1to2PLD_forATA/native_space/perfusion_calib.nii.gz')
+        subject[phase_tag]['QASL_CBF_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_2tolastPLD_forCBF/output/native/calib_voxelwise/perfusion.nii.gz')
+        subject[phase_tag]['QASL_AAT_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_allPLD_forAAT/output/native/arrival.nii.gz')
+        subject[phase_tag]['QASL_ATA_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_1to2PLD_forATA/output/native/calib_voxelwise/perfusion.nii.gz')
 
         # ASL derived quantification output paths in ASLdir for CBF/AAT/ATA/CVR
         subject[phase_tag]['output_CBF_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_CBF.nii.gz')
@@ -136,16 +132,15 @@ def prepare_input_output_paths(subject):
     return subject
 
 def get_latest_source_data(dicomdir, niftidir, phase_tag):
-    """
-    Find the latest SOURCE_ASL DICOM and NIfTI files for a given tag (e.g., 'preACZ', 'postACZ').
-    Parameters:
-        dicomdir (str): Path to the DICOM directory 
-        niftidir (str): Path to the NIfTI directory
-        phase_tag (str): Tag to identify phase ('preACZ' or 'postACZ')
+    # Find the latest SOURCE_ASL DICOM and NIfTI files for a given tag (e.g., 'preACZ', 'postACZ').
+    # Parameters:
+    #     dicomdir (str): Path to the DICOM directory 
+    #     niftidir (str): Path to the NIfTI directory
+    #     phase_tag (str): Tag to identify phase ('preACZ' or 'postACZ')
+    #
+    # Returns:
+    #     tuple: (nifti_full_path, dicom_full_path)
 
-    Returns:
-        tuple: (nifti_full_path, dicom_full_path)
-    """
     # Find DICOM file names (ending in '2', e.g., series file names)
     dicom_files = sorted([f for f in os.listdir(dicomdir) if 'SOURCE_ASL' in f and phase_tag in f and f.endswith('2')])
     if len(dicom_files) > 1:
@@ -169,10 +164,19 @@ def get_latest_source_data(dicomdir, niftidir, phase_tag):
 def find_template_dicom(files, type_tag, phase_tag): # Helper function to find a template DICOM file based on type and phase tags
     return next(f for f in files if 'sWIP' in f and type_tag in f and phase_tag in f)
 
+
 def mri_diamox_umcu_clinicalasl_cvr_imager(inputdir, outputdir):
+    # Main function to run the Clinical ASL pipeline for a subject.
+    # Parameters:
+    #     inputdir (str): Path to the input directory containing extracted PACS DICOM files.
+    #     outputdir (str): Path to the output directory where ASL derived images and generated DICOMS will be saved.
+    # Initialize subject dictionary with input and output directories
+
+    logging.info("Starting Clinical ASL pipeline for subject...")
+
     subject = {}
-    subject['DICOMinputdir'] = inputdir # input folder for extracted PACS DICOM
-    subject['SUBJECTdir'] = outputdir # inpput folder for results and generated DICOMS of ALS derived imaged for PACS
+    subject['DICOMinputdir'] = inputdir
+    subject['SUBJECTdir'] = outputdir 
     
     ##### Step 0: Prepare subject dictionary with default parameters and paths
     # Add default parameters to subject dictionary, such as scan parameters, FWHM, ranges, etc.
@@ -200,7 +204,7 @@ def mri_diamox_umcu_clinicalasl_cvr_imager(inputdir, outputdir):
     ###### Step 3: Locate template DICOMs - define DICOM phase tags and type tags
     for phase_tag, type_tags in subject['dicom_typetags_by_phasetag'].items():
         for type_tag in type_tags:
-            subject[phase_tag]['templateDCM_{type_tag}_path'] = find_template_dicom(os.listdir(subject['DICOMsubjectdir']), type_tag, phase_tag)
+            subject[phase_tag][f'templateDCM_{type_tag}_path'] = find_template_dicom(os.listdir(subject['DICOMsubjectdir']), type_tag, phase_tag)
 
     ###### Step 4: DICOM scanparameter extraction 
     subject = asl_extract_params_dicom(subject, subject['preACZ']['sourceDCM_path'], phase_tag='preACZ')
@@ -235,7 +239,7 @@ def mri_diamox_umcu_clinicalasl_cvr_imager(inputdir, outputdir):
         #asl_qasl_analysis(subject, append_mcsubject[phase_tag]['PLD1to2_labelcontrol_path']), subject[phase_tag]['M0_path'], subject[phase_tag]['mask_path'] , os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_1to2PLD_forATA'), subject['PLDS'][0:2], subject['inference_method'], 'artoff')
     
     ###### Step 10: register post-ACZ ASL data to pre-ACZ ASL data using Elastix 
-    #asl_registration_prepostACZ(subject)
+    asl_registration_prepostACZ_ANTS(subject)
 
     ###### Step 11: Generate CBF/AAT/ATA/CVR results (nifti, dicom PACS, .pngs) for pre- and postACZ, including registration of postACZ to preACZ as reference data, and target for computed CVR map
     subject = asl_save_results_cbfaatcvr(subject)

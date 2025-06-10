@@ -81,7 +81,7 @@ def asl_look_locker_correction(subject, phase_tag):
 
     # Extract values at PLD time points (rounded to nearest integer indices)
     tpointsMxy = PLD.astype(int)
-    LookLocker_correction_factor_perPLD = deltaMxy_ratio_LL_noLL[tpointsMxy - 1]  # -1 for 0-based index
+    LookLocker_correction_factor_perPLD = np.round(deltaMxy_ratio_LL_noLL[tpointsMxy - 1],3)  # -1 for 0-based index
     
     # Display summary
     logging.info(
@@ -89,5 +89,5 @@ def asl_look_locker_correction(subject, phase_tag):
         f"PLDs(ms): {PLD.tolist()}, and deltaPLD(ms) = {delta_PLD}: "
         f"{LookLocker_correction_factor_perPLD}"
     )
-    subject[phase_tag]['LookLocker_correction_factor_perPLD'] = np.round(LookLocker_correction_factor_perPLD, 3)
+    subject[phase_tag]['LookLocker_correction_factor_perPLD'] = LookLocker_correction_factor_perPLD
     return subject
