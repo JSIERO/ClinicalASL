@@ -17,6 +17,7 @@ License: BSD 3-Clause License
 import numpy as np
 from scipy.ndimage import convolve, gaussian_filter
 import warnings
+import logging
 
 def asl_smooth_image(data, spatialdim, FWHM, voxelsize):
     # Smooth an ASL image using a Gaussian filter.
@@ -33,7 +34,7 @@ def asl_smooth_image(data, spatialdim, FWHM, voxelsize):
     # - output: smoothed image, dtype=float
     
     def nanconvn(a, k, *args):
-        """NaN-aware N-dimensional convolution, integrated from nanconvn.m."""
+        # NaN-aware N-dimensional convolution
         edge = False
         nanout = False
         shape = 'same'
@@ -86,14 +87,14 @@ def asl_smooth_image(data, spatialdim, FWHM, voxelsize):
         return c
 
     def fspecial_gaussian_2d(size, sigma):
-        """Generate a 2D Gaussian kernel."""
+        # Generate a 2D Gaussian kernel."""
         x = np.arange(-size // 2 + 1, size // 2 + 1)
         x, y = np.meshgrid(x, x)
         g = np.exp(-(x**2 + y**2) / (2 * sigma**2))
         return g / g.sum()
 
     def fspecial3_gaussian(size, sigma):
-        """Generate a 3D Gaussian kernel (fspecial3 equivalent)."""
+        # Generate a 3D Gaussian kernel (fspecial3 equivalent)."""
         x = np.arange(-size // 2 + 1, size // 2 + 1)
         x, y, z = np.meshgrid(x, x, x, indexing='ij')
         g = np.exp(-(x**2 + y**2 + z**2) / (2 * sigma**2))
@@ -106,7 +107,7 @@ def asl_smooth_image(data, spatialdim, FWHM, voxelsize):
     data_smooth = np.zeros_like(data)
 
     if spatialdim == 2:
-        print(f"Smoothing 2D - can handle NaNs: FWHM(mm) = {FWHM}")
+        logging.info(f"Smoothing 2D - can handle NaNs: FWHM(mm) = {FWHM}")
         filtWidth = 7
         filtSigma = sigma / inplanevoxelsize
         imageFilter = fspecial_gaussian_2d(filtWidth, filtSigma)
@@ -120,13 +121,13 @@ def asl_smooth_image(data, spatialdim, FWHM, voxelsize):
 
     elif spatialdim == 3:
         if np.isnan(data).any():
-            print(f"Smoothing 3D - can handle NaNs: FWHM(mm) = {FWHM}")
+            logging.info(f"Smoothing 3D - can handle NaNs: FWHM(mm) = {FWHM}")
             filtWidth = 7
             filtSigma = sigma / inplanevoxelsize
             imageFilter = fspecial3_gaussian(filtWidth, filtSigma)
             data_smooth = nanconvn(data, imageFilter, 'nanout')
         else:
-            print(f"Smoothing 3D: FWHM(mm) = {FWHM}")
+            logging.inof(f"Smoothing 3D: FWHM(mm) = {FWHM}")
             data_smooth = gaussian_filter(data, sigma=sigma / np.array(voxelsize), mode='reflect')
 
     output = data_smooth.astype(float)

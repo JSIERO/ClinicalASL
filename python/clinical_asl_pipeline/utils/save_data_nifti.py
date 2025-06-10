@@ -15,6 +15,7 @@ Description:
 License: BSD 3-Clause License
 """
 
+import warnings
 import numpy as np
 import nibabel as nib
 
@@ -59,7 +60,7 @@ def save_data_nifti(data, output_filename, templateNII_filename, scaleslope, dat
         
     scl_inter = data_info.get('scl_inter', 0)    
     if not np.isnan(scl_inter) and scl_inter != 0:
-        print('WARNING: Scaling intercept is not 0, setting to 0 now')
+        warnings.warn('WARNING: Scaling intercept is not 0, setting to 0 now')
         data_info['scl_inter'] = 0
 
     if data.ndim == 4:

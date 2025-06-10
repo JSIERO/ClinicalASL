@@ -16,6 +16,7 @@ License: BSD 3-Clause License
 """
 
 import os
+import logging
 import numpy as np
 import pydicom
 from pydicom.uid import generate_uid
@@ -109,6 +110,7 @@ def save_data_dicom(image, template_dicom_path, output_dicom_path, name, value_r
     # Inject PixelData
     insert_cmd = ["dcmodify", "-nb", "--insert-from-file", f"(7fe0,0010)={raw_path}", output_dicom_path]
     subprocess.run(insert_cmd, check=True)
+    # Remove the temporary raw file
     os.remove(raw_path)
 
     # Modify fragile fields using pydicom
@@ -154,5 +156,5 @@ def save_data_dicom(image, template_dicom_path, output_dicom_path, name, value_r
 
     ds.save_as(output_dicom_path)
 
-    print(f"DICOM written to: {output_dicom_path}")
-    print(f"  Content: {content_label.upper()} ({unit_str}), Slope: {1 / scalingfactor:.6f}")
+    logging.info(f"DICOM written to: {output_dicom_path}")
+    logging.info(f"  Content: {content_label.upper()} ({unit_str}), Slope: {1 / scalingfactor:.6f}")

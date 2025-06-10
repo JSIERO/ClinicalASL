@@ -16,13 +16,14 @@ License: BSD 3-Clause License
 """
 
 import ants 
+import logging
 
 def asl_motioncorrection_ants(inputdata, refdata, outputdata):
     # Perform motion correction using ANTs
     # inputdata: path to the input ASL data in NIfTI format
     # refdata: path to the reference image for motion correction
     # outputdata: path to save the motion-corrected output data in NIfTI format
-    print('Perform motion correction')
+    logging.info('Perform motion correction')
     results_dict = ants.motion_correction(
         ants.image_read(inputdata),
         ants.image_read(refdata),

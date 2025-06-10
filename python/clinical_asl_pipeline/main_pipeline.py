@@ -18,6 +18,8 @@ License: BSD 3-Clause License
 """
 
 import os
+import logging
+import warnings
 from clinical_asl_pipeline.asl_convert_dicom_to_nifti import asl_convert_dicom_to_nifti
 from clinical_asl_pipeline.asl_extract_params_dicom import asl_extract_params_dicom
 from clinical_asl_pipeline.asl_look_locker_correction import asl_look_locker_correction
@@ -27,138 +29,219 @@ from clinical_asl_pipeline.asl_qasl_analysis import asl_qasl_analysis
 from clinical_asl_pipeline.asl_motioncorrection_ants import asl_motioncorrection_ants
 from clinical_asl_pipeline.asl_registration_prepostACZ import asl_registration_prepostACZ
 from clinical_asl_pipeline.asl_save_results_cbfaatcvr import asl_save_results_cbfaatcvr
+from clinical_asl_pipeline.utils.utils import append_mc
 
-def mri_diamox_umcu_clinicalasl_cvr_imager(inputdir, outputdir):
-    subject = {}
-    subject['DICOMdir'] = inputdir # input folder for extracted PACS DICOM
-    subject['SUBJECTdir'] = outputdir # inpput folder for results and generated DICOMS of ALS derived imaged for PACS
-    
-    # Set registration (Elastix) settings
-    subject['elastix_parameter_file'] = 'Par0001rigid_6DOF_MI_NIFTIGZ.txt'
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    # Default parameters
-    subject.update({
-        'tau': 2,               # in [s]
-        'N_BS': 4,              # in [number of BS]
-        'labeleff': 0.85,       # in [0.85=85%]
-        'lambda': 0.9,          # in [g/ml]
-        'T1t': 1.3,             # in [s]
-        'T1b': 1.65,            # in [s]
-        'FWHM': 6,              # in [mm]
-        'FWHM_M0': 5,           # in [mm]
-        'range_cbf': [0, 100],  # in [ml/100g/min]
-        'range_cvr': [-50, 50], # in [ml/100g/min]
-        'range_AAT': [0, 3.5],  # in [s]
-        'range_ATA': [0, 125],  # in [ml/100g/min]
-        'inference_method': 'ssvb', # method for ASL quantification, choices: ssvb, basil
-    })
+# Default processing parameters
+DEFAULT_PARAMETERS = {
+    'tau': 2,                # Label duration in [s]
+    'N_BS': 4,               # Number of background suppression pulses
+    'labeleff': 0.85,        # Labeling efficiency (default 0.85)
+    'lambda': 0.9,           # Blood-brain partition coefficient (mL/g)
+    'T1t': 1.3,              # T1 of gray matter tissue in [s]
+    'T1b': 1.65,             # T1 of arterial blood in [s]
+    'FWHM': 6,               # Full-width at half-maximum for CVR smoothing [mm]
+    'range_cbf': [0, 100],   # Display/analysis range for CBF [ml/100g/min]
+    'range_cvr': [-50, 50],  # Display/analysis range for CVR [delta ml/100g/min], cerebrovascular reactivity map upon acetazolamide (DIAMO)
+    'range_AAT': [0, 3.5],   # Display/analysis range for AAT [s], arterial arrival time map
+    'range_ATA': [0, 125],   # Display/analysis range for ATA [m], arterial transit artefacts map
+    'inference_method': 'ssvb', # Inference method for quantification ('ssvb' or 'basil')
+    'elastix_parameter_file': 'Par0001rigid_6DOF_MI_NIFTIGZ.txt' # Elastix registration parameter file
+}
 
-    # Set Folder paths
-    subject['DICOMRESULTSdir'] = subject['SUBJECTdir'] # root outputfolder for generated DICOMS derived images for PACS
+def prepare_subject_paths(subject):
+    """
+    Prepare output folder structure for subject.
+
+    Creates the following subfolders:
+    - NIFTI
+    - ASL
+    - FIGURE_RESULTS
+    - (reuses SUBJECTdir as DICOMoutputdir)
+    """
+    subject['DICOMoutputdir'] = subject['SUBJECTdir'] #     
+    subject['DICOMsubjectdir'] = os.path.join(subject['SUBJECTdir'], 'DICOMORIG') # folder for original DICOMS in subject output fodler
     subject['NIFTIdir'] = os.path.join(subject['SUBJECTdir'], 'NIFTI')
     subject['ASLdir'] = os.path.join(subject['SUBJECTdir'], 'ASL')
     subject['RESULTSdir'] = os.path.join(subject['SUBJECTdir'], 'FIGURE_RESULTS')
 
-    for path in [subject['DICOMRESULTSdir'], subject['NIFTIdir'], subject['ASLdir'], subject['RESULTSdir']]:
+    for path in [
+        subject['DICOMoutputdir'],
+        subject['DICOMsubjectdir'],
+        subject['NIFTIdir'],
+        subject['ASLdir'],
+        subject['RESULTSdir']
+    ]:
         os.makedirs(path, exist_ok=True)
-        
-    # Set necessary file paths
-    # Input data
-    subject['preACZ_PLDall_labelcontrol_path'] = os.path.join(subject['ASLdir'], 'preACZ_allPLD_label1label2.nii.gz') 
-    subject['preACZ_PLD2tolast_labelcontrol_path'] = os.path.join(subject['ASLdir'], 'preACZ_2tolastPLD_label1label2.nii.gz')
-    subject['preACZ_PLD1to2_labelcontrol_path'] = os.path.join(subject['ASLdir'], 'preACZ_1to2PLD_label1label2.nii.gz')
 
-    subject['postACZ_PLDall_labelcontrol_path'] = os.path.join(subject['ASLdir'], 'postACZ_allPLD_label1label2.nii.gz')
-    subject['postACZ_PLD2tolast_labelcontrol_path'] = os.path.join(subject['ASLdir'], 'postACZ_2tolastPLD_label1label2.nii.gz')
-    subject['postACZ_PLD1to2_labelcontrol_path'] = os.path.join(subject['ASLdir'], 'postACZ_1to2PLD_label1label2.nii.gz')
+    logging.info("Output folder structure created.")
+    return subject
+
+def prepare_input_output_paths(subject):
+    """
+    Prepare standard input and derived ASL file paths in subject dictionary.
+
+    Adds keys:
+    - preACZ and postACZ PLD label-control paths
+    - preACZ and postACZ M0 paths
+    - preACZ and postACZ T1fromM0 paths
+    - preACZ and postACZ masks
+    - preACZ and postACZ CBF/AAT/ATA paths
+    """
+    # Initialize phase_tags in subject dictionary
+    for phase_tag in ['preACZ', 'postACZ']:
+        subject[phase_tag] = {}
     
-    subject['preACZ_M0_path'] = os.path.join(subject['ASLdir'], 'preACZ_M0.nii.gz')
-    subject['postACZ_M0_path'] = os.path.join(subject['ASLdir'], 'postACZ_M0.nii.gz')
-    subject['postACZ_M0_2preACZ_path'] = os.path.join(subject['ASLdir'], 'postACZ_M0_2preACZ.nii.gz')    
+    # define DICOM phase tags and type tags
+    subject['dicom_typetags_by_phasetag'] = {
+        'preACZ':  ['CBF', 'AAT', 'ATA', 'CVR'],  # CVR only exists in preACZ space
+        'postACZ': ['CBF', 'AAT', 'ATA']  
+    }
 
-    # Derived data
-    subject['preACZ_T1fromM0_path'] = os.path.join(subject['ASLdir'], 'preACZ_T1fromM0.nii.gz')
-    subject['postACZ_T1fromM0_path'] = os.path.join(subject['ASLdir'], 'postACZ_T1fromM0.nii.gz')
-    subject['postACZ_T1fromM0_2preACZ_path'] = os.path.join(subject['ASLdir'], 'postACZ_T1fromM0_2preACZ.nii.gz')
+    # Input data
+    for phase_tag in ['preACZ', 'postACZ']:
+        # PLD label-control input paths
+        subject[phase_tag]['PLDall_labelcontrol_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_allPLD_label1label2.nii.gz')
+        subject[phase_tag]['PLD2tolast_labelcontrol_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_2tolastPLD_label1label2.nii.gz')
+        subject[phase_tag]['PLD1to2_labelcontrol_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_1to2PLD_label1label2.nii.gz')
 
-    subject['preACZ_mask_path'] = os.path.join(subject['ASLdir'], 'preACZ_M0_brain_mask.nii.gz')
-    subject['postACZ_mask_path'] = os.path.join(subject['ASLdir'], 'postACZ_M0_brain_mask.nii.gz')
-    subject['postACZ_mask_2preACZ_path'] = os.path.join(subject['ASLdir'], 'postACZ_M0_brain_mask_2preACZ.nii.gz')
+        # Mask, M0 and T1fromM0 paths
+        subject[phase_tag]['mask_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_M0_brain_mask.nii.gz')
+        subject[phase_tag]['M0_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_M0.nii.gz')
+        subject[phase_tag]['T1fromM0_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_T1fromM0.nii.gz')
 
-    subject['preACZ_CBF_path'] = os.path.join(subject['ASLdir'], 'preACZ_QASL_2tolastPLD_forCBF/native_space/perfusion_calib.nii.gz')
-    subject['postACZ_CBF_path'] = os.path.join(subject['ASLdir'], 'postACZ_QASL_2tolastPLD_forCBF/native_space/perfusion_calib.nii.gz')
-    subject['postACZ_CBF_2preACZ_path'] = os.path.join(subject['ASLdir'], 'postACZ_CBF_2preACZ.nii.gz')
+        # QASL ASL derived quantification output paths after QASL analysis for CBF/AAT/ATA
+        subject[phase_tag]['QASL_CBF_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_2tolastPLD_forCBF/native_space/perfusion_calib.nii.gz')
+        subject[phase_tag]['QASL_AAT_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_allPLD_forAAT/native_space/arrival.nii.gz')
+        subject[phase_tag]['QASL_ATA_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_1to2PLD_forATA/native_space/perfusion_calib.nii.gz')
 
-    subject['preACZ_AAT_path'] = os.path.join(subject['ASLdir'], 'preACZ_QASL_allPLD_forAAT/native_space/arrival.nii.gz')
-    subject['postACZ_AAT_path'] = os.path.join(subject['ASLdir'], 'postACZ_QASL_allPLD_forAAT/native_space/arrival.nii.gz')
-    subject['postACZ_AAT_2preACZ_path'] = os.path.join(subject['ASLdir'], 'postACZ_AAT_2preACZ.nii.gz')
+        # ASL derived quantification output paths in ASLdir for CBF/AAT/ATA/CVR
+        subject[phase_tag]['output_CBF_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_CBF.nii.gz')
+        subject[phase_tag]['output_AAT_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_AAT.nii.gz')
+        subject[phase_tag]['output_ATA_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_ATA.nii.gz')
+        subject['output_CVR_path'] = os.path.join(subject['ASLdir'], 'CVR.nii.gz') #  in parent subject dictionary as it is considers both pre- and postACZ data
 
-    subject['preACZ_ATA_path'] = os.path.join(subject['ASLdir'], 'preACZ_QASL_1to2PLD_forATA/native_space/perfusion_calib.nii.gz')
-    subject['postACZ_ATA_path'] = os.path.join(subject['ASLdir'], 'postACZ_QASL_1to2PLD_forATA/native_space/perfusion_calib.nii.gz')
-    subject['postACZ_ATA_2preACZ_path'] = os.path.join(subject['ASLdir'], 'postACZ_ATA_2preACZ.nii.gz')
+        # Registered postACZ CBF/AAT/ATA/M0/T1fromM0/mask → preACZ space — only for postACZ
+        if phase_tag == 'postACZ':
+            subject[phase_tag]['CBF_2preACZ_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_CBF_2preACZ.nii.gz')
+            subject[phase_tag]['AAT_2preACZ_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_AAT_2preACZ.nii.gz')
+            subject[phase_tag]['ATA_2preACZ_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_ATA_2preACZ.nii.gz')
+            subject[phase_tag]['M0_2preACZ_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_M0_2preACZ.nii.gz')
+            subject[phase_tag]['T1fromM0_2preACZ_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_T1fromM0_2preACZ.nii.gz')
+            subject[phase_tag]['mask_2preACZ_path'] = os.path.join(subject['ASLdir'], f'{phase_tag}_M0_brain_mask_2preACZ.nii.gz')
 
-    # Step 1: Convert DICOM to NIFTI, move input PACS DICOMS inputdir to SUBJECTdir/DICOMORIG/, and make this the new DICOMdir for further processing
-    subject['DICOMdir'] = asl_convert_dicom_to_nifti(subject['DICOMdir'], subject['NIFTIdir'], imager='IMAGER', subject_dir=subject['SUBJECTdir'])
+    logging.info("Input and derived ASL file paths prepared.")
+    return subject
 
-    # Step 2: Get SOURCE NIFTI files using string tags 
-    filepre = sorted([f for f in os.listdir(subject['NIFTIdir']) if 'SOURCE_ASL' in f and 'preACZ' in f and f.endswith('2.nii.gz')])
-    filepost = sorted([f for f in os.listdir(subject['NIFTIdir']) if 'SOURCE_ASL' in f and 'postACZ' in f and f.endswith('2.nii.gz')])
-    if len(filepre) > 1 or len(filepost) > 1:
-        print('WARNING: Multiple pre/post ASL datasets found. Using latest.')
+def get_latest_source_data(dicomdir, niftidir, phase_tag):
+    """
+    Find the latest SOURCE_ASL DICOM and NIfTI files for a given tag (e.g., 'preACZ', 'postACZ').
+    Parameters:
+        dicomdir (str): Path to the DICOM directory 
+        niftidir (str): Path to the NIfTI directory
+        phase_tag (str): Tag to identify phase ('preACZ' or 'postACZ')
 
-    subject['preACZ_sourceNIFTI_path']  = filepre[-1]
-    subject['postACZ_sourceNIFTI_path'] = filepost[-1]
-    subject['preACZ_sourceDCM_path']    = subject['preACZ_sourceNIFTI_path'][:-7]
-    subject['postACZ_sourceDCM_path']   = subject['postACZ_sourceNIFTI_path'][:-7]
+    Returns:
+        tuple: (nifti_full_path, dicom_full_path)
+    """
+    # Find DICOM file names (ending in '2', e.g., series file names)
+    dicom_files = sorted([f for f in os.listdir(dicomdir) if 'SOURCE_ASL' in f and phase_tag in f and f.endswith('2')])
+    if len(dicom_files) > 1:
+        warnings.warn(f'Multiple SOURCE_ASL DICOM entries found for "{phase_tag}". Using latest.')
+    if not dicom_files:
+        raise FileNotFoundError(f'No SOURCE_ASL DICOM entry found for phase_tag "{phase_tag}" in {dicomdir}')
 
-    # Step 3: Locate template DICOMs
-    templatedicom_files = os.listdir(subject['DICOMdir'])
-    subject['preACZ_templateDCM_CBF_path'] = next(f for f in templatedicom_files if 'sWIP' in f and 'CBF' in f and 'preACZ' in f)
-    subject['preACZ_templateDCM_AAT_path'] = next(f for f in templatedicom_files if 'sWIP' in f and 'AAT' in f and 'preACZ' in f)
-    subject['preACZ_templateDCM_CVR_path'] = next(f for f in templatedicom_files if 'sWIP' in f and 'CVR' in f and 'preACZ' in f)
-    subject['preACZ_templateDCM_ATA_path'] = next(f for f in templatedicom_files if 'sWIP' in f and 'ATA' in f and 'preACZ' in f)
-   
-    subject['postACZ_templateDCM_CBF_path'] = next(f for f in templatedicom_files if 'sWIP' in f and 'CBF' in f and 'postACZ' in f)
-    subject['postACZ_templateDCM_AAT_path'] = next(f for f in templatedicom_files if 'sWIP' in f and 'AAT' in f and 'postACZ' in f)
-    subject['postACZ_templateDCM_ATA_path'] = next(f for f in templatedicom_files if 'sWIP' in f and 'ATA' in f and 'postACZ' in f)
+    dicom_path = os.path.join(dicomdir, dicom_files[-1])
 
-    # Step 4: DICOM info extraction and LL correction
-    subject = asl_extract_params_dicom(subject, subject['preACZ_sourceDCM_path'])
-    subject['preACZ_templateNII_path'] = os.path.join(subject['NIFTIdir'], subject['preACZ_sourceNIFTI_path']) 
-    subject['postACZ_templateNII_path'] = os.path.join(subject['NIFTIdir'], subject['postACZ_sourceNIFTI_path']) 
+    # Find NIFTI file names (ending in '2.nii.gz', e.g., series file names)
+    files_nifti = sorted([f for f in os.listdir(niftidir) if 'SOURCE_ASL' in f and phase_tag in f and f.endswith('2.nii.gz')])
+    if len(files_nifti) > 1:
+        warnings.warn(f'Multiple SOURCE_ASL NIFTI files found for "{phase_tag}". Using latest.')
+    if not files_nifti:
+        raise FileNotFoundError(f'No SOURCE_ASL NIFTI files found for phase_tag "{phase_tag}" in {niftidir}')
 
-    # Step 5: Compute Look Locker correction on Mxy per PLD   
-    subject['LookLocker_correction_factor_perPLD'] = asl_look_locker_correction(subject)
+    nifti_path = os.path.join(niftidir, files_nifti[-1])
 
-    # Step 6: Split/control-label, save NIFTI
-    subject = asl_prepare_asl_data(subject, subject['preACZ_sourceNIFTI_path'], 'preACZ')
-    subject = asl_prepare_asl_data(subject, subject['postACZ_sourceNIFTI_path'], 'postACZ')
+    return nifti_path, dicom_path
 
-    # Step 7: Brain extraction for mask and T1 from M0
-    subject = asl_bet_t1_from_m0(subject,'preACZ', 'fast') 
-    subject = asl_bet_t1_from_m0(subject,'postACZ', 'fast')
+def find_template_dicom(files, type_tag, phase_tag): # Helper function to find a template DICOM file based on type and phase tags
+    return next(f for f in files if 'sWIP' in f and type_tag in f and phase_tag in f)
 
-    for prefix in ['preACZ', 'postACZ']:
-    # Step 8: Motion Correction
-        #asl_motioncorrection_ants(subject[f'{prefix}_PLDall_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_PLDall_labelcontrol_path'])
-        #asl_motioncorrection_ants(subject[f'{prefix}_PLD2tolast_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_PLD2tolast_labelcontrol_path'])
-        #asl_motioncorrection_ants(subject[f'{prefix}_PLD1to2_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_PLD1to2_labelcontrol_path'])
+def mri_diamox_umcu_clinicalasl_cvr_imager(inputdir, outputdir):
+    subject = {}
+    subject['DICOMinputdir'] = inputdir # input folder for extracted PACS DICOM
+    subject['SUBJECTdir'] = outputdir # inpput folder for results and generated DICOMS of ALS derived imaged for PACS
+    
+    ##### Step 0: Prepare subject dictionary with default parameters and paths
+    # Add default parameters to subject dictionary, such as scan parameters, FWHM, ranges, etc.
+    subject.update(DEFAULT_PARAMETERS)
 
-    # Step 9: ASL Quantification analysis
+    # Prepare output folders
+    subject = prepare_subject_paths(subject)
+
+    # Prepare file paths
+    subject = prepare_input_output_paths(subject)
+
+    ###### Step 1: Convert DICOM to NIFTI, move input PACS DICOMSinputdir to DICOMsubjectdir for further processing
+    subject = asl_convert_dicom_to_nifti(subject)
+
+    ###### Step 2: Get SOURCE and DICOM NIFTI files using phase tags 
+    for phase_tag in ['preACZ', 'postACZ']:
+        nifti_file, dicom_file = get_latest_source_data(subject['DICOMsubjectdir'], subject['NIFTIdir'], phase_tag)
+        nifti_full_path = os.path.join(subject['NIFTIdir'], nifti_file)
+        dicom_full_path = os.path.join(subject['DICOMsubjectdir'], dicom_file)
+        subject[phase_tag]['sourceNIFTI_path'] = nifti_full_path
+        subject[phase_tag]['templateNII_path'] = nifti_full_path
+        subject[phase_tag]['sourceDCM_path']   = dicom_full_path
+        subject[phase_tag]['sourceDCM_path']   = dicom_full_path
+
+    ###### Step 3: Locate template DICOMs - define DICOM phase tags and type tags
+    for phase_tag, type_tags in subject['dicom_typetags_by_phasetag'].items():
+        for type_tag in type_tags:
+            subject[phase_tag]['templateDCM_{type_tag}_path'] = find_template_dicom(os.listdir(subject['DICOMsubjectdir']), type_tag, phase_tag)
+
+    ###### Step 4: DICOM scanparameter extraction 
+    subject = asl_extract_params_dicom(subject, subject['preACZ']['sourceDCM_path'], phase_tag='preACZ')
+    subject = asl_extract_params_dicom(subject, subject['postACZ']['sourceDCM_path'], phase_tag='postACZ')
+
+    ###### Step 5: Compute Look Locker correction on Mxy per PLD   
+    subject = asl_look_locker_correction(subject, phase_tag='preACZ')
+    subject = asl_look_locker_correction(subject, phase_tag='postACZ')
+
+    ###### Step 6: Split/control-label, save NIFTI
+    subject = asl_prepare_asl_data(subject, subject['preACZ']['sourceNIFTI_path'], phase_tag='preACZ')
+    subject = asl_prepare_asl_data(subject, subject['postACZ']['sourceNIFTI_path'], phase_tag='postACZ')
+
+    ###### Step 7: Brain extraction for mask and T1 from M0
+    subject = asl_bet_t1_from_m0(subject, fast='fast', phase_tag='preACZ') 
+    subject = asl_bet_t1_from_m0(subject, fast='fast', phase_tag='postACZ')
+
+    #for phase_tag in ['preACZ', 'postACZ']:    
+    ###### Step 8: Motion Correction
+        #asl_motioncorrection_ants(subject[phase_tag]['PLDall_labelcontrol_path'], subject[phase_tag]['M0_path'], append_mc(subject[phase_tag]['PLDall_labelcontrol_path']))
+        #asl_motioncorrection_ants(subject[phase_tag]['PLD2tolast_labelcontrol_path'], subject[phase_tag]['M0_path'], append_mc(subject[phase_tag]['PLD2tolast_labelcontrol_path']))
+        #asl_motioncorrection_ants(subject[phase_tag]['PLD1to2_labelcontrol_path'], subject[phase_tag]['M0_path'], append_mc(subject[phase_tag]['PLD1to2_labelcontrol_path']))        
+
+    ###### Step 9: ASL Quantification analysis
         # all PLD for AAT (arterial arrival time map)
-        asl_qasl_analysis(subject, subject[f'{prefix}_PLDall_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_mask_path'] , os.path.join(subject['ASLdir'], f'{prefix}_QASL_allPLD_forAAT'), subject['PLDS'][0:], subject['inference_method'])
+        #asl_qasl_analysis(subject, append_mc(subject[phase_tag]['PLDall_labelcontrol_path']), subject[phase_tag]['M0_path'], subject[phase_tag]['mask_path'] , os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_allPLD_forAAT'), subject['PLDS'][0:], subject['inference_method'])
        
         # 2-to-last PLD for CBF map
-        asl_qasl_analysis(subject, subject[f'{prefix}_PLD2tolast_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_mask_path'] , os.path.join(subject['ASLdir'], f'{prefix}_QASL_2tolastPLD_forCBF'), subject['PLDS'][1:], subject['inference_method'])
+        #asl_qasl_analysis(subject, append_mc(subject[phase_tag]['PLD2tolast_labelcontrol_path']), subject[phase_tag]['M0_path'], subject[phase_tag]['mask_path'] , os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_2tolastPLD_forCBF'), subject['PLDS'][1:], subject['inference_method'])
        
         # 1to2 PLDs for ATA map ->  then do no fit for the arterial component 'artoff'
-        asl_qasl_analysis(subject, subject[f'{prefix}Z_PLD1to2_labelcontrol_path'], subject[f'{prefix}_M0_path'], subject[f'{prefix}_mask_path'] , os.path.join(subject['ASLdir'], f'{prefix}_QASL_1to2PLD_forATA'), subject['PLDS'][0:2], subject['inference_method'], artoff='artoff')
+        #asl_qasl_analysis(subject, append_mcsubject[phase_tag]['PLD1to2_labelcontrol_path']), subject[phase_tag]['M0_path'], subject[phase_tag]['mask_path'] , os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_1to2PLD_forATA'), subject['PLDS'][0:2], subject['inference_method'], 'artoff')
     
-    # Step 10: register post-ACZ ASL data to pre-ACZ ASL data using Elastix 
-    asl_registration_prepostACZ(subject)
+    ###### Step 10: register post-ACZ ASL data to pre-ACZ ASL data using Elastix 
+    #asl_registration_prepostACZ(subject)
 
-    # Step 11: Generate CBF/AAT/ATA/CVR results (nifti, dicom PACS, .pngs) for pre- and postACZ, including registration of postACZ to preACZ as reference data, and target for computed CVR map
+    ###### Step 11: Generate CBF/AAT/ATA/CVR results (nifti, dicom PACS, .pngs) for pre- and postACZ, including registration of postACZ to preACZ as reference data, and target for computed CVR map
     subject = asl_save_results_cbfaatcvr(subject)
 
-    print('-- Finished --')
+    logging.info("ASL processing pipeline completed successfully.")
+    # Return the subject dictionary with all paths and results
     return subject
+
+  

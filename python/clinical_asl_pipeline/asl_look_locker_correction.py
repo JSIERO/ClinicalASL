@@ -15,23 +15,25 @@ Description:
 License: BSD 3-Clause License
 """
 
+import logging
 import numpy as np
 
-def asl_look_locker_correction(subject):
+def asl_look_locker_correction(subject, phase_tag):
     # Compute Look-Locker scaling correction per PLD for mDelay PCASL
     # subject: dictionary containing ASL parameters and data
-    # Returns: Look-Locker correction factor for each PLD, to be used in ALS quantification (QASL)
+    # phase_tag: string indicating the phase/tag for the subject's data, e.g., 'preACZ', 'postACZ', etc.
+    # Returns: subject dictionary with Look-Locker correction factor for each PLD, to be used in ALS quantification (QASL)
     # Ensure subject dictionary has required keys
-    # required_keys = ['FLIPANGLE', 'PLDS', 'T1b', 'tau']    
+    # required_keys = ['FLIPANGLE', 'PLDS', 'T1b']    
 
     # Flip angle in degrees
-    flip_angle = subject['FLIPANGLE']
+    flip_angle = subject[phase_tag]['FLIPANGLE']
 
     # Assume M0 = 1
     M0 = 1
 
     # PLDs in milliseconds
-    PLD = np.array(subject['PLDS']) * 1000  # convert from s to ms
+    PLD = np.array(subject[phase_tag]['PLDS']) * 1000  # convert from s to ms
 
     # Time vector t
     t = np.arange(1, int(PLD[-1] * 1.1) + 1)  # MATLAB-style 1:PLD(end)*1.1
@@ -82,10 +84,10 @@ def asl_look_locker_correction(subject):
     LookLocker_correction_factor_perPLD = deltaMxy_ratio_LL_noLL[tpointsMxy - 1]  # -1 for 0-based index
     
     # Display summary
-    print(
-        f" Look-Locker correction factor for flipangle = {flip_angle} (deg), "
-        f"PLDs(ms) : {PLD.tolist()}, and deltaPLD(ms) = {delta_PLD}:  "
+    logging.info(
+        f"Look-Locker correction factor for flipangle = {flip_angle} (deg), "
+        f"PLDs(ms): {PLD.tolist()}, and deltaPLD(ms) = {delta_PLD}: "
         f"{LookLocker_correction_factor_perPLD}"
     )
-
-    return LookLocker_correction_factor_perPLD
+    subject[phase_tag]['LookLocker_correction_factor_perPLD'] = np.round(LookLocker_correction_factor_perPLD, 3)
+    return subject

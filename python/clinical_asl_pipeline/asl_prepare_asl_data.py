@@ -16,73 +16,78 @@ Description:
 License: BSD 3-Clause License
 """
 
-import numpy as np
 import os
+import logging
+import numpy as np
 import nibabel as nib
-from clinical_asl_pipeline.asl_interleave_control_tag import asl_interleave_control_tag
+from clinical_asl_pipeline.asl_interleave_control_label import asl_interleave_control_label
 from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
 
-def asl_prepare_asl_data(subject, filename, prefix):
+def asl_prepare_asl_data(subject, filename, phase_tag):
     # Prepare (multidelay ASL data for analysis by interleaving control and label files per PLD, M0, and performing Look-Locker Correction.
     # Parameters:
     # subject: dict containing subject information including paths and parameters
     # filename: string, name of the NIfTI file containing ASL data
-    # prefix: string, prefix for the keys in the subject dictionary to store results
+    # phase_tag: string, e.g. preAZ or postACZ phase_tag for the keys in the subject dictionary to store results
     # Returns:
-    # subject: updated subject dictionary with processed ASL data   
-  
+    # subject: updated subject dictionary with processed ASL data     
    
+    # Use a shorter alias for subject[phase_tag]
+    phase_data = subject[phase_tag]
+
     # Load data
     data_path = os.path.join(subject['NIFTIdir'], filename)
-    data = nib.load(data_path).get_fdata()/nib.load(data_path).dataobj.slope # remove scaling, as nibabel nib.load consumes the slope and intcept automatically
-    print(subject[f'{prefix}_templateNII_path'])
+
+    # remove scaling, as nibabel nib.load consumes the slope and intercept automatically
+    data = nib.load(data_path).get_fdata()/nib.load(data_path).dataobj.slope 
+    
+    # Log NIFTI template path  
+    logging.info(f"Template NIFTI path: {phase_data['templateNII_path']}")
     
     dims = data.shape
 
-    # Initialize arrays
-    subject[prefix] = {}
-    subject[prefix]['M0ASL_allPLD'] = np.zeros((dims[0], dims[1], dims[2], subject['NDYNS'], subject['NPLDS'], 2))
-    subject[prefix]['ASL_label1label2_allPLD'] = np.zeros((dims[0], dims[1], dims[2], subject['NREPEATS'] * 2, subject['NPLDS']))
+    phase_data['M0ASL_allPLD'] = np.zeros((dims[0], dims[1], dims[2], phase_data['NDYNS'], phase_data['NPLDS'], 2))
+    phase_data['ASL_label1label2_allPLD'] = np.zeros((dims[0], dims[1], dims[2], phase_data['NREPEATS'] * 2, phase_data['NPLDS']))
 
     # Split label/control, apply Look Locker correction
-    for i in range(subject['NPLDS']):
-        idx_label = slice(i, subject['NPLDS'] * subject['NDYNS'] * 2, 2 * subject['NPLDS'])
-        idx_control = slice(i + subject['NPLDS'], subject['NPLDS'] * subject['NDYNS'] * 2, 2 * subject['NPLDS'])
+    for i in range(phase_data['NPLDS']):
+        idx_label = slice(i, phase_data['NPLDS'] * phase_data['NDYNS'] * 2, 2 * phase_data['NPLDS'])
+        idx_control = slice(i + phase_data['NPLDS'], phase_data['NPLDS'] * phase_data['NDYNS'] * 2, 2 * phase_data['NPLDS'])
 
-        subject[prefix]['M0ASL_allPLD'][:, :, :, :subject['NDYNS'], i, 0] = data[:, :, :, idx_label] / subject['LookLocker_correction_factor_perPLD'][i]
-        subject[prefix]['M0ASL_allPLD'][:, :, :, :subject['NDYNS'], i, 1] = data[:, :, :, idx_control] / subject['LookLocker_correction_factor_perPLD'][i]
+        phase_data['M0ASL_allPLD'][:, :, :, :phase_data['NDYNS'], i, 0] = data[:, :, :, idx_label] / phase_data['LookLocker_correction_factor_perPLD'][i]
+        phase_data['M0ASL_allPLD'][:, :, :, :phase_data['NDYNS'], i, 1] = data[:, :, :, idx_control] / phase_data['LookLocker_correction_factor_perPLD'][i]
 
     # Interleave control/label, save per-PLD
-    for i in range(subject['NPLDS']):
-        interleaved = asl_interleave_control_tag(np.squeeze(subject[prefix]['M0ASL_allPLD'][:, :, :, 1:, i, 0]), np.squeeze(subject[prefix]['M0ASL_allPLD'][:, :, :, 1:, i, 1]))
-        subject[prefix]['ASL_label1label2_allPLD'][:, :, :, :, i] = interleaved
+    for i in range(phase_data['NPLDS']):
+        interleaved = asl_interleave_control_label(np.squeeze(phase_data['M0ASL_allPLD'][:, :, :, 1:, i, 0]), np.squeeze(phase_data['M0ASL_allPLD'][:, :, :, 1:, i, 1]))
+        phase_data['ASL_label1label2_allPLD'][:, :, :, :, i] = interleaved
 
-    print("Saving ASL data interleaved label control: all PLDs for AAT")
+    logging.info("Saving ASL data interleaved label control: all PLDs for AAT")
     # Swap axes to interleave PLDs and time correctly
-    reordered = np.transpose(subject[prefix]['ASL_label1label2_allPLD'], (0, 1, 2, 4, 3))  # (x, y, z, PLD, time)    
+    reordered = np.transpose(phase_data['ASL_label1label2_allPLD'], (0, 1, 2, 4, 3))  # (x, y, z, PLD, time)    
     # Now reshape so time dimension becomes interleaved PLDs
-    PLDall = reordered.reshape(dims[0], dims[1], dims[2], subject['NPLDS'] * subject['NREPEATS'] * 2)
-    save_data_nifti(PLDall, subject[f'{prefix}_PLDall_labelcontrol_path'], subject[f'{prefix}_templateNII_path'], 1, None, subject['TR'])
+    PLDall = reordered.reshape(dims[0], dims[1], dims[2], phase_data['NPLDS'] * phase_data['NREPEATS'] * 2)
+    save_data_nifti(PLDall, phase_data['PLDall_labelcontrol_path'], phase_data['templateNII_path'], 1, None, phase_data['TR'])
 
-    print("Saving ASL data interleaved label control: 2-to-last PLDs for CBF")
+    logging.info("Saving ASL data interleaved label control: 2-to-last PLDs for CBF")
     # Extract PLDs 2 to end → shape: (x, y, z, time, NPLDS-1)
-    PLD2tolast = subject[prefix]['ASL_label1label2_allPLD'][:, :, :, :, 1:]
+    PLD2tolast = phase_data['ASL_label1label2_allPLD'][:, :, :, :, 1:]
     # Reorder to (x, y, z, PLD, time), then reshape
-    PLD2tolast = np.transpose(PLD2tolast, (0, 1, 2, 4, 3)).reshape(dims[0], dims[1], dims[2], (subject['NPLDS'] - 1) * subject['NREPEATS'] * 2)
-    save_data_nifti(PLD2tolast, subject[f'{prefix}_PLD2tolast_labelcontrol_path'], subject[f'{prefix}_templateNII_path'], 1, None, subject['TR'])
+    PLD2tolast = np.transpose(PLD2tolast, (0, 1, 2, 4, 3)).reshape(dims[0], dims[1], dims[2], (phase_data['NPLDS'] - 1) * phase_data['NREPEATS'] * 2)
+    save_data_nifti(PLD2tolast, phase_data['PLD2tolast_labelcontrol_path'], phase_data['templateNII_path'], 1, None, phase_data['TR'])
     
-    print("Saving ASL data interleaved label control: 1-to-2 PLDs for ATA")
+    logging.info("Saving ASL data interleaved label control: 1-to-2 PLDs for ATA")
     # Extract first 2 PLDs → shape: (x, y, z, time, 2)
-    PLD1to2 = subject[prefix]['ASL_label1label2_allPLD'][:, :, :, :, 0:2]    
+    PLD1to2 = phase_data['ASL_label1label2_allPLD'][:, :, :, :, 0:2]    
     # Reorder to (x, y, z, PLD, time), then reshape
-    PLD1to2 = np.transpose(PLD1to2, (0, 1, 2, 4, 3)).reshape(dims[0], dims[1], dims[2], 2 * subject['NREPEATS'] * 2)
-    save_data_nifti(PLD1to2, subject[f'{prefix}_PLD1to2_labelcontrol_path'], subject[f'{prefix}_templateNII_path'], 1, None, subject['TR'])
+    PLD1to2 = np.transpose(PLD1to2, (0, 1, 2, 4, 3)).reshape(dims[0], dims[1], dims[2], 2 * phase_data['NREPEATS'] * 2)
+    save_data_nifti(PLD1to2, phase_data['PLD1to2_labelcontrol_path'], phase_data['templateNII_path'], 1, None, phase_data['TR'])
     
     # M0 image construction
-    subject[prefix]['M0_allPLD'] = np.mean(subject[prefix]['M0ASL_allPLD'][:, :, :, 0, :, :], axis=4)
-    subject[prefix]['M0'] = subject[prefix]['M0_allPLD'][:, :, :, 0]
+    phase_data['M0_allPLD'] = np.mean(phase_data['M0ASL_allPLD'][:, :, :, 0, :, :], axis=4)
+    phase_data['M0'] = phase_data['M0_allPLD'][:, :, :, 0]
 
-    print("Saving M0 image")
-    save_data_nifti(subject[prefix]['M0'], subject[f'{prefix}_M0_path'] , subject[f'{prefix}_templateNII_path'], 1, None, subject['TR'])
+    logging.info("Saving M0 image")
+    save_data_nifti(phase_data['M0'], phase_data['M0_path'] , phase_data['templateNII_path'], 1, None, phase_data['TR'])
 
     return subject

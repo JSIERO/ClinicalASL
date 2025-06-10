@@ -17,6 +17,7 @@ License: BSD 3-Clause License
 
 import subprocess
 import time
+import logging
 
 def asl_basil_analysis(
     subject,
@@ -93,9 +94,9 @@ def asl_basil_analysis(
     )
 
     # Run command
-    print("Running BASIL analysis...")
+    logging.info("Running BASIL analysis...")
     subprocess.run(cmd, shell=True, check=True)
 
-    print("BASIL analysis finished")
+    logging.info("BASIL analysis finished")
     elapsed = round(time.time() - start_time, 2)
-    print(f"..this took: {elapsed} s")
+    prilogging.infont(f"..this took: {elapsed} s")

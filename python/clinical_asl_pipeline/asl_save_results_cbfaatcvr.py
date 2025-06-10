@@ -15,6 +15,7 @@ License: BSD 3-Clause License
 """
 
 import os
+import logging
 import numpy as np
 import nibabel as nib
 from clinical_asl_pipeline.asl_smooth_image import asl_smooth_image
@@ -33,17 +34,17 @@ def asl_save_results_cbfaatcvr(subject):
 # 6. Save visualizations as PNG images.
 # 7. Save results as DICOM files for Philips multi-frame export for PACS
 
-    # Load CBF, AAT, masks, and registered post- to preACZ NIFTIs
-    subject['preACZ']['CBF'] = nib.load(subject['preACZ_CBF_path']).get_fdata()
-    subject['postACZ']['CBF'] = nib.load(subject['postACZ_CBF_path']).get_fdata()
-    subject['postACZ']['CBF_2preACZ'] = nib.load(subject['postACZ_CBF_2preACZ_path']).get_fdata()
-    subject['preACZ']['AAT'] = nib.load(subject['preACZ_AAT_path']).get_fdata()
-    subject['postACZ']['AAT'] = nib.load(subject['postACZ_AAT_path']).get_fdata()
-    subject['postACZ']['AAT_2preACZ'] = nib.load(subject['postACZ_AAT_2preACZ_path']).get_fdata()
-    subject['preACZ']['ATA'] = nib.load(subject['preACZ_ATA_path']).get_fdata()
-    subject['postACZ']['ATA'] = nib.load(subject['postACZ_ATA_path']).get_fdata()
-    subject['postACZ']['ATA_2preACZ'] = nib.load(subject['postACZ_ATA_2preACZ_path']).get_fdata()
-    subject['postACZ']['mask_2preACZ'] = nib.load(subject['postACZ_mask_2preACZ_path']).get_fdata()
+    # Load CBF, AAT, ATA from QASL analysis and masks, and registered post- to preACZ NIFTIs
+    subject['preACZ']['CBF'] = nib.load(subject['preACZ']['QASL_CBF_path']).get_fdata()
+    subject['postACZ']['CBF'] = nib.load(subject['postACZ']['QASL_CBF_path']).get_fdata()
+    subject['postACZ']['CBF_2preACZ'] = nib.load(subject['postACZ']['CBF_2preACZ_path']).get_fdata()
+    subject['preACZ']['AAT'] = nib.load(subject['preACZ']['QASL_AAT_path']).get_fdata()
+    subject['postACZ']['AAT'] = nib.load(subject['postACZ']['QASL_AAT_path']).get_fdata()
+    subject['postACZ']['AAT_2preACZ'] = nib.load(subject['postACZ']['AAT_2preACZ_path']).get_fdata()
+    subject['preACZ']['ATA'] = nib.load(subject['preACZ']['QASL_ATA_path']).get_fdata()
+    subject['postACZ']['ATA'] = nib.load(subject['postACZ']['QASL_ATA_path']).get_fdata()
+    subject['postACZ']['ATA_2preACZ'] = nib.load(subject['postACZ']['ATA_2preACZ_path']).get_fdata()
+    subject['postACZ']['mask_2preACZ'] = nib.load(subject['postACZ']['mask_2preACZ_path']).get_fdata()
         
     # Create combined masks
     subject['postACZ']['nanmask_2preACZ'] = np.where(subject['postACZ']['mask_2preACZ'], 1.0, np.nan)
@@ -59,35 +60,34 @@ def asl_save_results_cbfaatcvr(subject):
     subject['postACZ']['AAT_2preACZ_smth'] = asl_smooth_image(subject['postACZ']['AAT_2preACZ'] * subject['postACZ']['nanmask_2preACZ'], 2, subject['FWHM'], subject['VOXELSIZE'])
 
     # Save results as NIfTI in ASLdir
-    save_data_nifti(subject['preACZ']['CBF'], os.path.join(subject['ASLdir'], 'preACZ_CBF.nii.gz'), subject[f'preACZ_templateNII_path'], 1, None, subject['TR'])
-    save_data_nifti(subject['postACZ']['CBF'], os.path.join(subject['ASLdir'], 'postACZ_CBF.nii.gz'), subject[f'postACZ_templateNII_path'], 1, None, subject['TR'])
-    save_data_nifti(subject['postACZ']['CBF_2preACZ'], os.path.join(subject['ASLdir'], 'postACZ_CBF_2preACZ.nii.gz'), subject[f'preACZ_templateNII_path'], 1, None, subject['TR'])
-    save_data_nifti(subject['preACZ']['AAT'], os.path.join(subject['ASLdir'], 'preACZ_AAT.nii.gz'), subject[f'preACZ_templateNII_path'], 1, None, subject['TR'])
-    save_data_nifti(subject['postACZ']['AAT'], os.path.join(subject['ASLdir'], 'postACZ_AAT.nii.gz'), subject[f'postACZ_templateNII_path'], 1, None, subject['TR'])
-    save_data_nifti(subject['postACZ']['AAT_2preACZ'], os.path.join(subject['ASLdir'], 'postACZ_AAT_2preACZ.nii.gz'), subject[f'postACZ_tpreACZ_templateNII_pathemplateNII_path'], 1, None, subject['TR'])
-    save_data_nifti(subject['preACZ']['ATA'], os.path.join(subject['ASLdir'], 'preACZ_ATA.nii.gz'), subject[f'preACZ_templateNII_path'], 1, None, subject['TR'])
-    save_data_nifti(subject['postACZ']['ATA'], os.path.join(subject['ASLdir'], 'postACZ_ATA.nii.gz'), subject[f'postACZ_templateNII_path'], 1, None, subject['TR'])
-    save_data_nifti(subject['postACZ']['ATA_2preACZ'], os.path.join(subject['ASLdir'], 'postACZ_ATA_2preACZ.nii.gz'), subject[f'preACZ_templateNII_path'], 1, None, subject['TR'])
-    save_data_nifti(subject['CVR_smth'], os.path.join(subject['ASLdir'], 'CVR_smth.nii.gz'), subject[f'preACZ_templateNII_path'], 1, None, subject['TR'])
+    save_data_nifti(subject['preACZ']['CBF'], subject['preACZ']['output_CBF_path'], subject['preACZ']['templateNII_path'], 1, None, subject['TR'])
+    save_data_nifti(subject['postACZ']['CBF'], subject['postACZ']['output_CBF_path'], subject['postACZ']['templateNII_path'], 1, None, subject['TR'])
+    save_data_nifti(subject['postACZ']['CBF_2preACZ'], subject['postACZ']['CBF_2preACZ_path'], subject['preACZ']['templateNII_path'], 1, None, subject['TR'])
+    save_data_nifti(subject['preACZ']['AAT'], subject['preACZ']['output_AAT_path'], subject['preACZ']['templateNII_path'], 1, None, subject['TR'])
+    save_data_nifti(subject['postACZ']['AAT'], subject['preACZ']['output_AAT_path'], subject['postACZ']['templateNII_path'], 1, None, subject['TR'])
+    save_data_nifti(subject['postACZ']['AAT_2preACZ'], subject['postACZ']['AAT_2preACZ_path'], subject['postACZ']['templateNII'], 1, None, subject['TR'])
+    save_data_nifti(subject['preACZ']['ATA'], subject['preACZ']['output_ATA_path'], subject['preACZ']['templateNII_path'], 1, None, subject['TR'])
+    save_data_nifti(subject['postACZ']['ATA'], subject['preACZ']['output_ATA_path'], subject['postACZ']['templateNII_path'], 1, None, subject['TR'])
+    save_data_nifti(subject['postACZ']['ATA_2preACZ'], subject['postACZ']['ATA_2preACZ_path'], subject['preACZ']['templateNII_path'], 1, None, subject['TR'])
+    save_data_nifti(subject['CVR_smth'], subject['output_CVR_path'], subject['preACZ']['templateNII_path'], 1, None, subject['TR'])
 
     # Save PNGs
-    save_figure_to_png(subject['preACZ']['CBF'], subject['nanmask_combined'], subject['range_cbf'], subject['RESULTSdir'], f"preACZ_CBF", 'CBF', 'viridis')
-    save_figure_to_png(subject['postACZ']['CBF_2preACZ'], subject['nanmask_combined'], subject['range_cbf'], subject['RESULTSdir'], f"postACZ_CBF_2preACZ", 'CBF', 'viridis')
+    save_figure_to_png(subject['preACZ']['CBF'], subject['nanmask_combined'], subject['range_cbf'], subject['RESULTSdir'], 'preACZ_CBF', 'CBF', 'viridis')
+    save_figure_to_png(subject['postACZ']['CBF_2preACZ'], subject['nanmask_combined'], subject['range_cbf'], subject['RESULTSdir'], 'postACZ_CBF_2preACZ', 'CBF', 'viridis')
     save_figure_to_png(subject['CVR_smth'], subject['nanmask_combined'], subject['range_cvr'], subject['RESULTSdir'], 'CVR_smth', 'CVR', 'vik')
     save_figure_to_png(subject['preACZ']['AAT_smth'], subject['nanmask_combined'], subject['range_AAT'], subject['RESULTSdir'], 'preACZ_AAT_smth', 'time', 'devon')
     save_figure_to_png(subject['postACZ']['AAT_2preACZ_smth'], subject['nanmask_combined'], subject['range_AAT'], subject['RESULTSdir'], 'postACZ_AAT_2preACZ_smth', 'time', 'devon')
     save_figure_to_png(subject['preACZ']['ATA'], subject['nanmask_combined'], subject['range_ATA'], subject['RESULTSdir'], 'preACZ_ATA', 'CBF', 'viridis')
     save_figure_to_png(subject['postACZ']['ATA_2preACZ'], subject['nanmask_combined'], subject['range_ATA'], subject['RESULTSdir'], 'postACZ_ATA_2preACZ', 'CBF', 'viridis')
 
-    print("Saving DICOM files...")
-    save_data_dicom(subject['preACZ']['CBF'], os.path.join(subject['DICOMdir'], subject['preACZfilenameDCM_CBF']), os.path.join(subject['DICOMRESULTSdir'], subject['preACZfilenameDCM_CBF'] + '.dcm'), 'WIP preACZ CBF MD-ASL', subject['range_cbf'], 'CBF')
-    save_data_dicom(subject['preACZ']['AAT_smth'], os.path.join(subject['DICOMdir'], subject['preACZfilenameDCM_AAT']), os.path.join(subject['DICOMRESULTSdir'], subject['preACZfilenameDCM_AAT'] + '.dcm'), 'WIP preACZ AAT(s) MD-ASL', subject['range_AAT'], 'AAT')
-    save_data_dicom(subject['preACZ']['ATA'], os.path.join(subject['DICOMdir'], subject['preACZfilenameDCM_ATA']), os.path.join(subject['DICOMRESULTSdir'], subject['preACZfilenameDCM_ATA'] + '.dcm'), 'WIP preACZ ATA MD-ASL', subject['range_ATA'], 'ATA')
+    save_data_dicom(subject['preACZ']['CBF'], os.path.join(subject['DICOMsubjectdir'], subject['preACZ']['filenameDCM_CBF_path']), os.path.join(subject['DICOMoutputdir'], subject['preACZ']['filenameDCM_CBF_path'] + '.dcm'), 'WIP preACZ CBF MD-ASL', subject['range_cbf'], 'CBF')
+    save_data_dicom(subject['preACZ']['AAT_smth'], os.path.join(subject['DICOMsubjectdir'], subject['preACZ']['filenameDCM_AAT_path']), os.path.join(subject['DICOMoutputdir'], subject['preACZ']['ffilenameDCM_AAT_path'] + '.dcm'), 'WIP preACZ AAT(s) MD-ASL', subject['range_AAT'], 'AAT')
+    save_data_dicom(subject['preACZ']['ATA'], os.path.join(subject['DICOMsubjectdir'], subject['preACZ']['filenameDCM_ATA_path']), os.path.join(subject['DICOMoutputdir'], subject['preACZ']['ffilenameDCM_ATA_path'] + '.dcm'), 'WIP preACZ ATA MD-ASL', subject['range_ATA'], 'ATA')
+    save_data_dicom(subject['CVR_smth'], os.path.join(subject['DICOMsubjectdir'], subject['preACZ']['filenameDCM_CVR_path']), os.path.join(subject['DICOMoutputdir'], subject['preACZ']['filenameDCM_CVR_path'] + '.dcm'), 'WIP CVR MD-ASL', subject['range_cvr'], 'CVR')
     
-    save_data_dicom(subject['CVR_smth'], os.path.join(subject['DICOMdir'], subject['preACZfilenameDCM_CVR']), os.path.join(subject['DICOMRESULTSdir'], subject['preACZfilenameDCM_CVR'] + '.dcm'), 'WIP CVR MD-ASL', subject['range_cvr'], 'CVR')
-    save_data_dicom(subject['postACZ']['CBF'], os.path.join(subject['DICOMdir'], subject['postACZfilenameDCM_CBF']), os.path.join(subject['DICOMRESULTSdir'], subject['postACZfilenameDCM_CBF'] + '.dcm'), 'WIP postACZ CBF MD-ASL', subject['range_cbf'], 'CBF')
-    save_data_dicom(subject['postACZ']['AAT_smth'], os.path.join(subject['DICOMdir'], subject['postACZfilenameDCM_AAT']), os.path.join(subject['DICOMRESULTSdir'], subject['postACZfilenameDCM_AAT'] + '.dcm'), 'WIP postACZ AAT(s) MD-ASL', subject['range_AAT'], 'AAT')
-    save_data_dicom(subject['postACZ']['ATA'], os.path.join(subject['DICOMdir'], subject['postACZfilenameDCM_ATA']), os.path.join(subject['DICOMRESULTSdir'], subject['postACZfilenameDCM_ATA'] + '.dcm'), 'WIP postACZ ATA MD-ASL', subject['range_ATA'], 'ATA')
+    save_data_dicom(subject['postACZ']['CBF'], os.path.join(subject['DICOMsubjectdir'], subject['postACZ']['filenameDCM_CBF']), os.path.join(subject['DICOMoutputdir'], subject['postACZ']['templateDCM_CBF_path'] + '.dcm'), 'WIP postACZ CBF MD-ASL', subject['range_cbf'], 'CBF')
+    save_data_dicom(subject['postACZ']['AAT_smth'], os.path.join(subject['DICOMsubjectdir'], subject['postACZfilenameDCM_AAT']), os.path.join(subject['DICOMoutputdir'], subject['postACZ']['filenameDCM_AAT_path'] + '.dcm'), 'WIP postACZ AAT(s) MD-ASL', subject['range_AAT'], 'AAT')
+    save_data_dicom(subject['postACZ']['ATA'], os.path.join(subject['DICOMsubjectdir'], subject['postACZfilenameDCM_ATA']), os.path.join(subject['DICOMoutputdir'], subject['postACZ']['filenameDCM_ATA_path'] + '.dcm'), 'WIP postACZ ATA MD-ASL', subject['range_ATA'], 'ATA')
 
-    print("CBF, AAT, ATA, CVR Results: DICOMs and PNGs created")
-
+    logging.info(f"Results:  PACS-ready DICOMS, NIFTI, .png's saved for subject {subject['subjectID']} in {subject['ASLdir']}")
+    

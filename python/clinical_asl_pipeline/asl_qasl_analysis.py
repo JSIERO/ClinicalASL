@@ -16,6 +16,7 @@ License: BSD 3-Clause License
 
 import subprocess
 import time
+import logging
 
 def asl_qasl_analysis(
     subject,
@@ -91,9 +92,9 @@ def asl_qasl_analysis(
     )
 
     # Run command
-    print("Running QASL analysis...")
+    logging.info("Running QASL analysis...")
     subprocess.run(cmd, shell=True, check=True)
 
-    print("QASL analysis finished")
+    logging.info("QASL analysis finished")
     elapsed = round(time.time() - start_time, 2)
-    print(f"..this took: {elapsed} s")
+    logging.info(f"..this took: {elapsed} s")

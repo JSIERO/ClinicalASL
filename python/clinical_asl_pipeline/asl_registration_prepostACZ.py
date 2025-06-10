@@ -17,6 +17,8 @@ import subprocess
 import importlib.resources as pkg_resources
 import tempfile
 import shutil
+import warnings
+import logging
 
 def asl_registration_prepostACZ(subject):
     # Function to register post-ACZ ASL data to pre-ACZ ASL data using Elastix
@@ -40,32 +42,31 @@ def asl_registration_prepostACZ(subject):
             subject['elastix_parameter_file'] = tmpfile.name
 
     except FileNotFoundError:
-        print(f"Missing Elastix file: {subject['elastix_parameter_file']}")
+        warnings.warn(f"Missing Elastix file: {subject['elastix_parameter_file']}")
         return
     
     # Elastix registration
-    print("Registration T1fromM0 postACZ to preACZ data *********************************************************************")
+    logging.info("Registration T1fromM0 postACZ to preACZ data *********************************************************************")
     subprocess.run(f"elastix -f {subject['preACZ_T1fromM0_path']} -m {subject['postACZ_T1fromM0_path']} -fMask {subject['preACZ_mask_path']} -p {subject['elastix_parameter_file']} -loglevel error -out {subject['ASLdir']}", shell=True, check=True)
     os.rename(os.path.join(subject['ASLdir'], 'result.0.nii.gz'), subject['postACZ_T1fromM0_2preACZ_path'])
     subprocess.run(f"fslcpgeom {subject['preACZ_T1fromM0_path']} {subject['postACZ_T1fromM0_2preACZ_path']} -d", shell=True, check=True)
 
-    print("Registration CBF postACZ to preACZ *********************************************************************")
+    logging.info("Registration CBF postACZ to preACZ *********************************************************************")
     subprocess.run(f"transformix -in {subject['postACZ_CBF_path']} -out {subject['ASLdir']} -tp {os.path.join(subject['ASLdir'], 'TransformParameters.0.txt')} -loglevel error", shell=True, check=True)
     os.rename(os.path.join(subject['ASLdir'], 'result.nii.gz'), subject['postACZ_CBF_2preACZ_path'])
     subprocess.run(f"fslcpgeom {subject['preACZ_CBF_path']} {subject['postACZ_CBF_2preACZ_path']} -d", shell=True, check=True)
 
-    print("Registration AAT postACZ to preACZ *********************************************************************")
+    logging.info("Registration AAT postACZ to preACZ *********************************************************************")
     subprocess.run(f"transformix -in {subject['postACZ_AAT_path']} -out {subject['ASLdir']} -tp {os.path.join(subject['ASLdir'], 'TransformParameters.0.txt')} -loglevel error", shell=True, check=True)
     os.rename(os.path.join(subject['ASLdir'], 'result.nii.gz'), subject['postACZ_AAT_2preACZ_path'])
     subprocess.run(f"fslcpgeom {subject['preACZ_AAT_path']} {subject['postACZ_AAT_2preACZ_path']} -d", shell=True, check=True)
     
-    print("Registration ATA postACZ to preACZ *********************************************************************")
+    logging.info("Registration ATA postACZ to preACZ *********************************************************************")
     subprocess.run(f"transformix -in {subject['postACZ_ATA_path']} -out {subject['ASLdir']} -tp {os.path.join(subject['ASLdir'], 'TransformParameters.0.txt')} -loglevel error", shell=True, check=True)
     os.rename(os.path.join(subject['ASLdir'], 'result.nii.gz'), subject['postACZ_ATA_2preACZ_path'])
     subprocess.run(f"fslcpgeom {subject['preACZ_ATA_path']} {subject['postACZ_ATA_2preACZ_path']} -d", shell=True, check=True)
 
-    print("Registration mask postACZ to preACZ *********************************************************************")
-
+    logging.info("Registration mask postACZ to preACZ *********************************************************************")
     with open(os.path.join(subject['ASLdir'], 'TransformParameters.0.txt'), 'r') as f:
         lines = f.readlines()
     with open(os.path.join(subject['ASLdir'], 'TransformParameters.0.NN.txt'), 'w') as f:
@@ -74,9 +75,10 @@ def asl_registration_prepostACZ(subject):
                 f.write('(ResampleInterpolator "FinalNearestNeighborInterpolator")\n')
             else:
                 f.write(line)
+
     subprocess.run(f"transformix -in {subject['postACZ_mask_path']} -out {subject['ASLdir']} -tp {os.path.join(subject['ASLdir'], 'TransformParameters.0.NN.txt')} -loglevel error", shell=True, check=True)
     os.rename(os.path.join(subject['ASLdir'], 'result.nii.gz'), subject['postACZ_mask_2preACZ_path'])
     subprocess.run(f"fslcpgeom {subject['preACZ_mask_path']} {subject['postACZ_mask_2preACZ_path']} -d", shell=True, check=True)
     
-    os.remove(subject['elastix_parameter_file'])
+    os.remove(subject['elastix_parameter_file']) # clean up temporary elastix parameter file
 
