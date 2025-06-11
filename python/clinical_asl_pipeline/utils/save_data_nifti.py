@@ -27,7 +27,7 @@ def save_data_nifti(data, output_filename, templateNII_filename, scaleslope, dat
     #                    The image data to be saved.
     #   output_filename: str
     #                    Path to save the new NIfTI file.
-    #   dummy_filename : str
+    #   templateNII_filename : str  # Path to a templaate NIfTI file (dummy) from which to copy the header and affine.
     #                    Reference NIfTI file from which to copy the header and affine.
     #   scaleslope     : float or 'samescaling'
     #                    Value to set for the NIfTI scl_slope field, or 'samescaling' to keep original.

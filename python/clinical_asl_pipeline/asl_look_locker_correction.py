@@ -19,12 +19,14 @@ import logging
 import numpy as np
 
 def asl_look_locker_correction(subject, phase_tag):
-    # Compute Look-Locker scaling correction per PLD for mDelay PCASL
+    # Compute Look-Locker scaling correction per PLD for mDelay PCASL, by JCW SIERO 2020.
+    # This function computes the Look-Locker correction factor for each PLD in the ASL data.
+    # Parameters:   
     # subject: dictionary containing ASL parameters and data
     # phase_tag: string indicating the phase/tag for the subject's data, e.g., 'preACZ', 'postACZ', etc.
     # Returns: subject dictionary with Look-Locker correction factor for each PLD, to be used in ALS quantification (QASL)
     # Ensure subject dictionary has required keys
-    # required_keys = ['FLIPANGLE', 'PLDS', 'T1b']    
+    # required_keys = ['FLIPANGLE', 'PLDS', 'T1b']s, ie correction only depends on flip angle, PLDs timing, and T1b
 
     # Flip angle in degrees
     flip_angle = subject[phase_tag]['FLIPANGLE']
@@ -87,7 +89,7 @@ def asl_look_locker_correction(subject, phase_tag):
     logging.info(
         f"Look-Locker correction factor for flipangle = {flip_angle} (deg), "
         f"PLDs(ms): {PLD.tolist()}, and deltaPLD(ms) = {delta_PLD}: "
-        f"{LookLocker_correction_factor_perPLD}"
+        f"{LookLocker_correction_factor_perPLD}, JCW SIERO 2020"
     )
     subject[phase_tag]['LookLocker_correction_factor_perPLD'] = LookLocker_correction_factor_perPLD
     return subject

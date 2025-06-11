@@ -10,7 +10,7 @@ Institution: UMCU (University Medical Center Utrecht), The Netherlands
 Contact: j.c.w.siero@umcutrecht.nl
 
 Description:
-    Small utility functions for ClinicalASL, such as appending '_mc' to filenames for motion corrected files.
+    Little utility functions for ClinicalASL, such as appending '_mc' to filenames for motion corrected files.
 
 License: BSD 3-Clause License
 """

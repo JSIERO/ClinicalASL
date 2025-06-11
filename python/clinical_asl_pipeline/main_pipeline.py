@@ -24,12 +24,13 @@ from clinical_asl_pipeline.asl_convert_dicom_to_nifti import asl_convert_dicom_t
 from clinical_asl_pipeline.asl_extract_params_dicom import asl_extract_params_dicom
 from clinical_asl_pipeline.asl_look_locker_correction import asl_look_locker_correction
 from clinical_asl_pipeline.asl_prepare_asl_data import asl_prepare_asl_data
-from clinical_asl_pipeline.asl_bet_t1_from_m0 import asl_bet_t1_from_m0
+from clinical_asl_pipeline.asl_t1_from_m0 import asl_t1_from_m0
 from clinical_asl_pipeline.asl_qasl_analysis import asl_qasl_analysis
 from clinical_asl_pipeline.asl_motioncorrection_ants import asl_motioncorrection_ants
 from clinical_asl_pipeline.asl_registration_prepostACZ_ANTS import asl_registration_prepostACZ_ANTS
 from clinical_asl_pipeline.asl_save_results_cbfaatcvr import asl_save_results_cbfaatcvr
-from clinical_asl_pipeline.utils.utils import append_mc
+from clinical_asl_pipeline.utils.littleutils import append_mc
+from clinical_asl_pipeline.utils.run_bet_mask import run_bet_mask
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -199,7 +200,6 @@ def mri_diamox_umcu_clinicalasl_cvr_imager(inputdir, outputdir):
         subject[phase_tag]['sourceNIFTI_path'] = nifti_full_path
         subject[phase_tag]['templateNII_path'] = nifti_full_path
         subject[phase_tag]['sourceDCM_path']   = dicom_full_path
-        subject[phase_tag]['sourceDCM_path']   = dicom_full_path
 
     ###### Step 3: Locate template DICOMs - define DICOM phase tags and type tags
     for phase_tag, type_tags in subject['dicom_typetags_by_phasetag'].items():
@@ -218,17 +218,21 @@ def mri_diamox_umcu_clinicalasl_cvr_imager(inputdir, outputdir):
     subject = asl_prepare_asl_data(subject, subject['preACZ']['sourceNIFTI_path'], phase_tag='preACZ')
     subject = asl_prepare_asl_data(subject, subject['postACZ']['sourceNIFTI_path'], phase_tag='postACZ')
 
-    ###### Step 7: Brain extraction for mask and T1 from M0
-    subject = asl_bet_t1_from_m0(subject, fast='fast', phase_tag='preACZ') 
-    subject = asl_bet_t1_from_m0(subject, fast='fast', phase_tag='postACZ')
+    ###### Step 7: Brain extraction on M0 images using HD-BET CLI
+    subject['preACZ']['mask'], subject['preACZ']['nanmask']  = run_bet_mask(subject['preACZ']['M0_path'], subject['preACZ']['mask_path'])
+    subject['postACZ']['mask'], subject['postACZ']['nanmask'] = run_bet_mask(subject['postACZ']['M0_path'], subject['postACZ']['mask_path'])
+    
+    ###### Step 8:# compute T1 from M0
+    subject = asl_t1_from_m0(subject, phase_tag='preACZ') 
+    subject = asl_t1_from_m0(subject, phase_tag='postACZ')
 
     #for phase_tag in ['preACZ', 'postACZ']:    
-    ###### Step 8: Motion Correction
+    ###### Step 9: Motion Correction on label and control images
         #asl_motioncorrection_ants(subject[phase_tag]['PLDall_labelcontrol_path'], subject[phase_tag]['M0_path'], append_mc(subject[phase_tag]['PLDall_labelcontrol_path']))
         #asl_motioncorrection_ants(subject[phase_tag]['PLD2tolast_labelcontrol_path'], subject[phase_tag]['M0_path'], append_mc(subject[phase_tag]['PLD2tolast_labelcontrol_path']))
         #asl_motioncorrection_ants(subject[phase_tag]['PLD1to2_labelcontrol_path'], subject[phase_tag]['M0_path'], append_mc(subject[phase_tag]['PLD1to2_labelcontrol_path']))        
 
-    ###### Step 9: ASL Quantification analysis
+    ###### Step 10: ASL Quantification analysis
         # all PLD for AAT (arterial arrival time map)
         #asl_qasl_analysis(subject, append_mc(subject[phase_tag]['PLDall_labelcontrol_path']), subject[phase_tag]['M0_path'], subject[phase_tag]['mask_path'] , os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_allPLD_forAAT'), subject['PLDS'][0:], subject['inference_method'])
        
@@ -238,10 +242,10 @@ def mri_diamox_umcu_clinicalasl_cvr_imager(inputdir, outputdir):
         # 1to2 PLDs for ATA map ->  then do no fit for the arterial component 'artoff'
         #asl_qasl_analysis(subject, append_mcsubject[phase_tag]['PLD1to2_labelcontrol_path']), subject[phase_tag]['M0_path'], subject[phase_tag]['mask_path'] , os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_1to2PLD_forATA'), subject['PLDS'][0:2], subject['inference_method'], 'artoff')
     
-    ###### Step 10: register post-ACZ ASL data to pre-ACZ ASL data using Elastix 
+    ###### Step 11: register post-ACZ ASL data to pre-ACZ ASL data using Elastix 
     asl_registration_prepostACZ_ANTS(subject)
 
-    ###### Step 11: Generate CBF/AAT/ATA/CVR results (nifti, dicom PACS, .pngs) for pre- and postACZ, including registration of postACZ to preACZ as reference data, and target for computed CVR map
+    ###### Step 12: Generate CBF/AAT/ATA/CVR results (nifti, dicom PACS, .pngs) for pre- and postACZ, including registration of postACZ to preACZ as reference data, and target for computed CVR map
     subject = asl_save_results_cbfaatcvr(subject)
 
     logging.info("ASL processing pipeline completed successfully.")

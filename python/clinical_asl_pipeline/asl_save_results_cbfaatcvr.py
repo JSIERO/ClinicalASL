@@ -24,17 +24,17 @@ from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
 from clinical_asl_pipeline.utils.save_data_dicom import save_data_dicom
 
 def asl_save_results_cbfaatcvr(subject):
-# Save CBF, AAT, ATA, and CVR results for a subject.
-# Steps:
-# 1. Load registered and original NIfTI images into subject dict.
-# 2. Create combined masks for valid voxels.
-# 3. Compute CVR as difference between postACZ and preACZ CBF.
-# 4. Smooth CVR, AAT images using Gaussian smoothing.
-# 5. Save results as NIfTI files.
-# 6. Save visualizations as PNG images.
-# 7. Save results as DICOM files for Philips multi-frame export for PACS
-
-    # Load CBF, AAT, ATA from QASL analysis and masks, and registered post- to preACZ NIFTIs
+    # Save CBF, AAT, ATA, and CVR results for a subject.
+    # Steps:
+    # 1. Load registered and original NIfTI images into subject dict.
+    # 2. Create combined masks for valid voxels.                
+    # 3. Compute CVR as difference between postACZ and preACZ CBF.
+    # 4. Smooth CVR, AAT images using Gaussian smoothing.
+    # 5. Save results as NIfTI files.
+    # 6. Save visualizations as PNG images.
+    # 7. Save results as DICOM files for Philips multi-frame export for PACS
+        
+    # === Load data ===
     subject['preACZ']['CBF'] = nib.load(subject['preACZ']['QASL_CBF_path']).get_fdata()
     subject['postACZ']['CBF'] = nib.load(subject['postACZ']['QASL_CBF_path']).get_fdata()
     subject['postACZ']['CBF_2preACZ'] = nib.load(subject['postACZ']['CBF_2preACZ_path']).get_fdata()
@@ -45,49 +45,76 @@ def asl_save_results_cbfaatcvr(subject):
     subject['postACZ']['ATA'] = nib.load(subject['postACZ']['QASL_ATA_path']).get_fdata()
     subject['postACZ']['ATA_2preACZ'] = nib.load(subject['postACZ']['ATA_2preACZ_path']).get_fdata()
     subject['postACZ']['mask_2preACZ'] = nib.load(subject['postACZ']['mask_2preACZ_path']).get_fdata()
-        
-    # Create combined masks
+
+    # === Mask prep ===
     subject['postACZ']['nanmask_2preACZ'] = np.where(subject['postACZ']['mask_2preACZ'], 1.0, np.nan)
     subject['nanmask_combined'] = subject['preACZ']['nanmask'] * subject['postACZ']['nanmask_2preACZ']
 
-    # Compute CVR
+    # === Compute CVR ===
     subject['CVR'] = subject['postACZ']['CBF_2preACZ'] - subject['preACZ']['CBF']
 
-    # Smoothing
+    # === Apply smoothing ===
     subject['CVR_smth'] = asl_smooth_image(subject['CVR'] * subject['nanmask_combined'], 2, subject['FWHM'], subject['preACZ']['VOXELSIZE'])
     subject['preACZ']['AAT_smth'] = asl_smooth_image(subject['preACZ']['AAT'] * subject['preACZ']['nanmask'], 2, subject['FWHM'], subject['postACZ']['VOXELSIZE'])
     subject['postACZ']['AAT_smth'] = asl_smooth_image(subject['postACZ']['AAT'] * subject['postACZ']['nanmask'], 2, subject['FWHM'], subject['postACZ']['VOXELSIZE'])
     subject['postACZ']['AAT_2preACZ_smth'] = asl_smooth_image(subject['postACZ']['AAT_2preACZ'] * subject['postACZ']['nanmask_2preACZ'], 2, subject['FWHM'], subject['postACZ']['VOXELSIZE'])
 
-    # Save results as NIfTI in ASLdir
-    save_data_nifti(subject['preACZ']['CBF'], subject['preACZ']['output_CBF_path'], subject['preACZ']['templateNII_path'], 1, None, subject['preACZ']['TR'])
-    save_data_nifti(subject['postACZ']['CBF'], subject['postACZ']['output_CBF_path'], subject['postACZ']['templateNII_path'], 1, None, subject['postACZ']['TR'])
-    save_data_nifti(subject['postACZ']['CBF_2preACZ'], subject['postACZ']['CBF_2preACZ_path'], subject['preACZ']['templateNII_path'], 1, None, subject['postACZ']['TR'])
-    save_data_nifti(subject['preACZ']['AAT'], subject['preACZ']['output_AAT_path'], subject['preACZ']['templateNII_path'], 1, None, subject['preACZ']['TR'])
-    save_data_nifti(subject['postACZ']['AAT'], subject['preACZ']['output_AAT_path'], subject['postACZ']['templateNII_path'], 1, None, subject['postACZ']['TR'])
-    save_data_nifti(subject['postACZ']['AAT_2preACZ'], subject['postACZ']['AAT_2preACZ_path'], subject['postACZ']['templateNII_path'], 1, None, subject['postACZ']['TR'])
-    save_data_nifti(subject['preACZ']['ATA'], subject['preACZ']['output_ATA_path'], subject['preACZ']['templateNII_path'], 1, None, subject['preACZ']['TR'])
-    save_data_nifti(subject['postACZ']['ATA'], subject['preACZ']['output_ATA_path'], subject['postACZ']['templateNII_path'], 1, None, subject['postACZ']['TR'])
-    save_data_nifti(subject['postACZ']['ATA_2preACZ'], subject['postACZ']['ATA_2preACZ_path'], subject['preACZ']['templateNII_path'], 1, None, subject['postACZ']['TR'])
-    save_data_nifti(subject['CVR_smth'], subject['output_CVR_path'], subject['preACZ']['templateNII_path'], 1, None, subject['preACZ']['TR'])
+    # === Define output lists ===
+    fields_main = [
+        ('CBF', 'range_cbf', 'CBF', 'viridis', 'output_CBF_path'),
+        ('AAT_smth', 'range_AAT', 'AAT', 'devon', 'output_AAT_path'),
+        ('ATA', 'range_ATA', 'ATA', 'viridis', 'output_ATA_path'),
+    ]
+    fields_cvr = [
+        ('CVR_smth', 'range_cvr', 'CVR', 'vik', 'output_CVR_path'),
+    ]
+    fields_2preACZ = [
+        ('CBF_2preACZ', 'range_cbf', 'CBF', 'viridis', 'CBF_2preACZ_path'),
+        ('AAT_2preACZ_smth', 'range_AAT', 'AAT', 'devon', 'AAT_2preACZ_path'),
+        ('ATA_2preACZ', 'range_ATA', 'ATA', 'viridis', 'ATA_2preACZ_path'),
+    ]
 
-    # Save PNGs
-    save_figure_to_png(subject['preACZ']['CBF'], subject['nanmask_combined'], subject['range_cbf'], subject['RESULTSdir'], 'preACZ_CBF', 'CBF', 'viridis')
-    save_figure_to_png(subject['postACZ']['CBF_2preACZ'], subject['nanmask_combined'], subject['range_cbf'], subject['RESULTSdir'], 'postACZ_CBF_2preACZ', 'CBF', 'viridis')
-    save_figure_to_png(subject['CVR_smth'], subject['nanmask_combined'], subject['range_cvr'], subject['RESULTSdir'], 'CVR', 'CVR', 'vik')
-    save_figure_to_png(subject['preACZ']['AAT_smth'], subject['nanmask_combined'], subject['range_AAT'], subject['RESULTSdir'], 'preACZ_AAT', 'time', 'devon')
-    save_figure_to_png(subject['postACZ']['AAT_2preACZ_smth'], subject['nanmask_combined'], subject['range_AAT'], subject['RESULTSdir'], 'postACZ_AAT_2preACZ', 'time', 'devon')
-    save_figure_to_png(subject['preACZ']['ATA'], subject['nanmask_combined'], subject['range_ATA'], subject['RESULTSdir'], 'preACZ_ATA', 'CBF', 'viridis')
-    save_figure_to_png(subject['postACZ']['ATA_2preACZ'], subject['nanmask_combined'], subject['range_ATA'], subject['RESULTSdir'], 'postACZ_ATA_2preACZ', 'CBF', 'viridis')
+    # === Helper: Save NIfTI + DICOM ===
+    def save_nifti_and_dicom(phase, fields, allow_dicom=True):
+        for field, range_key, label, _, output_key in fields:
+            data = subject[phase].get(field) if field != 'CVR_smth' else subject['CVR_smth']
+            path = subject[phase].get(output_key) if field != 'CVR_smth' else subject['output_CVR_path']
+            template = subject[phase]['templateNII_path'] if field != 'CVR_smth' else subject['preACZ']['templateNII_path']
+            TR = subject[phase]['TR'] if field != 'CVR_smth' else subject['preACZ']['TR']
 
-    save_data_dicom(subject['preACZ']['CBF'], os.path.join(subject['DICOMsubjectdir'], subject['preACZ']['templateDCM_CBF_path']), os.path.join(subject['DICOMoutputdir'], subject['preACZ']['templateDCM_CBF_path'] + '.dcm'), 'WIP preACZ CBF MD-ASL', subject['range_cbf'], 'CBF')
-    save_data_dicom(subject['preACZ']['AAT_smth'], os.path.join(subject['DICOMsubjectdir'], subject['preACZ']['templateDCM_AAT_path']), os.path.join(subject['DICOMoutputdir'], subject['preACZ']['templateDCM_AAT_path'] + '.dcm'), 'WIP preACZ AAT(s) MD-ASL', subject['range_AAT'], 'AAT')
-    save_data_dicom(subject['preACZ']['ATA'], os.path.join(subject['DICOMsubjectdir'], subject['preACZ']['templateDCM_ATA_path']), os.path.join(subject['DICOMoutputdir'], subject['preACZ']['templateDCM_ATA_path'] + '.dcm'), 'WIP preACZ ATA MD-ASL', subject['range_ATA'], 'ATA')
-    save_data_dicom(subject['CVR_smth'], os.path.join(subject['DICOMsubjectdir'], subject['preACZ']['templateDCM_CVR_path']), os.path.join(subject['DICOMoutputdir'], subject['preACZ']['templateDCM_CVR_path'] + '.dcm'), 'WIP CVR MD-ASL', subject['range_cvr'], 'CVR')
-    
-    save_data_dicom(subject['postACZ']['CBF'], os.path.join(subject['DICOMsubjectdir'], subject['postACZ']['templateDCM_CBF_path']), os.path.join(subject['DICOMoutputdir'], subject['postACZ']['templateDCM_CBF_path'] + '.dcm'), 'WIP postACZ CBF MD-ASL', subject['range_cbf'], 'CBF')
-    save_data_dicom(subject['postACZ']['AAT_smth'], os.path.join(subject['DICOMsubjectdir'], subject['postACZ']['templateDCM_AAT_path']), os.path.join(subject['DICOMoutputdir'], subject['postACZ']['templateDCM_AAT_path'] + '.dcm'), 'WIP postACZ AAT(s) MD-ASL', subject['range_AAT'], 'AAT')
-    save_data_dicom(subject['postACZ']['ATA'], os.path.join(subject['DICOMsubjectdir'], subject['postACZ']['templateDCM_ATA_path']), os.path.join(subject['DICOMoutputdir'], subject['postACZ']['templateDCM_ATA_path'] + '.dcm'), 'WIP postACZ ATA MD-ASL', subject['range_ATA'], 'ATA')
+            if data is not None and path:
+                save_data_nifti(data, path, template, 1, None, TR)
+                logging.info(f"Saved NIfTI: {path}")
 
-    logging.info(f"Results:  PACS-ready DICOMS, NIFTI, .png's saved for subject {subject['ASLdir']}")
-    
+                if allow_dicom:
+                    dcm_template = subject[phase].get(f'templateDCM_{label}_path')
+                    if dcm_template:
+                        dcm_outpath = os.path.join(subject['DICOMoutputdir'], dcm_template + '.dcm')
+                        save_data_dicom(data,
+                                        os.path.join(subject['DICOMsubjectdir'], dcm_template),
+                                        dcm_outpath,
+                                        f'WIP {phase} {label} MD-ASL',
+                                        subject[range_key], label)
+                        logging.info(f"Saved DICOM: {dcm_outpath}")
+
+    # === Helper: Save PNG ===
+    def save_png(phase, fields):
+        for field, range_key, label, cmap, _ in fields:
+            data = subject[phase].get(field) if field != 'CVR_smth' else subject['CVR_smth']
+            if data is not None:
+                png_name = f'{phase}_{label}'
+                save_figure_to_png(data, subject['nanmask_combined'], subject[range_key],
+                                   subject['RESULTSdir'], png_name, label, cmap)
+                logging.info(f"Saved PNG: {png_name}.png")
+
+    # === Execute saves ===
+    save_nifti_and_dicom('preACZ', fields_main)
+    save_nifti_and_dicom('preACZ', fields_cvr)
+    save_nifti_and_dicom('postACZ', fields_main)
+    save_nifti_and_dicom('postACZ', fields_2preACZ, allow_dicom=False)
+
+    save_png('preACZ', fields_main + fields_cvr)
+    save_png('postACZ', fields_2preACZ)
+
+    # === Final log ===
+    logging.info(f"Results complete: PACS-ready DICOMS, NIFTI, .png's saved for subject {subject['ASLdir']}")
