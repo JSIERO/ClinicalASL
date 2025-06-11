@@ -31,7 +31,6 @@ def asl_interleave_control_label(ctrl, label=None):
     #
     # Returns:
     #- output: 4D numpy array (x, y, z, time*2) with interleaved volumes
-   
     dims = ctrl.shape
 
     # Determine interleaving indices

@@ -20,6 +20,7 @@ import logging
 
 def asl_qasl_analysis(
     subject,
+    ANALYSIS_PARAMETERS, 
     location_asl_labelcontrol_pld_nifti,
     location_m0,
     location_mask,
@@ -30,7 +31,7 @@ def asl_qasl_analysis(
 ):
     # Perform QASL analysis on ASL data using the Oxford ASL toolbox.
     # Parameters:
-    # subject: dict containing subject information including    
+    # subject: dict containing subject information including, can be different per context tag   
     #   - 'T1t': T1 tissue relaxation time in seconds
     #   - 'T1b': T1 blood relaxation time in seconds
     #   - 'tau': bolus duration in seconds
@@ -56,13 +57,13 @@ def asl_qasl_analysis(
     artoff_string = " --artoff" if artoff == "artoff" else ""
 
     # Extract parameter values and convert to string
-    T1t = str(subject['T1t'])
-    T1b = str(subject['T1b'])
-    tau = str(subject['tau'])
-    TR_m0 = str(subject['TR_M0'][0])
+    T1t = str(ANALYSIS_PARAMETERS['T1t'])
+    T1b = str(ANALYSIS_PARAMETERS['T1b'])
+    tau = str(ANALYSIS_PARAMETERS['tau'])
+    readout = str(ANALYSIS_PARAMETERS['readout']) # 2D or 3D
     alpha = str(subject['alpha'])
+    TR_m0 = str(subject['TR_M0'][0])
     slicetime = str(subject['slicetime'] / 1000)  # convert ms to seconds
-
     # Timing the execution
     start_time = time.time()
 
@@ -86,7 +87,7 @@ def asl_qasl_analysis(
         f"--ibf=tis "
         f"--casl "
         f"--cgain 1.00 "
-        f"--readout=2D "
+        f"--readout={readout} "
         f"--save-calib "
         f"--overwrite"
     )

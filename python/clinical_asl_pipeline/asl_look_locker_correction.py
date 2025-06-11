@@ -18,24 +18,24 @@ License: BSD 3-Clause License
 import logging
 import numpy as np
 
-def asl_look_locker_correction(subject, phase_tag):
+def asl_look_locker_correction(subject, context_tag):
     # Compute Look-Locker scaling correction per PLD for mDelay PCASL, by JCW SIERO 2020.
     # This function computes the Look-Locker correction factor for each PLD in the ASL data.
     # Parameters:   
     # subject: dictionary containing ASL parameters and data
-    # phase_tag: string indicating the phase/tag for the subject's data, e.g., 'preACZ', 'postACZ', etc.
+    # context_tag: string indicating the ASL context tag for the subject's data, e.g., 'baseline', 'stimulus', etc.
     # Returns: subject dictionary with Look-Locker correction factor for each PLD, to be used in ALS quantification (QASL)
     # Ensure subject dictionary has required keys
     # required_keys = ['FLIPANGLE', 'PLDS', 'T1b']s, ie correction only depends on flip angle, PLDs timing, and T1b
 
     # Flip angle in degrees
-    flip_angle = subject[phase_tag]['FLIPANGLE']
+    flip_angle = subject[context_tag]['FLIPANGLE']
 
     # Assume M0 = 1
     M0 = 1
 
     # PLDs in milliseconds
-    PLD = np.array(subject[phase_tag]['PLDS']) * 1000  # convert from s to ms
+    PLD = np.array(subject[context_tag]['PLDS']) * 1000  # convert from s to ms
 
     # Time vector t
     t = np.arange(1, int(PLD[-1] * 1.1) + 1)  # MATLAB-style 1:PLD(end)*1.1
@@ -77,7 +77,7 @@ def asl_look_locker_correction(subject, phase_tag):
     with np.errstate(divide='ignore', invalid='ignore'):
         deltaM_ratio_LL_noLL = deltaM_LL / deltaM_noLL
         deltaM_ratio_LL_noLL[~np.isfinite(deltaM_ratio_LL_noLL)] = 0
-  
+
     # Convert to Mxy using flip angle
     deltaMxy_ratio_LL_noLL = deltaM_ratio_LL_noLL * np.sin(np.radians(flip_angle))
 
@@ -91,5 +91,5 @@ def asl_look_locker_correction(subject, phase_tag):
         f"PLDs(ms): {PLD.tolist()}, and deltaPLD(ms) = {delta_PLD}: "
         f"{LookLocker_correction_factor_perPLD}, JCW SIERO 2020"
     )
-    subject[phase_tag]['LookLocker_correction_factor_perPLD'] = LookLocker_correction_factor_perPLD
+    subject[context_tag]['LookLocker_correction_factor_perPLD'] = LookLocker_correction_factor_perPLD
     return subject

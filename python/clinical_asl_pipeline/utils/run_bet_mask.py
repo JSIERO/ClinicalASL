@@ -29,7 +29,6 @@ def run_bet_mask(inputdata_path, mask_output_path, extradata_path=None):
     # Args:
     #    inputdata_path (str): Path to M0.nii.gz image.
     #    mask_output_path (str): Target path for brain mask, e.g. M0_brain_mask.nii.gz.
-    #    output_folder (str): Folder where HD-BET will write its outputs (phase_data['ASLdir']).
 
     #Returns:
     #    mask (np.ndarray): Boolean brain mask.

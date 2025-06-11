@@ -1,5 +1,6 @@
 """
 ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+
 Repository: https://github.com/JSIERO/ClinicalASL
 
 Author: Jeroen Siero
@@ -24,40 +25,30 @@ from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
 from clinical_asl_pipeline.utils.save_data_dicom import save_data_dicom
 
 def asl_save_results_cbfaatcvr(subject):
-    # Save CBF, AAT, ATA, and CVR results for a subject.
-    # Steps:
-    # 1. Load registered and original NIfTI images into subject dict.
-    # 2. Create combined masks for valid voxels.                
-    # 3. Compute CVR as difference between postACZ and preACZ CBF.
-    # 4. Smooth CVR, AAT images using Gaussian smoothing.
-    # 5. Save results as NIfTI files.
-    # 6. Save visualizations as PNG images.
-    # 7. Save results as DICOM files for Philips multi-frame export for PACS
-        
     # === Load data ===
-    subject['preACZ']['CBF'] = nib.load(subject['preACZ']['QASL_CBF_path']).get_fdata()
-    subject['postACZ']['CBF'] = nib.load(subject['postACZ']['QASL_CBF_path']).get_fdata()
-    subject['postACZ']['CBF_2preACZ'] = nib.load(subject['postACZ']['CBF_2preACZ_path']).get_fdata()
-    subject['preACZ']['AAT'] = nib.load(subject['preACZ']['QASL_AAT_path']).get_fdata()
-    subject['postACZ']['AAT'] = nib.load(subject['postACZ']['QASL_AAT_path']).get_fdata()
-    subject['postACZ']['AAT_2preACZ'] = nib.load(subject['postACZ']['AAT_2preACZ_path']).get_fdata()
-    subject['preACZ']['ATA'] = nib.load(subject['preACZ']['QASL_ATA_path']).get_fdata()
-    subject['postACZ']['ATA'] = nib.load(subject['postACZ']['QASL_ATA_path']).get_fdata()
-    subject['postACZ']['ATA_2preACZ'] = nib.load(subject['postACZ']['ATA_2preACZ_path']).get_fdata()
-    subject['postACZ']['mask_2preACZ'] = nib.load(subject['postACZ']['mask_2preACZ_path']).get_fdata()
+    subject['baseline']['CBF'] = nib.load(subject['baseline']['QASL_CBF_path']).get_fdata()
+    subject['stimulus']['CBF'] = nib.load(subject['stimulus']['QASL_CBF_path']).get_fdata()
+    subject['stimulus']['CBF_2baseline'] = nib.load(subject['stimulus']['CBF_2baseline_path']).get_fdata()
+    subject['baseline']['AAT'] = nib.load(subject['baseline']['QASL_AAT_path']).get_fdata()
+    subject['stimulus']['AAT'] = nib.load(subject['stimulus']['QASL_AAT_path']).get_fdata()
+    subject['stimulus']['AAT_2baseline'] = nib.load(subject['stimulus']['AAT_2baseline_path']).get_fdata()
+    subject['baseline']['ATA'] = nib.load(subject['baseline']['QASL_ATA_path']).get_fdata()
+    subject['stimulus']['ATA'] = nib.load(subject['stimulus']['QASL_ATA_path']).get_fdata()
+    subject['stimulus']['ATA_2baseline'] = nib.load(subject['stimulus']['ATA_2baseline_path']).get_fdata()
+    subject['stimulus']['mask_2baseline'] = nib.load(subject['stimulus']['mask_2baseline_path']).get_fdata()
 
     # === Mask prep ===
-    subject['postACZ']['nanmask_2preACZ'] = np.where(subject['postACZ']['mask_2preACZ'], 1.0, np.nan)
-    subject['nanmask_combined'] = subject['preACZ']['nanmask'] * subject['postACZ']['nanmask_2preACZ']
+    subject['stimulus']['nanmask_2baseline'] = np.where(subject['stimulus']['mask_2baseline'], 1.0, np.nan)
+    subject['nanmask_combined'] = subject['baseline']['nanmask'] * subject['stimulus']['nanmask_2baseline']
 
     # === Compute CVR ===
-    subject['CVR'] = subject['postACZ']['CBF_2preACZ'] - subject['preACZ']['CBF']
+    subject['CVR'] = subject['stimulus']['CBF_2baseline'] - subject['baseline']['CBF']
 
     # === Apply smoothing ===
-    subject['CVR_smth'] = asl_smooth_image(subject['CVR'] * subject['nanmask_combined'], 2, subject['FWHM'], subject['preACZ']['VOXELSIZE'])
-    subject['preACZ']['AAT_smth'] = asl_smooth_image(subject['preACZ']['AAT'] * subject['preACZ']['nanmask'], 2, subject['FWHM'], subject['postACZ']['VOXELSIZE'])
-    subject['postACZ']['AAT_smth'] = asl_smooth_image(subject['postACZ']['AAT'] * subject['postACZ']['nanmask'], 2, subject['FWHM'], subject['postACZ']['VOXELSIZE'])
-    subject['postACZ']['AAT_2preACZ_smth'] = asl_smooth_image(subject['postACZ']['AAT_2preACZ'] * subject['postACZ']['nanmask_2preACZ'], 2, subject['FWHM'], subject['postACZ']['VOXELSIZE'])
+    subject['CVR_smth'] = asl_smooth_image(subject['CVR'] * subject['nanmask_combined'], 2, subject['FWHM'], subject['baseline']['VOXELSIZE'])
+    subject['baseline']['AAT_smth'] = asl_smooth_image(subject['baseline']['AAT'] * subject['baseline']['nanmask'], 2, subject['FWHM'], subject['stimulus']['VOXELSIZE'])
+    subject['stimulus']['AAT_smth'] = asl_smooth_image(subject['stimulus']['AAT'] * subject['stimulus']['nanmask'], 2, subject['FWHM'], subject['stimulus']['VOXELSIZE'])
+    subject['stimulus']['AAT_2baseline_smth'] = asl_smooth_image(subject['stimulus']['AAT_2baseline'] * subject['stimulus']['nanmask_2baseline'], 2, subject['FWHM'], subject['stimulus']['VOXELSIZE'])
 
     # === Define output lists ===
     fields_main = [
@@ -68,53 +59,60 @@ def asl_save_results_cbfaatcvr(subject):
     fields_cvr = [
         ('CVR_smth', 'range_cvr', 'CVR', 'vik', 'output_CVR_path'),
     ]
-    fields_2preACZ = [
-        ('CBF_2preACZ', 'range_cbf', 'CBF', 'viridis', 'CBF_2preACZ_path'),
-        ('AAT_2preACZ_smth', 'range_AAT', 'AAT', 'devon', 'AAT_2preACZ_path'),
-        ('ATA_2preACZ', 'range_ATA', 'ATA', 'viridis', 'ATA_2preACZ_path'),
+    fields_2baseline = [
+        ('CBF_2baseline', 'range_cbf', 'CBF', 'viridis', 'CBF_2baseline_path'),
+        ('AAT_2baseline_smth', 'range_AAT', 'AAT', 'devon', 'AAT_2baseline_path'),
+        ('ATA_2baseline', 'range_ATA', 'ATA', 'viridis', 'ATA_2baseline_path'),
     ]
 
+    # === Helper: Map context → context_study_tag ===
+    def get_context_study_tag(context):
+        idx = subject['ASL_CONTEXT'].index(context)
+        return subject['context_study_tags'][idx]
+
     # === Helper: Save NIfTI + DICOM ===
-    def save_nifti_and_dicom(phase, fields, allow_dicom=True):
+    def save_nifti_and_dicom(context, fields, allow_dicom=True):
+        context_study_tag = get_context_study_tag(context)
         for field, range_key, label, _, output_key in fields:
-            data = subject[phase].get(field) if field != 'CVR_smth' else subject['CVR_smth']
-            path = subject[phase].get(output_key) if field != 'CVR_smth' else subject['output_CVR_path']
-            template = subject[phase]['templateNII_path'] if field != 'CVR_smth' else subject['preACZ']['templateNII_path']
-            TR = subject[phase]['TR'] if field != 'CVR_smth' else subject['preACZ']['TR']
+            data = subject[context].get(field) if field != 'CVR_smth' else subject['CVR_smth']
+            path = subject[context].get(output_key) if field != 'CVR_smth' else subject['output_CVR_path']
+            template = subject[context]['templateNII_path'] if field != 'CVR_smth' else subject['baseline']['templateNII_path']
+            TR = subject[context]['TR'] if field != 'CVR_smth' else subject['baseline']['TR']
 
             if data is not None and path:
                 save_data_nifti(data, path, template, 1, None, TR)
                 logging.info(f"Saved NIfTI: {path}")
 
                 if allow_dicom:
-                    dcm_template = subject[phase].get(f'templateDCM_{label}_path')
+                    dcm_template = subject[context].get(f'templateDCM_{label}_path')
                     if dcm_template:
                         dcm_outpath = os.path.join(subject['DICOMoutputdir'], dcm_template + '.dcm')
                         save_data_dicom(data,
                                         os.path.join(subject['DICOMsubjectdir'], dcm_template),
                                         dcm_outpath,
-                                        f'WIP {phase} {label} MD-ASL',
+                                        f'WIP {context_study_tag} {label} MD-ASL',  # Here use clinical tag
                                         subject[range_key], label)
                         logging.info(f"Saved DICOM: {dcm_outpath}")
 
     # === Helper: Save PNG ===
-    def save_png(phase, fields):
+    def save_png(context, fields):
+        context_study_tag = get_context_study_tag(context)
         for field, range_key, label, cmap, _ in fields:
-            data = subject[phase].get(field) if field != 'CVR_smth' else subject['CVR_smth']
+            data = subject[context].get(field) if field != 'CVR_smth' else subject['CVR_smth']
             if data is not None:
-                png_name = f'{phase}_{label}'
+                png_name = f'{context_study_tag}_{label}'  # Use clinical tag in filename
                 save_figure_to_png(data, subject['nanmask_combined'], subject[range_key],
                                    subject['RESULTSdir'], png_name, label, cmap)
                 logging.info(f"Saved PNG: {png_name}.png")
 
     # === Execute saves ===
-    save_nifti_and_dicom('preACZ', fields_main)
-    save_nifti_and_dicom('preACZ', fields_cvr)
-    save_nifti_and_dicom('postACZ', fields_main)
-    save_nifti_and_dicom('postACZ', fields_2preACZ, allow_dicom=False)
+    save_nifti_and_dicom('baseline', fields_main)
+    save_nifti_and_dicom('baseline', fields_cvr)
+    save_nifti_and_dicom('stimulus', fields_main)
+    save_nifti_and_dicom('stimulus', fields_2baseline, allow_dicom=False)
 
-    save_png('preACZ', fields_main + fields_cvr)
-    save_png('postACZ', fields_2preACZ)
+    save_png('baseline', fields_main + fields_cvr)
+    save_png('stimulus', fields_2baseline)
 
     # === Final log ===
     logging.info(f"Results complete: PACS-ready DICOMS, NIFTI, .png's saved for subject {subject['ASLdir']}")
