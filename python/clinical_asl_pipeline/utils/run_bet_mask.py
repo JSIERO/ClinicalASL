@@ -19,7 +19,6 @@ import subprocess
 import logging
 import nibabel as nib
 import numpy as np
-from hd_bet import hd_bet
 from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
 from clinical_asl_pipeline.utils.dilate_mask import dilate_mask
 
@@ -39,13 +38,12 @@ def run_bet_mask(m0_path, mask_output_path):
 
     # Build HD-BET CLI command
     device = 'cpu'
-    hd_bet.run_hd_bet(in_file=m0_path, out_file=mask_output_path, device='cpu', tta=False, mode='fast')
 
     cmd = f"hd-bet -i {m0_path} -o {mask_output_path} -device {device} --disable_tta --save_bet_mask"
 
     # Log and run command
     logging.info(f"Running brain masking with HD-BET CLI: {cmd}")
-    #subprocess.run(cmd, shell=True, check=True)
+    subprocess.run(cmd, shell=True, check=True)
 
     # HD-BET will create:
     # - mask_output_path_bet.nii.gz → actual mask (we want this)

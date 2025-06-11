@@ -53,7 +53,7 @@ def asl_convert_dicom_to_nifti(subject):
                 new_name = file.replace("-_", "").replace("-", "")
                 new_path = os.path.join(directory, new_name)
                 if old_path != new_path:
-                    os.rename(old_path, new_path)
+                    os.replace(old_path, new_path)
 
     def remove_files_by_pattern(directory, patterns):
         for pattern in patterns:
