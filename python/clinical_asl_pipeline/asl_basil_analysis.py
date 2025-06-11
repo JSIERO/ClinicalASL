@@ -99,4 +99,4 @@ def asl_basil_analysis(
 
     logging.info("BASIL analysis finished")
     elapsed = round(time.time() - start_time, 2)
-    prilogging.infont(f"..this took: {elapsed} s")
+    logging.info(f"..this took: {elapsed} s")

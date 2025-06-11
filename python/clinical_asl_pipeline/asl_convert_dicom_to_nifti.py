@@ -44,7 +44,7 @@ def asl_convert_dicom_to_nifti(subject):
 
     def run_command(cmd):
         logging.info(f"Running command: {cmd}")
-        subprocess.run(cmd, shell=True, check=False)
+        subprocess.run(cmd, shell=True, check=True)
 
     def rename_files(directory):
         for file in os.listdir(directory):
@@ -71,8 +71,12 @@ def asl_convert_dicom_to_nifti(subject):
                 except (FileNotFoundError, shutil.Error):
                     pass
 
-    # Copy all DICOMs dicom_input_dir into dicom_subject_dir
-    run_command(f'cp {dicom_input_dir}/* {dicom_subject_dir}')
+    # Copy all DICOMs from dicom_input_dir into dicom_subject_dir
+    for file_name in os.listdir(dicom_input_dir):
+        src_file = os.path.join(dicom_input_dir, file_name)
+        dst_file = os.path.join(dicom_subject_dir, file_name)
+        if os.path.isfile(src_file):
+            shutil.copy2(src_file, dst_file)
         
     # --- Prepare directories ---
     orig_dir = os.path.join(dicom_subject_dir, 'ORIG')

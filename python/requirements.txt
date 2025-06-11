@@ -5,6 +5,7 @@ matplotlib>=3.7
 nibabel>=5.2
 pydicom>=2.4
 antspyx>=0.3.9
+hd-bet
 
 # Optional (good practice)
 # tqdm>=4.64         # for progress bars if used
