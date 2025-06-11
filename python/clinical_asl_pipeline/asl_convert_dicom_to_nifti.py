@@ -64,12 +64,17 @@ def asl_convert_dicom_to_nifti(subject):
                     pass
 
     def move_files_by_pattern(src_dir, dst_dir, patterns):
+        os.makedirs(dst_dir, exist_ok=True)  # Ensure target dir exists
         for pattern in patterns:
             for file_path in glob(os.path.join(src_dir, pattern)):
+                filename = os.path.basename(file_path)
+                dst_path = os.path.join(dst_dir, filename)
                 try:
-                    shutil.move(file_path, dst_dir)
-                except (FileNotFoundError, shutil.Error):
-                    pass
+                    os.replace(file_path, dst_path)
+                except FileNotFoundError:
+                    logging.warning(f"File not found (skipped): {file_path}")
+                except PermissionError:
+                    logging.error(f"Permission error moving {file_path} -> {dst_path}")
 
     # Copy all DICOMs from dicom_input_dir into dicom_subject_dir
     for file_name in os.listdir(dicom_input_dir):
@@ -88,7 +93,7 @@ def asl_convert_dicom_to_nifti(subject):
     run_command(f'dcm2niix -w 0 -r y -f %p_%s {dicom_subject_dir} > {os.path.join(nifti_output_dir, "dcm2niix_rename.log")} 2>&1')
 
     # Clean and organize files
-    remove_files_by_pattern(dicom_subject_dir, ['*._Raw', '*_PS'])
+    remove_files_by_pattern(dicom_subject_dir, ['*_Raw', '*_PS'])
     move_files_by_pattern(dicom_subject_dir, orig_dir, ['IM_*', 'XX_*', 'PS_*'])
     rename_files(dicom_subject_dir)
 
@@ -101,7 +106,6 @@ def asl_convert_dicom_to_nifti(subject):
 
     # Final cleanup
     rename_files(nifti_output_dir)
-    remove_files_by_pattern(nifti_output_dir, ['*Raw*'])
     return subject  # subject dictionary with updated paths
 
 

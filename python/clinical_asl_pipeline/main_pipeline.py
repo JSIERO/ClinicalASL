@@ -138,7 +138,6 @@ def get_latest_source_data(dicomdir, niftidir, phase_tag):
     #     dicomdir (str): Path to the DICOM directory 
     #     niftidir (str): Path to the NIfTI directory
     #     phase_tag (str): Tag to identify phase ('preACZ' or 'postACZ')
-    #
     # Returns:
     #     tuple: (nifti_full_path, dicom_full_path)
 
@@ -219,8 +218,8 @@ def mri_diamox_umcu_clinicalasl_cvr_imager(inputdir, outputdir):
     subject = asl_prepare_asl_data(subject, subject['postACZ']['sourceNIFTI_path'], phase_tag='postACZ')
 
     ###### Step 7: Brain extraction on M0 images using HD-BET CLI
-    subject['preACZ']['mask'], subject['preACZ']['nanmask']  = run_bet_mask(subject['preACZ']['M0_path'], subject['preACZ']['mask_path'])
-    subject['postACZ']['mask'], subject['postACZ']['nanmask'] = run_bet_mask(subject['postACZ']['M0_path'], subject['postACZ']['mask_path'])
+    subject['preACZ']['mask'], subject['preACZ']['nanmask']  = run_bet_mask(subject['preACZ']['M0_path'], subject['preACZ']['mask_path'], extradata_path = subject['preACZ']['PLDall_labelcontrol_path'])
+    subject['postACZ']['mask'], subject['postACZ']['nanmask'] = run_bet_mask(subject['postACZ']['M0_path'], subject['postACZ']['mask_path'], extradata_path = subject['postACZ']['PLDall_labelcontrol_path'])
     
     ###### Step 8:# compute T1 from M0
     subject = asl_t1_from_m0(subject, phase_tag='preACZ') 
@@ -235,10 +234,10 @@ def mri_diamox_umcu_clinicalasl_cvr_imager(inputdir, outputdir):
     ###### Step 10: ASL Quantification analysis
         # all PLD for AAT (arterial arrival time map)
         #asl_qasl_analysis(subject, append_mc(subject[phase_tag]['PLDall_labelcontrol_path']), subject[phase_tag]['M0_path'], subject[phase_tag]['mask_path'] , os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_allPLD_forAAT'), subject['PLDS'][0:], subject['inference_method'])
-       
+
         # 2-to-last PLD for CBF map
         #asl_qasl_analysis(subject, append_mc(subject[phase_tag]['PLD2tolast_labelcontrol_path']), subject[phase_tag]['M0_path'], subject[phase_tag]['mask_path'] , os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_2tolastPLD_forCBF'), subject['PLDS'][1:], subject['inference_method'])
-       
+
         # 1to2 PLDs for ATA map ->  then do no fit for the arterial component 'artoff'
         #asl_qasl_analysis(subject, append_mcsubject[phase_tag]['PLD1to2_labelcontrol_path']), subject[phase_tag]['M0_path'], subject[phase_tag]['mask_path'] , os.path.join(subject['ASLdir'], f'{phase_tag}_QASL_1to2PLD_forATA'), subject['PLDS'][0:2], subject['inference_method'], 'artoff')
     
