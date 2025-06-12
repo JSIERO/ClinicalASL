@@ -25,7 +25,7 @@ from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
 from clinical_asl_pipeline.utils.append_mc import append_mc
 from clinical_asl_pipeline.asl_motioncorrection_ants import asl_motioncorrection_ants
 
-def asl_prepare_asl_data(subject, filename, context_tag, motioncorrection=True):
+def asl_prepare_asl_data(subject, filename, context_tag, motion_correction=True):
     # Prepare (multidelay ASL data for analysis by interleaving control and label files per PLD, M0, and performing Look-Locker Correction.
     # Parameters:
     # subject: dict containing subject information including paths and parameters
