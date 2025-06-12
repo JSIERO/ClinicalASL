@@ -37,6 +37,7 @@ Example config file containing scan and analysis parameters: `config/config_defa
 You can supply your own `config.json` per acquisition protocol.
 
 example `config/config_default.json`:
+```json
 {
     "version": "v1.0-MRI_DIAMOX_MDLL_preACZ_postACZ-2025",
     "tau": 2,
@@ -55,6 +56,7 @@ example `config/config_default.json`:
     "ASL_CONTEXT": ["baseline", "stimulus"],
     "context_study_tags": ["preACZ", "postACZ"]
 }
+```
 
 ## Dependencies
 
