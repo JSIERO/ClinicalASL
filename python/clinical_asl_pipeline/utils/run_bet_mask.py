@@ -15,12 +15,12 @@ Description:
 License: BSD 3-Clause License
 """
 import os
-import subprocess
 import logging
 import nibabel as nib
 import numpy as np
 from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
 from clinical_asl_pipeline.utils.dilate_mask import dilate_mask
+from clinical_asl_pipeline.utils.run_command_with_logging import run_command_with_logging
 
 def run_bet_mask(inputdata_path, mask_output_path, extradata_path=None):
     #
@@ -58,13 +58,13 @@ def run_bet_mask(inputdata_path, mask_output_path, extradata_path=None):
 
         cmd = f"hd-bet -i {temp_bet_path} -o {mask_output_path} -device {device} --disable_tta --save_bet_mask"
         # run command HD-BET
-        subprocess.run(cmd, shell=True, check=True)
+        run_command_with_logging(cmd)
         os.remove(temp_bet_path) # remove temp file of combined data for full covering brain mask
 
     else:
         # run command HD-BET
         cmd = f"hd-bet -i {inputdata_path} -o {mask_output_path} -device {device} --disable_tta --save_bet_mask"
-        subprocess.run(cmd, shell=True, check=True)
+        run_command_with_logging(cmd)
 
     # HD-BET will create:
     # - mask_output_path_bet.nii.gz → actual mask (we want this)

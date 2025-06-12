@@ -23,6 +23,8 @@ import os
 from clinical_asl_pipeline import main_pipeline_imager
 from clinical_asl_pipeline.utils.load_parameters import load_parameters
 from clinical_asl_pipeline.utils.setup_logging import setup_logging
+from clinical_asl_pipeline.__version__ import __version__ as TOOL_VERSION
+from clinical_asl_pipeline.utils.banner import log_pipeline_banner
 
 def run_pipeline(inputdir, outputdir, config_path=None):
     print(f"Running pipeline for subject in: {inputdir}")
@@ -36,7 +38,8 @@ def run_pipeline(inputdir, outputdir, config_path=None):
 
     # Setup logging (also save to output dir)
     setup_logging(outputdir)  
-
+    log_pipeline_banner(TOOL_VERSION)
+    logging.info(f"Pipeline config version: {ANALYSIS_PARAMETERS.get('version', 'unknown')}")
     logging.info(f"ClinicalASL pipeline started.")
     logging.info(f"Input: {inputdir}")
     logging.info(f"Output: {outputdir}")

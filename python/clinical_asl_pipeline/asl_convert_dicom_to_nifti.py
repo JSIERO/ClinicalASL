@@ -18,7 +18,7 @@ License: BSD 3-Clause License
 import os
 import logging
 import shutil
-import subprocess
+from clinical_asl_pipeline.utils.run_command_with_logging import run_command_with_logging
 from glob import glob
 
 def asl_convert_dicom_to_nifti(subject):
@@ -44,7 +44,7 @@ def asl_convert_dicom_to_nifti(subject):
 
     def run_command(cmd):
         logging.info(f"Running command: {cmd}")
-        subprocess.run(cmd, shell=True, check=True)
+        run_command_with_logging(cmd)
 
     def rename_files(directory):
         for file in os.listdir(directory):

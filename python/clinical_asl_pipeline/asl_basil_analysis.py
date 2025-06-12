@@ -15,9 +15,9 @@ Description:
 License: BSD 3-Clause License
 """
 
-import subprocess
 import time
 import logging
+from clinical_asl_pipeline.utils.run_command_with_logging import run_command_with_logging
 
 def asl_basil_analysis(
     subject,
@@ -95,7 +95,7 @@ def asl_basil_analysis(
 
     # Run command
     logging.info("Running BASIL analysis...")
-    subprocess.run(cmd, shell=True, check=True)
+    run_command_with_logging(cmd)
 
     logging.info("BASIL analysis finished")
     elapsed = round(time.time() - start_time, 2)

@@ -20,7 +20,7 @@ License: BSD 3-Clause License
 import os
 import logging
 import warnings
-from python.clinical_asl_pipeline.utils.load_parameters import load_default_parameters
+from clinical_asl_pipeline.utils.load_parameters import load_parameters
 from clinical_asl_pipeline.asl_convert_dicom_to_nifti import asl_convert_dicom_to_nifti
 from clinical_asl_pipeline.asl_extract_params_dicom import asl_extract_params_dicom
 from clinical_asl_pipeline.asl_look_locker_correction import asl_look_locker_correction
@@ -30,7 +30,7 @@ from clinical_asl_pipeline.asl_qasl_analysis import asl_qasl_analysis
 from clinical_asl_pipeline.asl_motioncorrection_ants import asl_motioncorrection_ants
 from clinical_asl_pipeline.asl_registration_stimulus_to_baseline import asl_registration_stimulus_to_baseline
 from clinical_asl_pipeline.asl_save_results_cbfaatcvr import asl_save_results_cbfaatcvr
-from clinical_asl_pipeline.utils.littleutils import append_mc
+from clinical_asl_pipeline.utils.append_mc import append_mc
 from clinical_asl_pipeline.utils.run_bet_mask import run_bet_mask
 
 def prepare_subject_paths(subject):
@@ -146,7 +146,7 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
     subject['DICOMinputdir'] = inputdir
     subject['SUBJECTdir'] = outputdir 
 
-    ##### Step 0: Prepare subject dictionary with default parameters and paths
+    ##### Step 1: Prepare subject dictionary with default parameters and paths
     # Add default parameters to subject dictionary, such as context tags for baseline/stimulus scans, scan parameters, FWHM, ranges, etc.
     subject.update(ANALYSIS_PARAMETERS)
 
@@ -156,53 +156,48 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
     # Prepare file paths
     subject = prepare_input_output_paths(subject)
 
-    ###### Step 1: Convert DICOM to NIFTI, move input PACS DICOMSinputdir to DICOMsubjectdir for further processing
+    ###### Step 2: Convert DICOM to NIFTI, move input PACS DICOMSinputdir to DICOMsubjectdir for further processing
     subject = asl_convert_dicom_to_nifti(subject)
 
-    ###### Step 2-10: Unified loop for each ASL context tag: 'baseline', 'stimulus'
+    ###### Step 3-11: Unified loop for each ASL context tag: 'baseline', 'stimulus'
     for i, context in enumerate(subject['ASL_CONTEXT']):
         context_study_tag = subject['context_study_tags'][i]
         logging.info(f"=== Processing context '{context}' (tag: '{context_study_tag}') ===")
 
-    ###### Step 2: Get SOURCE and DICOM NIFTI files
+    ###### Step 3: Get SOURCE and DICOM NIFTI files
         nifti_file, dicom_file = get_latest_source_data(subject['DICOMsubjectdir'], subject['NIFTIdir'], context_study_tag=context_study_tag)
         subject[context]['sourceNIFTI_path'] = os.path.join(subject['NIFTIdir'], nifti_file)
         subject[context]['templateNII_path'] = os.path.join(subject['NIFTIdir'], nifti_file)
         subject[context]['sourceDCM_path']   = os.path.join(subject['DICOMsubjectdir'], dicom_file)
 
-    ###### Step 3: Locate template DICOMs
+    ###### Step 4: Locate template DICOMs
         context_study_tag = subject['context_study_tags'][i]
         for type_tag in subject['dicom_typetags_by_context'][context]:
             subject[context][f'templateDCM_{type_tag}_path'] = find_template_dicom(os.listdir(subject['DICOMsubjectdir']), type_tag, context_study_tag)
 
-    ###### Step 4: DICOM scanparameter extraction
+    ###### Step 5: DICOM scanparameter extraction
         subject = asl_extract_params_dicom(subject, subject[context]['sourceDCM_path'], context_tag=context)
 
-    ###### Step 5: Look Locker correction
+    ###### Step 6: Look Locker correction
         subject = asl_look_locker_correction(subject, context_tag=context)
 
-    ###### Step 6: Split/control-label, save to NIFTI
-        subject = asl_prepare_asl_data(subject, subject[context]['sourceNIFTI_path'], context_tag=context)
+    ###### Step 7: Motion correction and Split/control-label, save to NIFTI
+        subject = asl_prepare_asl_data(subject, subject[context]['sourceNIFTI_path'], context_tag=context, motioncorrection=True,)
 
-    ###### Step 7: Brain extraction on M0 using HD-BET CLI
+    ###### Step 8: Brain extraction on M0 using HD-BET CLI
         subject[context]['mask'], subject[context]['nanmask'] = run_bet_mask(
                                                                 subject[context]['M0_path'],
                                                                 subject[context]['mask_path'],
                                                                 extradata_path = subject[context]['PLDall_labelcontrol_path']
                                                                 )
-    ###### Step 8: Compute T1 from M0
+    ###### Step 9: Compute T1 from M0
         subject = asl_t1_from_m0(subject, context_tag=context)
-
-    ###### Step 9: Motion Correction on label/control images
-        asl_motioncorrection_ants(subject[context]['PLDall_labelcontrol_path'], subject[context]['M0_path'], append_mc(subject[context]['PLDall_labelcontrol_path']))
-        asl_motioncorrection_ants(subject[context]['PLD2tolast_labelcontrol_path'], subject[context]['M0_path'], append_mc(subject[context]['PLD2tolast_labelcontrol_path']))
-        asl_motioncorrection_ants(subject[context]['PLD1to2_labelcontrol_path'], subject[context]['M0_path'], append_mc(subject[context]['PLD1to2_labelcontrol_path']))
 
     ###### Step 10: ASL Quantification analysis
         context_data = subject[context]
         # all PLD for AAT (arterial arrival time map)
         asl_qasl_analysis(context_data, ANALYSIS_PARAMETERS, 
-                        append_mc(context_data['PLDall_labelcontrol_path']), 
+                        context_data['PLDall_labelcontrol_path'], 
                         context_data['M0_path'], 
                         context_data['mask_path'], 
                         os.path.join(subject['ASLdir'], f'{context}_QASL_allPLD_forAAT'),       # output folder name QASL
@@ -211,7 +206,7 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
                         )
         # 2-to-last PLD for CBF map
         asl_qasl_analysis(context_data, ANALYSIS_PARAMETERS, 
-                        append_mc(context_data['PLD2tolast_labelcontrol_path']), 
+                        context_data['PLD2tolast_labelcontrol_path'], 
                         context_data['M0_path'], 
                         context_data['mask_path'], 
                         os.path.join(subject['ASLdir'], f'{context}_QASL_2tolastPLD_forCBF'),   # output folder name QASL
@@ -220,7 +215,7 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
                         )
         # 1to2 PLDs for ATA map ->  then do no fit for the arterial component 'artoff'
         asl_qasl_analysis(context_data, ANALYSIS_PARAMETERS, 
-                        append_mc(context_data['PLD1to2_labelcontrol_path']), 
+                        context_data['PLD1to2_labelcontrol_path'], 
                         context_data['M0_path'], 
                         context_data['mask_path'], 
                         os.path.join(subject['ASLdir'], f'{context}_QASL_1to2PLD_forATA'),      # output folder name QASL

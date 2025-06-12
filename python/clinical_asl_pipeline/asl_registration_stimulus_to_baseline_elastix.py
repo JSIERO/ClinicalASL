@@ -13,12 +13,12 @@ License: BSD 3-Clause License
 """
 
 import os
-import subprocess
 import importlib.resources as pkg_resources
 import tempfile
 import shutil
 import warnings
 import logging
+from clinical_asl_pipeline.utils.run_command_with_logging import run_command_with_logging
 
 def asl_registration_prepostACZ_elastix(subject):
     # Function to register post-ACZ ASL data to pre-ACZ ASL data using Elastix
@@ -47,24 +47,24 @@ def asl_registration_prepostACZ_elastix(subject):
     
     # Elastix registration
     logging.info("Registration T1fromM0 postACZ to preACZ data *********************************************************************")
-    subprocess.run(f"elastix -f {subject['preACZ']['T1fromM0_path']} -m {subject['postACZ']['T1fromM0_path']} -fMask {subject['preACZ']['mask_path']} -p {subject['elastix_parameter_file']} -loglevel error -out {subject['ASLdir']}", shell=True, check=True)
+    run_command_with_logging(f"elastix -f {subject['preACZ']['T1fromM0_path']} -m {subject['postACZ']['T1fromM0_path']} -fMask {subject['preACZ']['mask_path']} -p {subject['elastix_parameter_file']} -loglevel error -out {subject['ASLdir']}")
     os.replace(os.path.join(subject['ASLdir'], 'result.0.nii.gz'), subject['postACZ']['T1fromM0_2preACZ_path'])
-    subprocess.run(f"fslcpgeom {subject['preACZ']['T1fromM0_path']} {subject['postACZ']['T1fromM0_2preACZ_path']} -d", shell=True, check=True)
+    run_command_with_logging(f"fslcpgeom {subject['preACZ']['T1fromM0_path']} {subject['postACZ']['T1fromM0_2preACZ_path']} -d")
 
     logging.info("Registration CBF postACZ to preACZ *********************************************************************")
-    subprocess.run(f"transformix -in {subject['postACZ']['QASL_CBF_path']} -out {subject['ASLdir']} -tp {os.path.join(subject['ASLdir'], 'TransformParameters.0.txt')} -loglevel error", shell=True, check=True)
+    run_command_with_logging(f"transformix -in {subject['postACZ']['QASL_CBF_path']} -out {subject['ASLdir']} -tp {os.path.join(subject['ASLdir'], 'TransformParameters.0.txt')} -loglevel error")
     os.replace(os.path.join(subject['ASLdir'], 'result.nii.gz'), subject['postACZ']['CBF_2preACZ_path'])
-    subprocess.run(f"fslcpgeom {subject['preACZ']['QASL_CBF_path']} {subject['postACZ']['CBF_2preACZ_path']} -d", shell=True, check=True)
+    run_command_with_logging(f"fslcpgeom {subject['preACZ']['QASL_CBF_path']} {subject['postACZ']['CBF_2preACZ_path']} -d")
 
     logging.info("Registration AAT postACZ to preACZ *********************************************************************")
-    subprocess.run(f"transformix -in {subject['postACZ']['QASL_AAT_path']} -out {subject['ASLdir']} -tp {os.path.join(subject['ASLdir'], 'TransformParameters.0.txt')} -loglevel error", shell=True, check=True)
+    run_command_with_logging(f"transformix -in {subject['postACZ']['QASL_AAT_path']} -out {subject['ASLdir']} -tp {os.path.join(subject['ASLdir'], 'TransformParameters.0.txt')} -loglevel error")
     os.replace(os.path.join(subject['ASLdir'], 'result.nii.gz'), subject['postACZ']['AAT_2preACZ_path'])
-    subprocess.run(f"fslcpgeom {subject['preACZ']['QASL_AAT_path']} {subject['postACZ']['AAT_2preACZ_path']} -d", shell=True, check=True)
+    run_command_with_logging(f"fslcpgeom {subject['preACZ']['QASL_AAT_path']} {subject['postACZ']['AAT_2preACZ_path']} -d")
     
     logging.info("Registration ATA postACZ to preACZ *********************************************************************")
-    subprocess.run(f"transformix -in {subject['postACZ']['QASL_ATA_path']} -out {subject['ASLdir']} -tp {os.path.join(subject['ASLdir'], 'TransformParameters.0.txt')} -loglevel error", shell=True, check=True)
+    run_command_with_logging(f"transformix -in {subject['postACZ']['QASL_ATA_path']} -out {subject['ASLdir']} -tp {os.path.join(subject['ASLdir'], 'TransformParameters.0.txt')} -loglevel error")
     os.replace(os.path.join(subject['ASLdir'], 'result.nii.gz'), subject['postACZ']['ATA_2preACZ_path'])
-    subprocess.run(f"fslcpgeom {subject['preACZ']['QASL_ATA_path']} {subject['postACZ']['ATA_2preACZ_path']} -d", shell=True, check=True)
+    run_command_with_logging(f"fslcpgeom {subject['preACZ']['QASL_ATA_path']} {subject['postACZ']['ATA_2preACZ_path']} -d")
 
     logging.info("Registration mask postACZ to preACZ *********************************************************************")
     with open(os.path.join(subject['ASLdir'], 'TransformParameters.0.txt'), 'r') as f:
@@ -76,9 +76,9 @@ def asl_registration_prepostACZ_elastix(subject):
             else:
                 f.write(line)
 
-    subprocess.run(f"transformix -in {subject['postACZ']['mask_path']} -out {subject['ASLdir']} -tp {os.path.join(subject['ASLdir'], 'TransformParameters.0.NN.txt')} -loglevel error", shell=True, check=True)
+    run_command_with_logging(f"transformix -in {subject['postACZ']['mask_path']} -out {subject['ASLdir']} -tp {os.path.join(subject['ASLdir'], 'TransformParameters.0.NN.txt')} -loglevel error")
     os.replace(os.path.join(subject['ASLdir'], 'result.nii.gz'), subject['postACZ']['mask_2preACZ_path'])
-    subprocess.run(f"fslcpgeom {subject['preACZ']['mask_path']} {subject['postACZ']['mask_2preACZ_path']} -d", shell=True, check=True)
+    run_command_with_logging(f"fslcpgeom {subject['preACZ']['mask_path']} {subject['postACZ']['mask_2preACZ_path']} -d")
     
     os.replace(subject['elastix_parameter_file']) # clean up temporary elastix parameter file
 

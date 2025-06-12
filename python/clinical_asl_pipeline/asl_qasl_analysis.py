@@ -2,21 +2,23 @@
 ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
 Repository: https://github.com/JSIERO/ClinicalASL
 
-Author: Jeroen Siero
+Script Author: Jeroen Siero
 Institution: UMCU (University Medical Center Utrecht), The Netherlands
 Contact: j.c.w.siero@umcutrecht.nl
 
+Algorithm code author: Thomas Kirk, Quantified Imaging
+
 Description:
-    Performs QASL - by Quantified Imaginge (T.Kirk) (Quantitative Arterial Spin Labeling) analysis on ASL data using the Oxford ASL toolbox.
+    Performs QASL - by Quantified Imaging (T.Kirk) (Quantitative Arterial Spin Labeling) analysis on ASL data using the Oxford ASL toolbox.
     This script provides the asl_qasl_analysis() function, which builds and runs a command-line call to the QASL tool,
     passing all relevant parameters for quantification.
 
 License: BSD 3-Clause License
 """
 
-import subprocess
 import time
 import logging
+from clinical_asl_pipeline.utils.run_command_with_logging import run_command_with_logging
 
 def asl_qasl_analysis(
     subject,
@@ -94,7 +96,7 @@ def asl_qasl_analysis(
 
     # Run command
     logging.info("Running QASL analysis...")
-    subprocess.run(cmd, shell=True, check=True)
+    run_command_with_logging(cmd)
 
     logging.info("QASL analysis finished")
     elapsed = round(time.time() - start_time, 2)

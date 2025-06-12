@@ -24,7 +24,7 @@ from pydicom.sequence import Sequence
 from pydicom.dataset import Dataset
 from pydicom.dataelem import DataElement
 from pydicom.tag import Tag
-import subprocess
+from clinical_asl_pipeline.utils.run_command_with_logging import run_command_with_logging
 
 def save_data_dicom(image, template_dicom_path, output_dicom_path, name, value_range, content_label):    #
     # Save a 3D ASL-derived image as a multiframe DICOM file using a Philips reference DICOM and DCMTK tools.
@@ -90,7 +90,7 @@ def save_data_dicom(image, template_dicom_path, output_dicom_path, name, value_r
     image_4d.tofile(raw_path)
 
     # Copy template to output
-    subprocess.run(["cp", template_dicom_path, output_dicom_path], check=True)
+    run_command_with_logging(["cp", template_dicom_path, output_dicom_path])
 
     # Modify robust tags via dcmodify
     dcmodify_cmd = [
@@ -105,11 +105,11 @@ def save_data_dicom(image, template_dicom_path, output_dicom_path, name, value_r
         "-i", f"(0028,0103)={'1' if use_signed else '0'}",
         output_dicom_path
     ]
-    subprocess.run(dcmodify_cmd, check=True)
+    run_command_with_logging(dcmodify_cmd)
 
     # Inject PixelData
     insert_cmd = ["dcmodify", "-nb", "--insert-from-file", f"(7fe0,0010)={raw_path}", output_dicom_path]
-    subprocess.run(insert_cmd, check=True)
+    run_command_with_logging(insert_cmd)
     # Remove the temporary raw file
     os.remove(raw_path)
 
