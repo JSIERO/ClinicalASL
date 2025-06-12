@@ -8,7 +8,7 @@
 
 ## Description
 
-ClinicalASL is an automated processing tool for Arterial Spin Labeling (ASL) MRI for multidelay ASL, including:
+Official ClinicalASL processing pipeline for quantitative multi-delay ASL MRI data — designed for clinical use with PACS export and visual reporting.
 
 - DICOM to NIfTI conversion
 - Look-Locker correction
@@ -57,13 +57,43 @@ example `config/config_default.json`:
     "context_study_tags": ["preACZ", "postACZ"]
 }
 ```
-
 ## Dependencies
 
 - Python 3.11+
 - HD-BET (brain extraction)
 - ANTsPy or external ANTs
 - See `requirements.txt`
+
+## Installation
+Please refer to INSTALL.md for full installation instructions.
+
+Summary:
+```bash
+git clone https://github.com/JSIERO/ClinicalASL.git
+cd ClinicalASL
+conda create -n clinicalasl python=3.11 -y
+conda activate clinicalasl
+pip install -r requirements.txt
+pip install git+https://github.com/MIC-DKFZ/HD-BET.git
+```
+Also install:
+dcm2niix → https://github.com/rordenlab/dcm2niix
+ANTs → via Conda or system package
+
+## Running the pipeline
+Example command line:
+
+```bash
+python run_pipeline.py /path/to/DICOM_INPUT /path/to/OUTPUT_FOLDER --config config/config_default.json
+```
+The pipeline will:
+Save all intermediate files to the output folder
+
+Generate:
+NIfTI images for ASL derived images: CBF, AAT, CVR, ATA
+PNG images for review
+DICOM images for PACS export
+Log file: clinicalasl.log
 
 ## License
 
