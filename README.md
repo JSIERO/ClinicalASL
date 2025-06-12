@@ -20,7 +20,7 @@ ClinicalASL is an automated processing tool for Arterial Spin Labeling (ASL) MRI
     - Cerebrovascular Reactivity (CVR)
 - Export of results as NIfTI, PNG, and DICOM (PACS-ready) formats.
 
-Supports baseline / stimulus ASL protocols (acetazolamide, hypercapnia, breath-hold, etc.)
+Supports baseline / stimulus ASL protocols (acetazolamide/diamox, hypercapnia, breath-hold, etc.)
 
 ## Intended Use
 
