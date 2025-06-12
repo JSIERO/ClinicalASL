@@ -134,7 +134,7 @@ def asl_extract_params_dicom(subject, filename, context_tag):
     else:
         subject[context_tag]['slicetime'] = None
         warnings.warn("Not enough valid frame times to estimate slice timing.")
-      
+
     # Labeling efficiencies
     subject[context_tag]['alpha_inv'] = subject[context_tag]['labeleff']
     subject[context_tag]['alpha_BS'] = 0.95 ** subject[context_tag]['N_BS']

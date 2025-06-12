@@ -20,23 +20,39 @@ import logging
 def run_command_with_logging(cmd):
     logging.info(f"Running command: {cmd}")
 
-    result = subprocess.run(
+    # Start subprocess
+    process = subprocess.Popen(
         cmd,
         shell=True,
-        check=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True
     )
 
-    # Log stdout lines if any
-    if result.stdout:
-        for line in result.stdout.strip().splitlines():
-            logging.info(f"    {line}")
+    # Read stdout and stderr line by line
+    while True:
+        # Read one line from stdout
+        stdout_line = process.stdout.readline()
+        if stdout_line:
+            stdout_line = stdout_line.rstrip()
+            print(stdout_line)  # print live to terminal
+            logging.info(stdout_line)
 
-    # Log stderr lines if any
-    if result.stderr:
-        for line in result.stderr.strip().splitlines():
-            logging.warning(f"    {line}")
+        # Read one line from stderr
+        stderr_line = process.stderr.readline()
+        if stderr_line:
+            stderr_line = stderr_line.rstrip()
+            print(stderr_line)  # print live to terminal
+            logging.warning(stderr_line)
 
-    return result
+        # Check if process is finished
+        if process.poll() is not None:
+            break
+
+    # Check return code
+    retcode = process.wait()
+    if retcode != 0:
+        raise subprocess.CalledProcessError(retcode, cmd)
+
+    logging.info(f"Command finished with return code {retcode}")
+

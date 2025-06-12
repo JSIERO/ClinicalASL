@@ -21,6 +21,7 @@ from clinical_asl_pipeline.utils.run_command_with_logging import run_command_wit
 
 def asl_basil_analysis(
     subject,
+    ANALYSIS_PARAMETERS,
     location_asl_labelcontrol_pld_nifti,
     location_m0,
     location_mask,
@@ -58,9 +59,9 @@ def asl_basil_analysis(
     spatial_string = "off" if spatialoff == "spatialoff" else "on"
 
     # Extract parameter values and convert to string
-    T1t = str(subject['T1t'])
-    T1b = str(subject['T1b'])
-    tau = str(subject['tau'])
+    T1t = str(ANALYSIS_PARAMETERS['T1t'])
+    T1b = str(ANALYSIS_PARAMETERS['T1b'])
+    tau = str(ANALYSIS_PARAMETERS['tau'])
     TR_M0 = str(subject['TR_M0'][0])
     alpha = str(subject['alpha'])
     slicetime = str(subject['slicetime'] / 1000)  # convert ms to seconds
@@ -94,7 +95,7 @@ def asl_basil_analysis(
     )
 
     # Run command
-    logging.info("Running BASIL analysis...")
+    logging.info("Running FSL BASIL analysis...")
     run_command_with_logging(cmd)
 
     logging.info("BASIL analysis finished")

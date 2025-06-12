@@ -69,7 +69,7 @@ def asl_qasl_analysis(
     # Timing the execution
     start_time = time.time()
 
-    # Build oxford_asl command
+    # Build qasl command
     cmd = (
         f"qasl -i {location_asl_labelcontrol_pld_nifti} "
         f"-c {location_m0} "
