@@ -8,7 +8,7 @@
 
 ## Description
 
-ClinicalASL is an automated processing pipeline for Arterial Spin Labeling (ASL) MRI for multidelay ASL, including:
+ClinicalASL is an automated processing tool for Arterial Spin Labeling (ASL) MRI for multidelay ASL, including:
 
 - DICOM to NIfTI conversion
 - Look-Locker correction
