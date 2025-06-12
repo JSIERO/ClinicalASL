@@ -1,4 +1,4 @@
-# ClinicalASL Pipeline - Release v1.0.0
+# ClinicalASL Tool - Release v1.0.0
 
 **Repository:** [https://github.com/JSIERO/ClinicalASL](https://github.com/JSIERO/ClinicalASL)  
 **Author:** Jeroen Siero, UMC Utrecht  
@@ -8,7 +8,7 @@
 
 ## Description
 
-ClinicalASL is an automated processing pipeline for Arterial Spin Labeling (ASL) MRI, including:
+ClinicalASL is an automated processing pipeline for Arterial Spin Labeling (ASL) MRI for multidelay ASL, including:
 
 - DICOM to NIfTI conversion
 - Look-Locker correction
