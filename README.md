@@ -33,8 +33,28 @@ See `INSTALL.md` or follow instructions in the GitHub repository.
 
 ## Configuration
 
-Example config file: `config/config_default.json`  
+Example config file containing scan and analysis parameters: `config/config_default.json`  
 You can supply your own `config.json` per acquisition protocol.
+
+example `config/config_default.json`:
+{
+    "version": "v1.0-MRI_DIAMOX_MDLL_preACZ_postACZ-2025",
+    "tau": 2,
+    "N_BS": 4,
+    "readout": "2D",
+    "labeleff": 0.85,
+    "lambda": 0.9,
+    "T1t": 1.3,
+    "T1b": 1.65,
+    "FWHM": 6,
+    "range_cbf": [0, 100],
+    "range_cvr": [-50, 50],
+    "range_AAT": [0, 3.5],
+    "range_ATA": [0, 125],
+    "inference_method": "basil",
+    "ASL_CONTEXT": ["baseline", "stimulus"],
+    "context_study_tags": ["preACZ", "postACZ"]
+}
 
 ## Dependencies
 
