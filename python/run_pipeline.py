@@ -20,7 +20,7 @@ License: BSD 3-Clause License
 import argparse
 import logging
 import os
-from clinical_asl_pipeline import main_pipeline_imager
+from clinical_asl_pipeline import main_pipeline
 from clinical_asl_pipeline.utils.load_parameters import load_parameters
 from clinical_asl_pipeline.utils.setup_logging import setup_logging
 from clinical_asl_pipeline.__version__ import __version__ as TOOL_VERSION
@@ -47,7 +47,7 @@ def run_pipeline(inputdir, outputdir, config_path=None):
     logging.info(f"Pipeline config version: {ANALYSIS_PARAMETERS.get('version', 'unknown')}")
 
     # Run main pipeline
-    main_pipeline_imager.mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS)
+    main_pipeline.mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS)
 
     logging.info("ClinicalASL pipeline finished successfully.")
     print("Pipeline finished successfully.")

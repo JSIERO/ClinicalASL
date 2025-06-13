@@ -25,7 +25,7 @@ def asl_motioncorrection_ants(inputdata, refdata, outputdata):
     # inputdata: path to the input ASL data in NIfTI format
     # refdata: path to the reference image for motion correction
     # outputdata: path to save the motion-corrected output data in NIfTI format
-    logging.info(f"Perform motion correction (using ANTs): input: {os.path.basenam(inputdata)}  reference: {os.path.basenam(refdata)} ")
+    logging.info(f"Perform motion correction (using ANTs): input: {os.path.basename(inputdata)}  reference: {os.path.basename(refdata)} ")
     results_dict = ants.motion_correction(
         ants.image_read(inputdata),
         ants.image_read(refdata),

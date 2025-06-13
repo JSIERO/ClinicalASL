@@ -27,7 +27,7 @@ from clinical_asl_pipeline.asl_look_locker_correction import asl_look_locker_cor
 from clinical_asl_pipeline.asl_prepare_asl_data import asl_prepare_asl_data
 from clinical_asl_pipeline.asl_t1_from_m0 import asl_t1_from_m0
 from clinical_asl_pipeline.asl_qasl_analysis import asl_qasl_analysis
-from clinical_asl_pipeline.asl_motioncorrection_ants import asl_motioncorrection_ants
+from clinical_asl_pipeline.asl_basil_analysis import asl_basil_analysis
 from clinical_asl_pipeline.asl_registration_stimulus_to_baseline import asl_registration_stimulus_to_baseline
 from clinical_asl_pipeline.asl_save_results_cbfaatcvr import asl_save_results_cbfaatcvr
 from clinical_asl_pipeline.utils.append_mc import append_mc
@@ -84,6 +84,11 @@ def prepare_input_output_paths(subject):
         subject[context]['QASL_CBF_path'] = os.path.join(subject['ASLdir'], f'{context}_QASL_2tolastPLD_forCBF/output/native/calib_voxelwise/perfusion.nii.gz')
         subject[context]['QASL_AAT_path'] = os.path.join(subject['ASLdir'], f'{context}_QASL_allPLD_forAAT/output/native/arrival.nii.gz')
         subject[context]['QASL_ATA_path'] = os.path.join(subject['ASLdir'], f'{context}_QASL_1to2PLD_forATA/output/native/calib_voxelwise/perfusion.nii.gz')
+
+        # for FSL - BASIL generated output
+        # subject[context]['QASL_CBF_path'] = os.path.join(subject['ASLdir'], f'{context}_QASL_2tolastPLD_forCBF/native_space/perfusion_calib.nii.gz')
+        # subject[context]['QASL_AAT_path'] = os.path.join(subject['ASLdir'], f'{context}_QASL_allPLD_forAAT/native_space/arrival.nii.gz')
+        # subject[context]['QASL_ATA_path'] = os.path.join(subject['ASLdir'], f'{context}_QASL_1to2PLD_forATA/native_space/perfusion_calib.nii.gz')
 
         subject[context]['output_CBF_path'] = os.path.join(subject['ASLdir'], f'{context}_CBF.nii.gz')
         subject[context]['output_AAT_path'] = os.path.join(subject['ASLdir'], f'{context}_AAT.nii.gz')
@@ -195,7 +200,7 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
 
     ###### Step 10: ASL Quantification analysis
         context_data = subject[context]
-        # all PLD for AAT (arterial arrival time map)
+        # # all PLD for AAT (arterial arrival time map)
         asl_qasl_analysis(context_data, ANALYSIS_PARAMETERS, 
                         context_data['PLDall_labelcontrol_path'], 
                         context_data['M0_path'], 
@@ -220,8 +225,37 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
                         context_data['mask_path'], 
                         os.path.join(subject['ASLdir'], f'{context}_QASL_1to2PLD_forATA'),      # output folder name QASL
                         context_data['PLDS'][0:2], 
-                        subject['inference_method'], 'artoff'
+                        subject['inference_method'],
+                        'artoff'
                         )
+
+        # all PLD for AAT (arterial arrival time map)
+        # asl_basil_analysis(context_data, ANALYSIS_PARAMETERS, 
+        #                 context_data['PLDall_labelcontrol_path'], 
+        #                 context_data['M0_path'], 
+        #                 context_data['mask_path'], 
+        #                 os.path.join(subject['ASLdir'], f'{context}_QASL_allPLD_forAAT'),       # output folder name QASL
+        #                 context_data['PLDS'][0:], 
+        #                 )
+        # # 2-to-last PLD for CBF map
+        # asl_basil_analysis(context_data, ANALYSIS_PARAMETERS, 
+        #                 context_data['PLD2tolast_labelcontrol_path'], 
+        #                 context_data['M0_path'], 
+        #                 context_data['mask_path'], 
+        #                 os.path.join(subject['ASLdir'], f'{context}_QASL_2tolastPLD_forCBF'),   # output folder name QASL
+        #                 subject[context]['PLDS'][1:], 
+        #                 )
+        # # 1to2 PLDs for ATA map ->  then do no fit for the arterial component 'artoff'
+        # asl_basil_analysis(context_data, ANALYSIS_PARAMETERS, 
+        #                 context_data['PLD1to2_labelcontrol_path'], 
+        #                 context_data['M0_path'], 
+        #                 context_data['mask_path'], 
+        #                 os.path.join(subject['ASLdir'], f'{context}_QASL_1to2PLD_forATA'),      # output folder name QASL
+        #                 context_data['PLDS'][0:2], 
+        #                 'artoff'
+        #                 )
+
+
 
     ###### Step 11: register post-ACZ ASL data to pre-ACZ ASL data using Elastix 
     asl_registration_stimulus_to_baseline(subject)

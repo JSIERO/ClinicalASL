@@ -24,7 +24,8 @@ def load_parameters(config_path=None):
     # Now safe to check if exists
     if not os.path.exists(config_path):
         logging.warning(f"Config file '{config_path}' not found. Using hardcoded defaults.")
-        return {
+        hardcoded_defaults =  {
+            "version": "v1.0-MRI_DIAMOX_MDLL_preACZ_postACZ-2025",
             'tau': 2,
             'N_BS': 4,
             'readout': '2D',
@@ -41,6 +42,8 @@ def load_parameters(config_path=None):
             'ASL_CONTEXT': ['baseline', 'stimulus'],
             'context_study_tags': ['preACZ', 'postACZ']
         }
+        logging.info(f"Config parameters (hardcoded):\n{json.dumps(hardcoded_defaults, indent=2)}")
+        return hardcoded_defaults
     else:
         with open(config_path, 'r') as f:
             params = json.load(f)

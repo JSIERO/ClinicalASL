@@ -17,6 +17,7 @@ License: BSD 3-Clause License
 
 import os
 import logging
+import shutil
 import numpy as np
 import pydicom
 from pydicom.uid import generate_uid
@@ -85,12 +86,12 @@ def save_data_dicom(image, template_dicom_path, output_dicom_path, name, value_r
     # Transpose + flip to match Philips DICOM pixel ordering - verified empirically against reference DICOM
     image_4d = np.flip(np.transpose(image_scaled, (2, 1, 0)), axis=1)   #(Slices, Columns flipped, Rows)
 
-    # Save pixel data to raw file
-    raw_path = os.path.join(os.getcwd(), "temp_pixeldata.raw")
+    # Save pixel data to raw file at location of output_dicom_path
+    raw_path = os.path.join(os.path.dirname(output_dicom_path), "temp_pixeldata.raw")
     image_4d.tofile(raw_path)
 
-    # Copy template to output
-    run_command_with_logging(["cp", template_dicom_path, output_dicom_path])
+    # Copy template DICOM to output DICOM
+    shutil.copy(template_dicom_path, output_dicom_path)
 
     # Modify robust tags via dcmodify
     dcmodify_cmd = [

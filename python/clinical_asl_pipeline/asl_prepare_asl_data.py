@@ -60,6 +60,13 @@ def asl_prepare_asl_data(subject, filename, context_tag, motion_correction=True)
         context_data['M0ASL_allPLD'][:, :, :, :context_data['NDYNS'], i, 0] = data[:, :, :, idx_label] / context_data['LookLocker_correction_factor_perPLD'][i]
         context_data['M0ASL_allPLD'][:, :, :, :context_data['NDYNS'], i, 1] = data[:, :, :, idx_control] / context_data['LookLocker_correction_factor_perPLD'][i]
 
+    # M0 image construction
+    context_data['M0_allPLD'] = np.mean(context_data['M0ASL_allPLD'][:, :, :, 0, :, :], axis=4)
+    context_data['M0'] = context_data['M0_allPLD'][:, :, :, 0] # take M0 from first PLD as calibration M0 for quantification
+
+    logging.info("Saving M0 image")
+    save_data_nifti(context_data['M0'], context_data['M0_path'] , context_data['templateNII_path'], 1, None, context_data['TR'])
+
     # Interleave control/label, save per-PLD
     for i in range(context_data['NPLDS']):
         interleaved = asl_interleave_control_label(np.squeeze(context_data['M0ASL_allPLD'][:, :, :, 1:, i, 0]), np.squeeze(context_data['M0ASL_allPLD'][:, :, :, 1:, i, 1]))
@@ -75,7 +82,7 @@ def asl_prepare_asl_data(subject, filename, context_tag, motion_correction=True)
 
     if motion_correction==True:
             # perform motion correction routine
-            asl_motioncorrection_ants(context_data['PLDall_labelcontrol_path'], context_data['M0_path'], append_mc(context_data['PLDall_labelcontrol_path']))
+            #asl_motioncorrection_ants(context_data['PLDall_labelcontrol_path'], context_data['M0_path'], append_mc(context_data['PLDall_labelcontrol_path']))
             
             logging.info("Saving ASL motion-corrected data interleaved label control: all PLDs for AAT")
             PLDall_motioncorrected = nib.load(append_mc(context_data['PLDall_labelcontrol_path'])).get_fdata()
@@ -104,12 +111,5 @@ def asl_prepare_asl_data(subject, filename, context_tag, motion_correction=True)
             PLD1to2 = PLDall_motioncorrected[:, :, :, 0:number_volumes_per_pld*2]
             save_data_nifti(PLD1to2, append_mc(context_data['PLD1to2_labelcontrol_path']), context_data['templateNII_path'], 1, None, context_data['TR'])
             context_data['PLD1to2_labelcontrol_path'] =  append_mc(context_data['PLD1to2_labelcontrol_path']) # update path to motion corrected data 
-
-    # M0 image construction
-    context_data['M0_allPLD'] = np.mean(context_data['M0ASL_allPLD'][:, :, :, 0, :, :], axis=4)
-    context_data['M0'] = context_data['M0_allPLD'][:, :, :, 0] # take M0 from first PLD as calibration M0 for quantification
-
-    logging.info("Saving M0 image")
-    save_data_nifti(context_data['M0'], context_data['M0_path'] , context_data['templateNII_path'], 1, None, context_data['TR'])
-
+            
     return subject

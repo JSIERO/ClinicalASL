@@ -16,43 +16,54 @@ License: BSD 3-Clause License
 
 import subprocess
 import logging
+import threading
+
+import subprocess
+import logging
+import threading
 
 def run_command_with_logging(cmd):
     logging.info(f"Running command: {cmd}")
 
-    # Start subprocess
+    # Define known harmless phrases to suppress (can expand this list)
+    suppress_phrases = [
+        'dcmodify: Modify DICOM files',
+        'usage: dcmodify',
+    ]
+
+    def stream_output(stream, log_function, log_in_file=True):
+        for line in iter(stream.readline, ''):
+            if not line:
+                break
+            line = line.rstrip()
+            print(line)
+
+            # Suppress harmless messages
+            if any(phrase in line for phrase in suppress_phrases):
+                continue
+
+            if log_in_file:
+                log_function(line)
+
+    # stdout direct to terminal → progress bar works
     process = subprocess.Popen(
         cmd,
         shell=True,
-        stdout=subprocess.PIPE,
+        stdout=None,
         stderr=subprocess.PIPE,
-        text=True
+        text=True,
+        bufsize=1
     )
 
-    # Read stdout and stderr line by line
-    while True:
-        # Read one line from stdout
-        stdout_line = process.stdout.readline()
-        if stdout_line:
-            stdout_line = stdout_line.rstrip()
-            print(stdout_line)  # print live to terminal
-            logging.info(stdout_line)
+    # Start thread to read stderr
+    stderr_thread = threading.Thread(target=stream_output, args=(process.stderr, logging.info, False))
+    stderr_thread.start()
 
-        # Read one line from stderr
-        stderr_line = process.stderr.readline()
-        if stderr_line:
-            stderr_line = stderr_line.rstrip()
-            print(stderr_line)  # print live to terminal
-            logging.warning(stderr_line)
-
-        # Check if process is finished
-        if process.poll() is not None:
-            break
-
-    # Check return code
+    # Wait for command to finish
     retcode = process.wait()
+    stderr_thread.join()
+
     if retcode != 0:
         raise subprocess.CalledProcessError(retcode, cmd)
 
     logging.info(f"Command finished with return code {retcode}")
-
