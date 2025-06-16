@@ -63,9 +63,9 @@ def asl_qasl_analysis(
     T1b = str(ANALYSIS_PARAMETERS['T1b'])
     tau = str(ANALYSIS_PARAMETERS['tau'])
     readout = str(ANALYSIS_PARAMETERS['readout']) # 2D or 3D
-    alpha = str(subject['alpha'])
+    alpha = str(round(subject['alpha'],2))
     TR_m0 = str(subject['TR_M0'][0])
-    slicetime = str(subject['slicetime'] / 1000)  # convert ms to seconds
+    slicetime = str(round(subject['slicetime'] / 1000,4))  # convert ms to seconds
     # Timing the execution
     start_time = time.time()
 
@@ -75,7 +75,7 @@ def asl_qasl_analysis(
         f"-c {location_m0} "
         f"-m {location_mask} "
         f"-o {output_map} "
-        f" --inference-method={inference_method} "
+        f"--inference-method={inference_method} "
         f"{artoff_string} "
         f"--bolus={tau} "
         f"--slicedt={slicetime} "
@@ -84,7 +84,7 @@ def asl_qasl_analysis(
         f"--t1t={T1t} "
         f"--plds={pld_string} "
         f"--tr={TR_m0} "
-        f" --alpha={alpha} "
+        f"--alpha={alpha} "
         f"--iaf=ct "
         f"--ibf=tis "
         f"--casl "

@@ -82,7 +82,7 @@ def asl_prepare_asl_data(subject, filename, context_tag, motion_correction=True)
 
     if motion_correction==True:
             # perform motion correction routine
-            #asl_motioncorrection_ants(context_data['PLDall_labelcontrol_path'], context_data['M0_path'], append_mc(context_data['PLDall_labelcontrol_path']))
+            asl_motioncorrection_ants(context_data['PLDall_labelcontrol_path'], context_data['M0_path'], append_mc(context_data['PLDall_labelcontrol_path']))
             
             logging.info("Saving ASL motion-corrected data interleaved label control: all PLDs for AAT")
             PLDall_motioncorrected = nib.load(append_mc(context_data['PLDall_labelcontrol_path'])).get_fdata()

@@ -22,7 +22,7 @@ from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
 from clinical_asl_pipeline.utils.dilate_mask import dilate_mask
 from clinical_asl_pipeline.utils.run_command_with_logging import run_command_with_logging
 
-def run_bet_mask(inputdata_path, mask_output_path, extradata_path=None):
+def run_bet_mask(inputdata_path, mask_output_path, device='cpu', extradata_path=None):
     #
     # Run HD-BET CLI on the given M0 image, save result as expected mask_path.
     #
@@ -38,7 +38,8 @@ def run_bet_mask(inputdata_path, mask_output_path, extradata_path=None):
     logging.info(f"Running brain masking with HD-BET CLI:")
 
     # Build HD-BET CLI command
-    device = 'cpu'
+    cmd = f"hd-bet -i {inputdata_path} -o {mask_output_path} -device {device} --disable_tta --save_bet_mask"
+
     if extradata_path and os.path.exists(extradata_path):
         # Load input and extra data
         inputdata = nib.load(inputdata_path).get_fdata()
@@ -55,15 +56,12 @@ def run_bet_mask(inputdata_path, mask_output_path, extradata_path=None):
         temp_bet_path = os.path.join(os.path.dirname(mask_output_path), "temp_for_bet.nii.gz")
         save_data_nifti(combineddata, temp_bet_path, templateNII_path, 1)
         logging.info(f"Using combined data set for brain masking: sum of  {inputdata_path} and {extradata_path}")
-
-        cmd = f"hd-bet -i {temp_bet_path} -o {mask_output_path} -device {device} --disable_tta --save_bet_mask"
+        inputdata_path = temp_bet_path
         # run command HD-BET
         run_command_with_logging(cmd)
-        os.remove(temp_bet_path) # remove temp file of combined data for full covering brain mask
-
+        # remove temp file of combined data for full covering brain mask
+        os.remove(temp_bet_path) 
     else:
-        # run command HD-BET
-        cmd = f"hd-bet -i {inputdata_path} -o {mask_output_path} -device {device} --disable_tta --save_bet_mask"
         run_command_with_logging(cmd)
 
     # HD-BET will create:

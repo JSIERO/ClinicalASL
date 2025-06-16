@@ -138,7 +138,8 @@ def asl_extract_params_dicom(subject, filename, context_tag):
     # Labeling efficiencies
     subject[context_tag]['alpha_inv'] = subject[context_tag]['labeleff']
     subject[context_tag]['alpha_BS'] = 0.95 ** subject[context_tag]['N_BS']
-    subject[context_tag]['alpha'] = subject[context_tag]['alpha_inv'] * subject[context_tag]['alpha_BS']
+    subject[context_tag]['alpha'] = round(subject[context_tag]['alpha_inv'] * subject[context_tag]['alpha_BS'],2)
+    logging.info(f"alpha, effective (including background suppresion): {subject[context_tag]['alpha']}")
 
     # M0 timing
     subject[context_tag]['TR_M0'] = subject[context_tag]['tau'] + subject[context_tag]['PLDS']

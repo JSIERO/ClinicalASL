@@ -20,6 +20,7 @@ import logging
 import shutil
 import numpy as np
 import pydicom
+import subprocess
 from pydicom.uid import generate_uid
 from pydicom.sequence import Sequence
 from pydicom.dataset import Dataset
@@ -106,11 +107,12 @@ def save_data_dicom(image, template_dicom_path, output_dicom_path, name, value_r
         "-i", f"(0028,0103)={'1' if use_signed else '0'}",
         output_dicom_path
     ]
-    run_command_with_logging(dcmodify_cmd)
+    subprocess.run(dcmodify_cmd, check=True)
 
     # Inject PixelData
     insert_cmd = ["dcmodify", "-nb", "--insert-from-file", f"(7fe0,0010)={raw_path}", output_dicom_path]
-    run_command_with_logging(insert_cmd)
+    subprocess.run(insert_cmd, check=True)
+
     # Remove the temporary raw file
     os.remove(raw_path)
 

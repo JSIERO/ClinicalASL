@@ -53,6 +53,7 @@ example `config/config_default.json`:
     "range_AAT": [0, 3.5],
     "range_ATA": [0, 125],
     "inference_method": "basil",
+    "device": "cpu",
     "ASL_CONTEXT": ["baseline", "stimulus"],
     "context_study_tags": ["preACZ", "postACZ"]
 }
@@ -60,6 +61,8 @@ example `config/config_default.json`:
 ## Dependencies
 
 - Python 3.11+
+- QASL by Quantified Imaging 
+- dcm2niix → https://github.com/rordenlab/dcm2niix
 - HD-BET (brain extraction)
 - ANTsPy or external ANTs
 - See `requirements.txt`
@@ -67,18 +70,16 @@ example `config/config_default.json`:
 ## Installation
 Please refer to INSTALL.md for full installation instructions.
 
-Summary:
+Summary, install within qi environment:
 ```bash
 git clone https://github.com/JSIERO/ClinicalASL.git
-cd ClinicalASL
-conda create -n clinicalasl python=3.11 -y
-conda activate clinicalasl
+conda activate qi
+conda install -n qi -c conda-forge dcm2niix
 pip install -r requirements.txt
-pip install git+https://github.com/MIC-DKFZ/HD-BET.git
 ```
-Also install:
-dcm2niix → https://github.com/rordenlab/dcm2niix
-ANTs → via Conda or system package
+or in oneline:
+```bash
+```
 
 ## Running the pipeline
 Example command line:

@@ -62,9 +62,9 @@ def asl_basil_analysis(
     T1t = str(ANALYSIS_PARAMETERS['T1t'])
     T1b = str(ANALYSIS_PARAMETERS['T1b'])
     tau = str(ANALYSIS_PARAMETERS['tau'])
-    TR_M0 = str(subject['TR_M0'][0])
-    alpha = str(subject['alpha'])
-    slicetime = str(subject['slicetime'] / 1000)  # convert ms to seconds
+    alpha = str(round(subject['alpha'],2))
+    TR_m0 = str(subject['TR_M0'][0])
+    slicetime = str(round(subject['slicetime'] / 1000,4))  # convert ms to seconds
 
     # Timing the execution
     start_time = time.time()
@@ -84,7 +84,7 @@ def asl_basil_analysis(
         f"--t1b={T1b} "
         f"--t1t={T1t} "
         f"--plds={pld_string} "
-        f"--tr={TR_M0} "
+        f"--tr={TR_m0} "
         f"--alpha={alpha} "
         f"--iaf=ct "
         f"--ibf=tis "

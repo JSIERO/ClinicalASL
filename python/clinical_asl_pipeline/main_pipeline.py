@@ -192,7 +192,8 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
     ###### Step 8: Brain extraction on M0 using HD-BET CLI
         subject[context]['mask'], subject[context]['nanmask'] = run_bet_mask(
                                                                 subject[context]['M0_path'],
-                                                                subject[context]['mask_path'],
+                                                                subject[context]['mask_path'], 
+                                                                device = subject['device'],
                                                                 extradata_path = subject[context]['PLDall_labelcontrol_path']
                                                                 )
     ###### Step 9: Compute T1 from M0
@@ -254,8 +255,6 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
         #                 context_data['PLDS'][0:2], 
         #                 'artoff'
         #                 )
-
-
 
     ###### Step 11: register post-ACZ ASL data to pre-ACZ ASL data using Elastix 
     asl_registration_stimulus_to_baseline(subject)
