@@ -44,21 +44,24 @@ def run_pipeline(inputdir, outputdir, inference_method=None, config_path=None):
         # Override the config's inference_method with the user-provided value
         ANALYSIS_PARAMETERS["inference_method"] = inference_method
 
-    # Setup logging (also save to output dir)
-    setup_logging(outputdir)  
-    log_pipeline_banner(TOOL_VERSION)
-    logging.info(f"ClinicalASL pipeline started.")
-    logging.info(f"Input: {inputdir}")
-    logging.info(f"Output: {outputdir}")
-    logging.info(f"Config used: {config_path}")
-    logging.info(f"Inference method: {inference_method}")  # Log the chosen method
-    config_pretty = json.dumps(ANALYSIS_PARAMETERS, indent=4)
-    logging.info("Full config.json contents:\n%s", config_pretty)
+    # Pretty print config to terminal (summary version)
+    print("\n=== Key Configuration Parameters ===")
+    print(f"{'Parameter':<20} | {'Value':<30}")
+    print("-" * 50)
+    for key, value in ANALYSIS_PARAMETERS.items():
+        if isinstance(value, (str, int, float, bool)):
+            print(f"{key:<20} | {str(value):<30}")
+        elif isinstance(value, list) and len(value) <= 4:
+            print(f"{key:<20} | {', '.join(map(str, value)):<30}")
+    print("-" * 50 + "\n")
+    
+    # Full config to log file only
+    logging.info("Full config.json contents:\n%s", 
+                json.dumps(ANALYSIS_PARAMETERS, indent=4))
 
-    # Also save a copy to outputdir
+    # Save config copy
     with open(os.path.join(outputdir, 'config_used.json'), 'w') as f:
-        f.write(config_pretty)
-    logging.info(f"Saved copy of config.json to: {os.path.join(outputdir, 'config_used.json')}")
+        json.dump(ANALYSIS_PARAMETERS, f, indent=4)
 
     # Run main pipeline
     main_pipeline.mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS)
