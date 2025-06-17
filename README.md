@@ -61,41 +61,59 @@ example `config/config_default.json`:
 ## Dependencies
 
 - Python 3.11+
-- QASL by Quantified Imaging → https://quantified-imaging.com/
-- dcm2niix → https://github.com/rordenlab/dcm2niix
-- HD-BET (brain extraction) → https://github.com/MIC-DKFZ/HD-BET
-- ANTsPy
-- See `requirements.txt`
+- [QASL](https://quantified-imaging.com/) by Quantified Imaging (license key required)
+- [dcm2niix](https://github.com/rordenlab/dcm2niix) (v1.0.20230411 or newer)
+- [HD-BET](https://github.com/MIC-DKFZ/HD-BET) (for brain extraction)
+- [ANTsPy](https://github.com/ANTsX/ANTsPy) (for image registration)
+- Additional Python packages (see `requirements.txt`)
 
 ## Installation
-Please refer to INSTALL.md for full installation instructions.
 
-Summary, install within qi conda environment:
+Complete installation instructions are available in [INSTALL.md](INSTALL.md).
+
+### Quick Start (QI Conda Environment)
 ```bash
+# Clone repositories
 git clone https://github.com/JSIERO/ClinicalASL.git
+git clone https://bitbucket.org/quantified-imaging/qasl_setup.git
+
+# Install QASL (requires license key)
+cd qasl_setup
+./qasl_setup --yes --key=<your-qasl-key>
+
+# Set up environment
 conda activate qi
-conda install -n qi -c conda-forge dcm2niix
+conda install -n qi -c conda-forge pip dcm2niix
+
+# Install HD-BET
+git clone https://github.com/MIC-DKFZ/HD-BET.git
+cd HD-BET
+pip install -e .
+
+# Install ClinicalASL requirements
+cd ../ClinicalASL/python
 pip install -r requirements.txt
-```
 
 ## Running the pipeline
 Example command line:
 
 ```bash
-python run_pipeline.py /path/to/DICOM_INPUT /path/to/OUTPUT_FOLDER --inference-methos ssvb --config config/config_default.json
+python run_pipeline.py /path/to/DICOM_INPUT /path/to/OUTPUT_FOLDER \
+    --inference-method [basil|ssvb] \
+    --config /path/to/config.json
 ```
-The pipeline will:
-Save all intermediate files to the output folder
 
-Generate:
-NIfTI images for ASL derived images: CBF, AAT, CVR, ATA
-PNG images for review
-DICOM images for PACS export
-Log file: clinicalasl.log
+##Output Structure
+The pipeline generates:
+
+- NIfTI images: CBF, AAT, CVR, ATA maps
+- Quality control PNGs: Visualizations for review
+- DICOM files: PACS-compatible outputs
+- Log file: clinicalasl.log with processing details
+- Configuration copy: config_used.json
 
 ## License
 
-BSD 3-Clause License.
-
+BSD 3-Clause License. See LICENSE for details.
 ---
 
