@@ -25,6 +25,15 @@ def run_pipeline(inputdir, outputdir, inference_method=None, config_path=None):
         # Override the config's inference_method with the user-provided value
         ANALYSIS_PARAMETERS["inference_method"] = inference_method
 
+    # Setup logging (also save to output dir)
+    setup_logging(outputdir)  
+    log_pipeline_banner(TOOL_VERSION)
+    logging.info(f"ClinicalASL pipeline started.")
+    logging.info(f"Input: {inputdir}")
+    logging.info(f"Output: {outputdir}")
+    logging.info(f"Config used: {config_path}")
+    logging.info(f"Inference method: {inference_method}")  # Log the chosen method
+
     # Pretty print config to terminal (summary version)
     print("\n=== Key Configuration Parameters ===")
     print(f"{'Parameter':<20} | {'Value':<30}")
