@@ -89,6 +89,7 @@ def asl_qasl_analysis(
         f"--ibf=tis "
         f"--casl "
         f"--cgain 1.00 "
+        f"--calib-aslreg "
         f"--readout={readout} "
         f"--save-calib "
         f"--overwrite"
