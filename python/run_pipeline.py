@@ -70,20 +70,11 @@ def run_pipeline(inputdir, outputdir, inference_method=None, config_path=None):
     logging.info(f"Config used: {config_path}")
     logging.info(f"Inference method: {inference_method}")  # Log the chosen method
 
-    # Format config for display
+    # Format config for display and logging
     formatted_config = format_config_for_display(ANALYSIS_PARAMETERS)
-    
-    # Pretty print config to terminal
-    print(f"\n{formatted_config}\n")
-    
-    # Same formatted config to log file
     logging.info(f"Configuration parameters:\n{formatted_config}")
     
-    # Full config to log file only (for completeness)
-    logging.info("Full config.json contents (raw):\n%s", 
-                json.dumps(ANALYSIS_PARAMETERS, indent=4))
-
-    # Save config copy
+    # Save config.json copy
     with open(os.path.join(outputdir, 'config_used.json'), 'w') as f:
         json.dump(ANALYSIS_PARAMETERS, f, indent=4)
 
