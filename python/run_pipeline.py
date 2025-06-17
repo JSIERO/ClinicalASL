@@ -1,22 +1,3 @@
-#!/usr/bin/env python3
-"""
-ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
-
-Main pipeline script for processing ASL MRI data.
-Repository: https://github.com/JSIERO/ClinicalASL
-
-Author: Jeroen Siero
-Institution: UMC Utrecht (University Medical Center Utrecht), The Netherlands
-Contact: j.c.w.siero@umcutrecht.nl
-
-Description:
-    This script runs the main pipeline for processing ASL data, including DICOM to NIfTI conversion,
-    parameter extraction, Look-Locker correction, data preparation, brain extraction, motion correction,
-    quantification, registration, and saving of CBF, AAT, ATA, and CVR results for a subject.
-    Results are saved as NIfTI, PNG, and DICOM files for further analysis and PACS export.
-
-License: BSD 3-Clause License
-"""
 import argparse
 import logging
 import os
@@ -70,16 +51,38 @@ def run_pipeline(inputdir, outputdir, inference_method=None, config_path=None):
     print("Pipeline finished successfully.")
 
 def main():
-    parser = argparse.ArgumentParser(description="Run Clinical ASL CVR Pipeline")
-    parser.add_argument("inputdir", type=str, help="Path to subject directory containing DICOM data")
-    parser.add_argument("outputdir", type=str, help="Path to output directory for DICOM results for PACS and IMAGER platform")
+    """Main entry point for the pipeline."""
+    parser = argparse.ArgumentParser(
+        description="Run Clinical ASL CVR Pipeline",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+    Examples:
+    python run_pipeline.py /input /output
+    python run_pipeline.py /input /output --inference-method basil
+    python run_pipeline.py /input /output --inference-method ssvb --config /path/to/config.json
+        """
+    )
+    
+    parser.add_argument("inputdir", type=str, 
+                        help="Path to subject directory containing DICOM data")
+    parser.add_argument("outputdir", type=str, 
+                        help="Path to output directory for DICOM results for PACS and IMAGER platform")
     parser.add_argument("--inference-method", type=str, default=None, 
+                        choices=["basil", "ssvb"],
                         help="Optional input to choose inference method for fitting: 'basil' or 'ssvb'. If not provided, uses the value from config.json.")
     parser.add_argument("--config", type=str, default=None,
                         help="Optional path to config.json with processing parameters")
+    parser.add_argument("--version", action="version", version=f"ClinicalASL {TOOL_VERSION}")
+    
     args = parser.parse_args()
-
-    run_pipeline(args.inputdir, args.outputdir, inference_method=args.inference_method, config_path=args.config)
+    
+    try:
+        run_pipeline(args.inputdir, args.outputdir, 
+                    inference_method=args.inference_method, 
+                    config_path=args.config)
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
