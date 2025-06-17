@@ -61,31 +61,28 @@ example `config/config_default.json`:
 ## Dependencies
 
 - Python 3.11+
-- QASL by Quantified Imaging 
+- QASL by Quantified Imaging → https://quantified-imaging.com/
 - dcm2niix → https://github.com/rordenlab/dcm2niix
-- HD-BET (brain extraction)
-- ANTsPy or external ANTs
+- HD-BET (brain extraction) → https://github.com/MIC-DKFZ/HD-BET
+- ANTsPy
 - See `requirements.txt`
 
 ## Installation
 Please refer to INSTALL.md for full installation instructions.
 
-Summary, install within qi environment:
+Summary, install within qi conda environment:
 ```bash
 git clone https://github.com/JSIERO/ClinicalASL.git
 conda activate qi
 conda install -n qi -c conda-forge dcm2niix
 pip install -r requirements.txt
 ```
-or in oneline:
-```bash
-```
 
 ## Running the pipeline
 Example command line:
 
 ```bash
-python run_pipeline.py /path/to/DICOM_INPUT /path/to/OUTPUT_FOLDER --config config/config_default.json
+python run_pipeline.py /path/to/DICOM_INPUT /path/to/OUTPUT_FOLDER --inference-methos ssvb --config config/config_default.json
 ```
 The pipeline will:
 Save all intermediate files to the output folder
