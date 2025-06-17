@@ -38,7 +38,7 @@ def load_parameters(config_path=None):
             'range_cvr': [-50, 50],
             'range_AAT': [0, 3.5],
             'range_ATA': [0, 125],
-            'inference_method': 'basil',
+            'inference_method': 'vaby',
             'ASL_CONTEXT': ['baseline', 'stimulus'],
             'context_study_tags': ['preACZ', 'postACZ']
         }

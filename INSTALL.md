@@ -53,7 +53,7 @@ cd ..
 ## ClinicalASL Installation
 ```bash
 git clone https://github.com/JSIERO/ClinicalASL.git
-cd ClinicalASL
+cd ClinicalASL/python
 pip install -r requirements.txt
 ```
 ### dcm2niix Installation
