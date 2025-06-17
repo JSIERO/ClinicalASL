@@ -52,7 +52,7 @@ example `config/config_default.json`:
     "range_cvr": [-50, 50],
     "range_AAT": [0, 3.5],
     "range_ATA": [0, 125],
-    "inference_method": "basil",
+    "inference_method": "vaby",
     "device": "cpu",
     "ASL_CONTEXT": ["baseline", "stimulus"],
     "context_study_tags": ["preACZ", "postACZ"]
@@ -99,7 +99,7 @@ Example command line:
 
 ```bash
 python run_pipeline.py /path/to/DICOM_INPUT /path/to/OUTPUT_FOLDER \
-    --inference-method [basil|ssvb] \
+    --inference-method [vaby|ssvb] \
     --config /path/to/config.json
 ```
 

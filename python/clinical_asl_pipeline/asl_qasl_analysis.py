@@ -28,7 +28,7 @@ def asl_qasl_analysis(
     location_mask,
     output_map,
     pld_list,
-    inference_method='ssvb', # or basil, for BASIL method output
+    inference_method='ssvb', # or vaby, for BASIL-like output
     artoff=None,
 ):
     # Perform QASL analysis on ASL data using the Oxford ASL toolbox.
@@ -45,7 +45,7 @@ def asl_qasl_analysis(
     # location_mask: path to brain mask NIfTI file
     # output_map: output directory for QASL results
     # pld_list: list of post-labeling delays (PLDs) in seconds
-    # inference_method: inference method for QASL ('ssvb' or 'basil')
+    # inference_method: inference method for QASL ('ssvb' or 'vaby')
     # artoff: optional, set to 'artoff' to disable arterial component modeling
     #
     # This function builds and runs a command-line call to the QASL tool,
