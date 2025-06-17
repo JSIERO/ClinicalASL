@@ -1,3 +1,23 @@
+#!/usr/bin/env python3
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+
+Main pipeline script for processing ASL MRI data.
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMC Utrecht (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    This script runs the main pipeline for processing ASL data, including DICOM to NIfTI conversion,
+    parameter extraction, Look-Locker correction, data preparation, brain extraction, motion correction,
+    quantification, registration, and saving of CBF, AAT, ATA, and CVR results for a subject.
+    Results are saved as NIfTI, PNG, and DICOM files for further analysis and PACS export.
+
+License: BSD 3-Clause License
+"""
+
 import argparse
 import logging
 import os
@@ -7,6 +27,22 @@ from clinical_asl_pipeline.utils.load_parameters import load_parameters
 from clinical_asl_pipeline.utils.setup_logging import setup_logging
 from clinical_asl_pipeline.__version__ import __version__ as TOOL_VERSION
 from clinical_asl_pipeline.utils.banner import log_pipeline_banner
+
+def format_config_for_display(config_dict):
+    """Format configuration parameters in a readable table format."""
+    lines = []
+    lines.append("=== Key Configuration Parameters ===")
+    lines.append(f"{'Parameter':<20} | {'Value':<30}")
+    lines.append("-" * 50)
+    
+    for key, value in config_dict.items():
+        if isinstance(value, (str, int, float, bool)):
+            lines.append(f"{key:<20} | {str(value):<30}")
+        elif isinstance(value, list) and len(value) <= 4:
+            lines.append(f"{key:<20} | {', '.join(map(str, value)):<30}")
+    
+    lines.append("-" * 50)
+    return "\n".join(lines)
 
 def run_pipeline(inputdir, outputdir, inference_method=None, config_path=None):
     print(f"Running pipeline for subject in: {inputdir}")
@@ -34,19 +70,17 @@ def run_pipeline(inputdir, outputdir, inference_method=None, config_path=None):
     logging.info(f"Config used: {config_path}")
     logging.info(f"Inference method: {inference_method}")  # Log the chosen method
 
-    # Pretty print config to terminal (summary version)
-    print("\n=== Key Configuration Parameters ===")
-    print(f"{'Parameter':<20} | {'Value':<30}")
-    print("-" * 50)
-    for key, value in ANALYSIS_PARAMETERS.items():
-        if isinstance(value, (str, int, float, bool)):
-            print(f"{key:<20} | {str(value):<30}")
-        elif isinstance(value, list) and len(value) <= 4:
-            print(f"{key:<20} | {', '.join(map(str, value)):<30}")
-    print("-" * 50 + "\n")
+    # Format config for display
+    formatted_config = format_config_for_display(ANALYSIS_PARAMETERS)
     
-    # Full config to log file only
-    logging.info("Full config.json contents:\n%s", 
+    # Pretty print config to terminal
+    print(f"\n{formatted_config}\n")
+    
+    # Same formatted config to log file
+    logging.info(f"Configuration parameters:\n{formatted_config}")
+    
+    # Full config to log file only (for completeness)
+    logging.info("Full config.json contents (raw):\n%s", 
                 json.dumps(ANALYSIS_PARAMETERS, indent=4))
 
     # Save config copy
