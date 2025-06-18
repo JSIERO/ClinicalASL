@@ -44,11 +44,19 @@ def asl_save_results_cbfaatcvr(subject):
     # === Compute CVR ===
     subject['CVR'] = subject['stimulus']['CBF_2baseline'] - subject['baseline']['CBF']
 
-    # === Apply smoothing ===
+    # === Apply smoothing, use nanmask to preserve outside brain edges ===
     subject['CVR_smth'] = asl_smooth_image(subject['CVR'] * subject['nanmask_combined'], 2, subject['FWHM'], subject['baseline']['VOXELSIZE'])
-    subject['baseline']['AAT_smth'] = asl_smooth_image(subject['baseline']['AAT'] * subject['baseline']['nanmask'], 2, subject['FWHM'], subject['stimulus']['VOXELSIZE'])
-    subject['stimulus']['AAT_smth'] = asl_smooth_image(subject['stimulus']['AAT'] * subject['stimulus']['nanmask'], 2, subject['FWHM'], subject['stimulus']['VOXELSIZE'])
-    subject['stimulus']['AAT_2baseline_smth'] = asl_smooth_image(subject['stimulus']['AAT_2baseline'] * subject['stimulus']['nanmask_2baseline'], 2, subject['FWHM'], subject['stimulus']['VOXELSIZE'])
+
+    # do not smooth AAT when using QASL SSVB (inherently does spatial smoothing)
+    if subject['inference_method'] == 'ssvb':  
+        subject['baseline']['AAT_smth'] = subject['baseline']['AAT'] 
+        subject['stimulus']['AAT_smth'] = subject['stimulus']['AAT']
+        subject['stimulus']['AAT_2baseline_smth'] = subject['stimulus']['AAT_2baseline']
+    # do smooth AAT when using QASL VABY or BASIl 
+    else:
+        subject['baseline']['AAT_smth'] = asl_smooth_image(subject['baseline']['AAT'] * subject['baseline']['nanmask'], 2, subject['FWHM'], subject['stimulus']['VOXELSIZE'])
+        subject['stimulus']['AAT_smth'] = asl_smooth_image(subject['stimulus']['AAT'] * subject['stimulus']['nanmask'], 2, subject['FWHM'], subject['stimulus']['VOXELSIZE'])
+        subject['stimulus']['AAT_2baseline_smth'] = asl_smooth_image(subject['stimulus']['AAT_2baseline'] * subject['stimulus']['nanmask_2baseline'], 2, subject['FWHM'], subject['stimulus']['VOXELSIZE'])   
 
     # === Define output lists ===
     fields_main = [
@@ -102,7 +110,7 @@ def asl_save_results_cbfaatcvr(subject):
             if data is not None:
                 png_name = f'{context_study_tag}_{label}'  # Use clinical tag in filename
                 save_figure_to_png(data, subject['nanmask_combined'], subject[range_key],
-                                   subject['RESULTSdir'], png_name, label, cmap)
+                                    subject['RESULTSdir'], png_name, label, cmap)
                 logging.info(f"Saved PNG: {png_name}.png")
 
     # === Execute saves ===
