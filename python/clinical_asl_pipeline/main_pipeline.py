@@ -181,9 +181,6 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
     ###### Step 7: Motion correction and Split/control-label, save to NIFTI
         subject = asl_prepare_asl_data(subject, subject[context]['sourceNIFTI_path'], context_tag=context, motion_correction=True)
 
-    ###### Step 8: Outlier timepoint rejection: 2.5 x std + mean CBF (deltaM) 
-        subject = asl_outlier_removal(subject), 
-
     ###### Step 8: Brain extraction on M0 using HD-BET CLI
         subject[context]['mask'], subject[context]['nanmask'] = run_bet_mask(
                                                                 subject[context]['M0_path'],
@@ -191,6 +188,10 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
                                                                 device = subject['device'],
                                                                 extradata_path = subject[context]['PLDall_labelcontrol_path']
                                                                 )
+        
+    ###### Step 8: Outlier timepoint rejection: 2.5 x std + mean CBF (deltaM) 
+       # subject = asl_outlier_removal(subject, usermask=None, context_tag=context, outlierFactor=2.5)
+
     ###### Step 9: Compute T1 from M0
         subject = asl_t1_from_m0(subject, context_tag=context)
 
