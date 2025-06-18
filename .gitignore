@@ -63,6 +63,6 @@ Thumbs.db
 # Local data / outputs (if you have output folders that should not go to git)
 # Example:
 # test scripts:
-run_for_Vstudio_testing_pipeline.py
+python/run_for_Vstudio_testing_pipeline.py
 # outputs/
 # results/
