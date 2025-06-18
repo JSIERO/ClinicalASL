@@ -40,7 +40,7 @@ def asl_outlier_removal(subject, context_tag, usermask=None):
     
     context_data = subject[context_tag]
 
-    deltaM4D = context_data['ASL_label1label2_allPLD']
+    deltaM4D = context_data['ASL_controllabel_allPLD']
     outlier_factor = subject[context_tag]['outlier_factor']
 
     # Load brainmask

@@ -50,7 +50,7 @@ def asl_prepare_asl_data(subject, filename, context_tag, motion_correction=True)
     dims = data.shape
 
     context_data['M0ASL_allPLD'] = np.zeros((dims[0], dims[1], dims[2], context_data['NDYNS'], context_data['NPLDS'], 2))
-    context_data['ASL_label1label2_allPLD'] = np.zeros((dims[0], dims[1], dims[2], context_data['NREPEATS'] * 2, context_data['NPLDS']))
+    context_data['ASL_controllabel_allPLD'] = np.zeros((dims[0], dims[1], dims[2], context_data['NREPEATS'] * 2, context_data['NPLDS']))
 
     # Split label/control, apply Look Locker correction
     for i in range(context_data['NPLDS']):
@@ -70,46 +70,46 @@ def asl_prepare_asl_data(subject, filename, context_tag, motion_correction=True)
     # Interleave control/label, save per-PLD
     for i in range(context_data['NPLDS']):
         interleaved = asl_interleave_control_label(np.squeeze(context_data['M0ASL_allPLD'][:, :, :, 1:, i, 0]), np.squeeze(context_data['M0ASL_allPLD'][:, :, :, 1:, i, 1]))
-        context_data['ASL_label1label2_allPLD'][:, :, :, :, i] = interleaved
+        context_data['ASL_controllabel_allPLD'][:, :, :, :, i] = interleaved
 
     # Swap axes to interleave PLDs and time correctly
-    reordered = np.transpose(context_data['ASL_label1label2_allPLD'], (0, 1, 2, 4, 3))  # (x, y, z, PLD, time)
+    reordered = np.transpose(context_data['ASL_controllabel_allPLD'], (0, 1, 2, 4, 3))  # (x, y, z, PLD, time)
     # Now reshape so time dimension becomes interleaved PLDs
     PLDall = reordered.reshape(dims[0], dims[1], dims[2], context_data['NPLDS'] * context_data['NREPEATS'] * 2)
-    save_data_nifti(PLDall, context_data['PLDall_labelcontrol_path'], context_data['templateNII_path'], 1, None, context_data['TR'])
+    save_data_nifti(PLDall, context_data['PLDall_controllabel_path'], context_data['templateNII_path'], 1, None, context_data['TR'])
 
     number_volumes_per_pld = context_data['NREPEATS'] * 2 # volume is a control or label image
 
     if motion_correction==True:
             # perform motion correction routine
-            asl_motioncorrection_ants(context_data['PLDall_labelcontrol_path'], context_data['M0_path'], append_mc(context_data['PLDall_labelcontrol_path']))
+            asl_motioncorrection_ants(context_data['PLDall_controllabel_path'], context_data['M0_path'], append_mc(context_data['PLDall_controllabel_path']))
             
             logging.info("Saving ASL motion-corrected data interleaved label control: all PLDs for AAT")
-            PLDall_motioncorrected = nib.load(append_mc(context_data['PLDall_labelcontrol_path'])).get_fdata()
-            context_data['PLDall_labelcontrol_path'] = append_mc(context_data['PLDall_labelcontrol_path']) # update path to motion corrected data
+            PLDall_motioncorrected = nib.load(append_mc(context_data['PLDall_controllabel_path'])).get_fdata()
+            context_data['PLDall_controllabel_path'] = append_mc(context_data['PLDall_controllabel_path']) # update path to motion corrected data
 
             logging.info("Saving ASL motion-corrected data interleaved label control: 2-to-last PLDs for CBF")
             PLD2tolast = PLDall_motioncorrected[:, :, :, number_volumes_per_pld: ]
-            save_data_nifti(PLD2tolast, append_mc(context_data['PLD2tolast_labelcontrol_path']), context_data['templateNII_path'], 1, None, context_data['TR'])
-            context_data['PLD2tolast_labelcontrol_path'] =  append_mc(context_data['PLD2tolast_labelcontrol_path']) # update path to motion corrected data
+            save_data_nifti(PLD2tolast, append_mc(context_data['PLD2tolast_controllabel_path']), context_data['templateNII_path'], 1, None, context_data['TR'])
+            context_data['PLD2tolast_controllabel_path'] =  append_mc(context_data['PLD2tolast_controllabel_path']) # update path to motion corrected data
 
             logging.info("Saving ASL motion-corrected data interleaved label control: 1-to-2 PLDs for ATA")
             PLD1to2 = PLDall_motioncorrected[:, :, :, 0:number_volumes_per_pld*2]
-            save_data_nifti(PLD1to2, append_mc(context_data['PLD1to2_labelcontrol_path']), context_data['templateNII_path'], 1, None, context_data['TR'])
-            context_data['PLD1to2_labelcontrol_path'] =  append_mc(context_data['PLD1to2_labelcontrol_path']) # update path to motion corrected data
+            save_data_nifti(PLD1to2, append_mc(context_data['PLD1to2_controllabel_path']), context_data['templateNII_path'], 1, None, context_data['TR'])
+            context_data['PLD1to2_controllabel_path'] =  append_mc(context_data['PLD1to2_controllabel_path']) # update path to motion corrected data
     elif motion_correction==False:
             logging.info("Saving ASL data interleaved label control: all PLDs for AAT")
-            PLDall_motioncorrected = nib.load(append_mc(context_data['PLDall_labelcontrol_path'])).get_fdata()
-            context_data['PLDall_labelcontrol_path'] = append_mc(context_data['PLDall_labelcontrol_path']) # update path to motion corrected data
+            PLDall_motioncorrected = nib.load(append_mc(context_data['PLDall_controllabel_path'])).get_fdata()
+            context_data['PLDall_controllabel_path'] = append_mc(context_data['PLDall_controllabel_path']) # update path to motion corrected data
 
             logging.info("Saving ASL data interleaved label control: 2-to-last PLDs for CBF")
             PLD2tolast = PLDall_motioncorrected[:, :, :, number_volumes_per_pld: ]
-            save_data_nifti(PLD2tolast, append_mc(context_data['PLD2tolast_labelcontrol_path']), context_data['templateNII_path'], 1, None, context_data['TR'])
-            context_data['PLD2tolast_labelcontrol_path'] =  append_mc(context_data['PLD2tolast_labelcontrol_path']) # update path to motion corrected data
+            save_data_nifti(PLD2tolast, append_mc(context_data['PLD2tolast_controllabel_path']), context_data['templateNII_path'], 1, None, context_data['TR'])
+            context_data['PLD2tolast_controllabel_path'] =  append_mc(context_data['PLD2tolast_controllabel_path']) # update path to motion corrected data
 
             logging.info("Saving ASL data interleaved label control: 1-to-2 PLDs for ATA")
             PLD1to2 = PLDall_motioncorrected[:, :, :, 0:number_volumes_per_pld*2]
-            save_data_nifti(PLD1to2, append_mc(context_data['PLD1to2_labelcontrol_path']), context_data['templateNII_path'], 1, None, context_data['TR'])
-            context_data['PLD1to2_labelcontrol_path'] =  append_mc(context_data['PLD1to2_labelcontrol_path']) # update path to motion corrected data 
+            save_data_nifti(PLD1to2, append_mc(context_data['PLD1to2_controllabel_path']), context_data['templateNII_path'], 1, None, context_data['TR'])
+            context_data['PLD1to2_controllabel_path'] =  append_mc(context_data['PLD1to2_controllabel_path']) # update path to motion corrected data 
             
     return subject

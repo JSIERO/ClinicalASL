@@ -23,7 +23,7 @@ from clinical_asl_pipeline.utils.run_command_with_logging import run_command_wit
 def asl_qasl_analysis(
     subject,
     ANALYSIS_PARAMETERS, 
-    location_asl_labelcontrol_pld_nifti,
+    location_asl_controllabel_pld_nifti,
     location_m0,
     location_mask,
     output_map,
@@ -40,7 +40,7 @@ def asl_qasl_analysis(
     #   - 'TR_M0': list or tuple, first element is TR for M0 scan
     #   - 'alpha': labeling efficiency
     #   - 'slicetime': slice timing in milliseconds
-    # location_asl_labelcontrol_pld_nifti: path to ASL label/control NIfTI file
+    # location_asl_controllabel_pld_nifti: path to ASL label/control NIfTI file
     # location_m0: path to M0 NIfTI file
     # location_mask: path to brain mask NIfTI file
     # output_map: output directory for QASL results
@@ -71,7 +71,7 @@ def asl_qasl_analysis(
 
     # Build qasl command
     cmd = (
-        f"qasl -i {location_asl_labelcontrol_pld_nifti} "
+        f"qasl -i {location_asl_controllabel_pld_nifti} "
         f"-c {location_m0} "
         f"-m {location_mask} "
         f"-o {output_map} "
