@@ -90,8 +90,12 @@ def asl_t1_from_m0_compute(DATA4D, MASK, TIMEARRAY):
     with np.errstate(divide='ignore', invalid='ignore'):
         data_T1fit_brain = (-1 / data_R1fit) * MASK * 1e3
         data_T1fit_brain[~np.isfinite(data_T1fit_brain)] = 0  # Clean NaNs and Infs
-
-    valid_range_mask = (data_T1fit_brain > 0) & (data_T1fit_brain <= 300)
+        data_T1fit_brain = abs(data_T1fit_brain) # take magnitude of the data so to avoid negative values
+    
+    data_T1fit_brain_1D = data_T1fit_brain.flatten()[brain_voxels]
+    THRESHOLDMASK_FACTOR = np.median(data_T1fit_brain_1D) + 2 * np.std(data_T1fit_brain_1D) # take median + 2 x std as threshold to remove extremely high values
+    
+    valid_range_mask = (data_T1fit_brain > 0) & (data_T1fit_brain <= THRESHOLDMASK_FACTOR)
     T1fromM0 = data_T1fit_brain * valid_range_mask
     T1fromM0[np.isnan(T1fromM0)] = 0
 

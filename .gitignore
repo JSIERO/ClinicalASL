@@ -1,5 +1,8 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+clinical_asl_pipeline/__pycache__/
+clinical_asl_pipeline/utils/__pycache__/
+
 *.py[cod]
 *$py.class
 
