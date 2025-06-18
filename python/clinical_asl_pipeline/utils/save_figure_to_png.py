@@ -117,15 +117,16 @@ def save_figure_to_png(data, mask, datarange, outputloc, suffix, label, colormap
 
     # Prepare figure
     h_px, w_px = rgb_img.shape[:2]
-    dpi = 100  # or 150 if you want sharper output
-    fig = plt.figure(figsize=(w_px / dpi, h_px / dpi), dpi=dpi)
+    dpi = 150  # or 150 if you want sharper output
+    scale = 4  # 4x larger
+    fig = plt.figure(figsize=(w_px * scale / dpi, h_px * scale / dpi), dpi=dpi)
     ax = fig.add_axes([0, 0.1, 1, 0.9])
     ax.imshow(rgb_img)
     ax.axis('off')
     fig.patch.set_facecolor('black')
 
     # Colorbar
-    cbar_ax = fig.add_axes([0.2, 0.03, 0.6, 0.03])
+    cbar_ax = fig.add_axes([0.2, 0.06, 0.6, 0.03])
     norm = plt.Normalize(datarange[0], datarange[1])
     cbar = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), cax=cbar_ax, orientation='horizontal')
 
