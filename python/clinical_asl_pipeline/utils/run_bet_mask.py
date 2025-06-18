@@ -75,8 +75,9 @@ def run_bet_mask(inputdata_path, mask_output_path, device='cpu', extradata_path=
     mask = nib.load(mask_bet_path).get_fdata()
     mask = mask > 0  # Ensure binary mask
 
-    # Dilate mask 2 voxels: using 3D and no-conservative mode for a nice mask
-    mask_dil = dilate_mask(mask, '3D', iterations=2, conservative=False)
+    # Dilate mask 1 voxels: using 3D and conservative mode for a tight mask
+    mask_dil = dilate_mask(mask, '3D', iterations=1, conservative=True)
+
     nanmask = np.where(mask_dil, 1.0, np.nan)
 
     # Save final dilated mask
