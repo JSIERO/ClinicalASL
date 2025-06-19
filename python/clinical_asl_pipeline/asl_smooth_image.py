@@ -127,7 +127,7 @@ def asl_smooth_image(data, spatialdim, FWHM, voxelsize):
             imageFilter = fspecial3_gaussian(filtWidth, filtSigma)
             data_smooth = nanconvn(data, imageFilter, 'nanout')
         else:
-            logging.inof(f"Smoothing 3D: FWHM(mm) = {FWHM}")
+            logging.info(f"Smoothing 3D: FWHM(mm) = {FWHM}")
             data_smooth = gaussian_filter(data, sigma=sigma / np.array(voxelsize), mode='reflect')
 
     output = data_smooth.astype(float)
