@@ -47,6 +47,7 @@ cd ..
 ```bash
 git clone https://github.com/MIC-DKFZ/HD-BET.git
 cd HD-BET
+git checkout v2.0.1 
 pip install -e .
 cd ..
 ```
@@ -58,7 +59,7 @@ pip install -r requirements.txt
 ```
 ### dcm2niix Installation
 ```bash
-conda install -n qi -c conda-forge dcm2niix -y
+conda install -n qi -c conda-forge dcm2niix=1.0.20220720 -y
 ```
 ## Verification
 ```bash
