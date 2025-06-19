@@ -38,47 +38,54 @@ def asl_prepare_asl_data(subject, filename, context_tag, motion_correction=True)
     # Use a shorter alias for subject[context_tag]
     context_data = subject[context_tag]
 
-    # Load data
+    # Load source multidelay ASL data: dims [x, y, z, timepoints = control/label 2 x NPLDS x NDYNS], in this order
     data_path = os.path.join(subject['NIFTIdir'], filename)
 
     # remove scaling, as nibabel nib.load consumes the slope and intercept automatically
-    data = nib.load(data_path).get_fdata()/nib.load(data_path).dataobj.slope 
+    M0ASL_allPLD = nib.load(data_path).get_fdata()/nib.load(data_path).dataobj.slope 
+    dims = M0ASL_allPLD.shape
+
+    # multidelay LookLocker ASL data, M0ASL_allPLD
+    NREPEATS = context_data['NREPEATS'] # excluding the M0 (first volume)
+    NDYNS = context_data['NDYNS']
+    NPLDS = context_data['NPLDS']
     
-    # Log NIFTI template path  
-    logging.info(f"Template NIFTI path: {context_data['templateNII_path']}")
-    
-    dims = data.shape
+    # M0ASL_allPLD is 6D numpy array (x, y, z,  NDYNS, NPLDS, control/label) -> to compute deltaM for outlier removal
+    context_data['M0ASL_allPLD'] = np.zeros((dims[0], dims[1], dims[2], NDYNS, NPLDS, 2))
+    # ASL_controllabel_allPLD is 5D numpy array (x, y, z,  NREPEATS x 2, NPLDS) with interleaved control label volumes -> fed to QASL analysis
+    context_data['ASL_controllabel_allPLD'] = np.zeros((dims[0], dims[1], dims[2], NREPEATS * 2, NPLDS))
 
-    context_data['M0ASL_allPLD'] = np.zeros((dims[0], dims[1], dims[2], context_data['NDYNS'], context_data['NPLDS'], 2))
-    context_data['ASL_controllabel_allPLD'] = np.zeros((dims[0], dims[1], dims[2], context_data['NREPEATS'] * 2, context_data['NPLDS']))
-
-    # Split label/control, apply Look Locker correction
-    for i in range(context_data['NPLDS']):
-        idx_label = slice(i, context_data['NPLDS'] * context_data['NDYNS'] * 2, 2 * context_data['NPLDS'])
-        idx_control = slice(i + context_data['NPLDS'], context_data['NPLDS'] * context_data['NDYNS'] * 2, 2 * context_data['NPLDS'])
-
-        context_data['M0ASL_allPLD'][:, :, :, :context_data['NDYNS'], i, 0] = data[:, :, :, idx_label] / context_data['LookLocker_correction_factor_perPLD'][i]
-        context_data['M0ASL_allPLD'][:, :, :, :context_data['NDYNS'], i, 1] = data[:, :, :, idx_control] / context_data['LookLocker_correction_factor_perPLD'][i]
+    # Split control/label, store in array, apply Look Locker correction
+    for i in range(NPLDS):
+        # slice object to index array, to extract control and label volumes sorted per PLD and DYNAMIC
+        idx_control = slice(i, NPLDS * NDYNS * 2, 2 * NPLDS)
+        idx_label = slice(i + NPLDS, NPLDS * NDYNS * 2, 2 * NPLDS)
+        #  extract control and label volumes sorted and store in M0ASL_allPLD [x, y , z, NDYNS, NPLDS, control/label], apply Look Locker correction for each PLD
+        context_data['M0ASL_allPLD'][:, :, :, :NDYNS, i, 0] = M0ASL_allPLD[:, :, :, idx_control] / context_data['LookLocker_correction_factor_perPLD'][i]
+        context_data['M0ASL_allPLD'][:, :, :, :NDYNS, i, 1] = M0ASL_allPLD[:, :, :, idx_label] / context_data['LookLocker_correction_factor_perPLD'][i]
 
     # M0 image construction
     context_data['M0_allPLD'] = np.mean(context_data['M0ASL_allPLD'][:, :, :, 0, :, :], axis=4)
     context_data['M0'] = context_data['M0_allPLD'][:, :, :, 0] # take M0 from first PLD as calibration M0 for quantification
 
+    # Log NIFTI template path  
+    logging.info(f"Template NIFTI path: {context_data['templateNII_path']}")
     logging.info("Saving M0 image")
+
     save_data_nifti(context_data['M0'], context_data['M0_path'] , context_data['templateNII_path'], 1, None, context_data['TR'])
 
     # Interleave control/label, save per-PLD
-    for i in range(context_data['NPLDS']):
+    # resulting ASL_controllabel_allPLD is 5D numpy array (x, y, z,  NREPEATS x 2, NPLDS) with interleaved control label volumes -> QASL analysis
+    for i in range(NPLDS):
         interleaved = asl_interleave_control_label(np.squeeze(context_data['M0ASL_allPLD'][:, :, :, 1:, i, 0]), np.squeeze(context_data['M0ASL_allPLD'][:, :, :, 1:, i, 1]))
-        context_data['ASL_controllabel_allPLD'][:, :, :, :, i] = interleaved
+        context_data['ASL_controllabel_allPLD'][:, :, :, :, i] = interleaved # 4D numpy array (x, y, z,  NREPEATS *2 ) with interleaved control label volumes
 
     # Swap axes to interleave PLDs and time correctly
     reordered = np.transpose(context_data['ASL_controllabel_allPLD'], (0, 1, 2, 4, 3))  # (x, y, z, PLD, time)
     # Now reshape so time dimension becomes interleaved PLDs
-    PLDall = reordered.reshape(dims[0], dims[1], dims[2], context_data['NPLDS'] * context_data['NREPEATS'] * 2)
+    PLDall = reordered.reshape(dims[0], dims[1], dims[2], NPLDS * NREPEATS * 2)
     save_data_nifti(PLDall, context_data['PLDall_controllabel_path'], context_data['templateNII_path'], 1, None, context_data['TR'])
 
-    number_volumes_per_pld = context_data['NREPEATS'] * 2 # volume is a control or label image
 
     if motion_correction==True:
             # perform motion correction routine
@@ -89,12 +96,12 @@ def asl_prepare_asl_data(subject, filename, context_tag, motion_correction=True)
             context_data['PLDall_controllabel_path'] = append_mc(context_data['PLDall_controllabel_path']) # update path to motion corrected data
 
             logging.info("Saving ASL motion-corrected data interleaved label control: 2-to-last PLDs for CBF")
-            PLD2tolast = PLDall_motioncorrected[:, :, :, number_volumes_per_pld: ]
+            PLD2tolast = PLDall_motioncorrected[:, :, :, NREPEATS*2: ]
             save_data_nifti(PLD2tolast, append_mc(context_data['PLD2tolast_controllabel_path']), context_data['templateNII_path'], 1, None, context_data['TR'])
             context_data['PLD2tolast_controllabel_path'] =  append_mc(context_data['PLD2tolast_controllabel_path']) # update path to motion corrected data
 
             logging.info("Saving ASL motion-corrected data interleaved label control: 1-to-2 PLDs for ATA")
-            PLD1to2 = PLDall_motioncorrected[:, :, :, 0:number_volumes_per_pld*2]
+            PLD1to2 = PLDall_motioncorrected[:, :, :, 0:NREPEATS*2*2]
             save_data_nifti(PLD1to2, append_mc(context_data['PLD1to2_controllabel_path']), context_data['templateNII_path'], 1, None, context_data['TR'])
             context_data['PLD1to2_controllabel_path'] =  append_mc(context_data['PLD1to2_controllabel_path']) # update path to motion corrected data
     elif motion_correction==False:
@@ -103,12 +110,12 @@ def asl_prepare_asl_data(subject, filename, context_tag, motion_correction=True)
             context_data['PLDall_controllabel_path'] = append_mc(context_data['PLDall_controllabel_path']) # update path to motion corrected data
 
             logging.info("Saving ASL data interleaved label control: 2-to-last PLDs for CBF")
-            PLD2tolast = PLDall_motioncorrected[:, :, :, number_volumes_per_pld: ]
+            PLD2tolast = PLDall_motioncorrected[:, :, :, NREPEATS*2: ]
             save_data_nifti(PLD2tolast, append_mc(context_data['PLD2tolast_controllabel_path']), context_data['templateNII_path'], 1, None, context_data['TR'])
             context_data['PLD2tolast_controllabel_path'] =  append_mc(context_data['PLD2tolast_controllabel_path']) # update path to motion corrected data
 
             logging.info("Saving ASL data interleaved label control: 1-to-2 PLDs for ATA")
-            PLD1to2 = PLDall_motioncorrected[:, :, :, 0:number_volumes_per_pld*2]
+            PLD1to2 = PLDall_motioncorrected[:, :, :, 0:NREPEATS*2*2]
             save_data_nifti(PLD1to2, append_mc(context_data['PLD1to2_controllabel_path']), context_data['templateNII_path'], 1, None, context_data['TR'])
             context_data['PLD1to2_controllabel_path'] =  append_mc(context_data['PLD1to2_controllabel_path']) # update path to motion corrected data 
             

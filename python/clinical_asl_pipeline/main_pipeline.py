@@ -24,6 +24,7 @@ from clinical_asl_pipeline.asl_convert_dicom_to_nifti import asl_convert_dicom_t
 from clinical_asl_pipeline.asl_extract_params_dicom import asl_extract_params_dicom
 from clinical_asl_pipeline.asl_look_locker_correction import asl_look_locker_correction
 from clinical_asl_pipeline.asl_prepare_asl_data import asl_prepare_asl_data
+from clinical_asl_pipeline.asl_outlier_removal import asl_outlier_removal
 from clinical_asl_pipeline.asl_t1_from_m0 import asl_t1_from_m0
 from clinical_asl_pipeline.asl_qasl_analysis import asl_qasl_analysis
 from clinical_asl_pipeline.asl_registration_stimulus_to_baseline import asl_registration_stimulus_to_baseline
@@ -182,15 +183,10 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
         subject = asl_prepare_asl_data(subject, subject[context]['sourceNIFTI_path'], context_tag=context, motion_correction=True)
 
     ###### Step 8: Brain extraction on M0 using HD-BET CLI
-        subject[context]['mask'], subject[context]['nanmask'] = run_bet_mask(
-                                                                subject[context]['M0_path'],
-                                                                subject[context]['mask_path'], 
-                                                                device = subject['device'],
-                                                                extradata_path = subject[context]['PLDall_controllabel_path']
-                                                                )
+        subject[context]['mask'], subject[context]['nanmask'] = run_bet_mask(subject[context]['M0_path'], subject[context]['mask_path'], device = subject['device'], extradata_path = subject[context]['PLDall_controllabel_path'])
         
     ###### Step 8: Outlier timepoint rejection: 2.5 x std + mean CBF (deltaM) 
-       # subject = asl_outlier_removal(subject, usermask=None, context_tag=context, outlierFactor=2.5)
+        subject = asl_outlier_removal(subject, context_tag=context, usermask=None)
 
     ###### Step 9: Compute T1 from M0
         subject = asl_t1_from_m0(subject, context_tag=context)
