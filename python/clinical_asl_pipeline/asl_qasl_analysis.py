@@ -85,7 +85,7 @@ def asl_qasl_analysis(
         f"--plds={pld_string} "
         f"--tr={TR_m0} "
         f"--alpha={alpha} "
-        f"--iaf=ct "
+        f"--iaf=tc "
         f"--ibf=tis "
         f"--casl "
         f"--cgain 1.00 "
