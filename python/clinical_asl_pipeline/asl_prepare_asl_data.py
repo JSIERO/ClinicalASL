@@ -48,10 +48,9 @@ def asl_prepare_asl_data(subject, filename, context_tag):
     NPLDS = context_data['NPLDS']
     
     # M0ASL_allPLD is 6D numpy array (x, y, z,  NDYNS, NPLDS, control/label) -> to compute deltaM for outlier removal
-    context_data['M0ASL_allPLD'] = np.zeros((M0ASL_allPLD_shape[0], M0ASL_allPLD_shape[1], M0ASL_allPLD_shape[2], NDYNS, NPLDS, 2))
+    context_data['M0ASL_allPLD'] = np.zeros((*M0ASL_allPLD_shape[:3], NDYNS, NPLDS, 2))
     # ASL_controllabel_allPLD is 5D numpy array (x, y, z,  NREPEATS x 2, NPLDS) with interleaved control label volumes -> fed to QASL analysis
-    context_data['ASL_controllabel_allPLD'] = np.zeros((M0ASL_allPLD_shape[0], M0ASL_allPLD_shape[1], M0ASL_allPLD_shape[2], NREPEATS * 2, NPLDS))
-
+    context_data['ASL_controllabel_allPLD'] = np.zeros((*M0ASL_allPLD_shape[:3], NREPEATS * 2, NPLDS))
     # Split control/label, store in array, apply Look Locker correction
     for i in range(NPLDS):
         # slice object to index array, to extract control and label volumes sorted per PLD and DYNAMIC
@@ -80,13 +79,13 @@ def asl_prepare_asl_data(subject, filename, context_tag):
     # Swap axes to interleave PLDs and time correctly
     reordered = np.transpose(context_data['ASL_controllabel_allPLD'], (0, 1, 2, 4, 3))  # (x, y, z, PLD, time)
     # Now reshape so time dimension becomes interleaved PLDs
-    PLDall_shape = PLDall.shape
-    PLDall = reordered.reshape(PLDall_shape[0], PLDall_shape[1], PLDall_shape[2], NPLDS * NREPEATS * 2)
+    reordered_shape = reordered.shape    
+    PLDall = reordered.reshape(*reordered_shape[:3], NPLDS * NREPEATS * 2)
     PLD2tolast = PLDall[:, :, :, NREPEATS*2: ]
     PLD1to2 = PLDall[:, :, :, 0:NREPEATS*2*2]
 
     # Save data to nifti
-    logging.info("Saving ASL motion-corrected data interleaved label control: all PLDs for AAT")
+    logging.info("Saving ASL data interleaved label control: all PLDs for AAT")
     save_data_nifti(PLDall, context_data['PLDall_controllabel_path'], context_data['templateNII_path'], 1, None, context_data['TR'])
     
     logging.info("Saving ASL data interleaved label control: 2-to-last PLDs for CBF")

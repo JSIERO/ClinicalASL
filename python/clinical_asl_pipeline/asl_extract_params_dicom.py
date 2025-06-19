@@ -59,6 +59,7 @@ def asl_extract_params_dicom(subject, filename, context_tag):
 
     ndyns = int(private_seq[0].get((0x0020, 0x0105)).value)  # Number of Temporal Positions
     logging.info(f"NDYNS (Number of Dynamics): {ndyns}")
+    logging.info(f"NREPEATS (Number of ASL repeats, ie exlduing the M0 at the 1st dynamic): {ndyns - 1}")
 
     # Extract values
     voxel_spacing_xy = private_seq[0].PixelSpacing  # MultiValue of two elements

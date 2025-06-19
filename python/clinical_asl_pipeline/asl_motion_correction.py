@@ -47,7 +47,8 @@ def asl_motion_correction(subject, context_tag):
     logging.info("Saving ASL motion-corrected data interleaved label control: 1-to-2 PLDs for ATA")
     save_data_nifti(PLD1to2, append_mc(context_data['PLD1to2_controllabel_path']), context_data['templateNII_path'], 1, None, context_data['TR'])
     context_data['PLD1to2_controllabel_path'] =  append_mc(context_data['PLD1to2_controllabel_path']) # update path to motion corrected data
-
+    
+    return subject
 
 def asl_motioncorrection_ants(inputdata, refdata, outputdata):
     # Perform motion correction using ANTs

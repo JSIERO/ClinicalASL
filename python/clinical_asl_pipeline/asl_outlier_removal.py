@@ -38,17 +38,17 @@ def mad(data, axis=None):
     return np.median(np.abs(data - np.median(data, axis=axis)), axis=axis)
 
 
-def save_outlier_removed(data, path_key, context_data, label):
-    new_path = append_or(context_data[path_key])
+def save_outlier_removed(data, path, context_data, label):
+    new_path = append_or(context_data[path])
     logging.info(f"Saving ASL outlier-removed data: {label}")
     save_data_nifti(data, new_path, context_data['templateNII_path'], 1, None, context_data['TR'])
-    context_data[path_key] = new_path
+    context_data[path] = new_path
 
 
 def asl_outlier_removal(subject, context_tag, usermask=None):
-    #
-    # Remove outlier dynamics from ASL deltaM signal based on mean deltaM in a combined mask.
-    #
+    # Remove outlier dynamics from ASL deltaM signal based on mean deltaM in a combined mask.    
+    # Use a shorter alias for subject[context_tag]
+
     context_data = subject[context_tag]
     outlier_factor = subject['outlier_factor']
     NREPEATS = context_data['NREPEATS']
@@ -81,32 +81,39 @@ def asl_outlier_removal(subject, context_tag, usermask=None):
     keep_dynamics = np.abs(mean_per_dyn - mu) < outlier_factor * std
 
     outlier_indices = np.where(~keep_dynamics)[0]
+    keep_indices = np.where(keep_dynamics)[0]
+    NREPEATS_kept =len(keep_indices)
     context_data['outlier_dynamics_indices'] = outlier_indices
 
     if outlier_indices.size > 0:
         logging.info(f"Outlier removal: Volumes removed (1-based): {(outlier_indices + 1).tolist()}")
+        # Load the 4D NIfTI
+        PLDall = nib.load(context_data['PLDall_controllabel_path']).get_fdata()
+        x, y, z, t = PLDall.shape
+        assert t == 2 * NREPEATS * NPLDS, "Time dimension doesn't match expected size."
+
+        # Step 1: Reshape to (x, y, z, NPLDS, NREPEATS, 2)
+        PLDall_reshaped = PLDall.reshape(x, y, z, NPLDS, NREPEATS, 2)
+
+        # Step 2: Remove unwanted repeats
+        # keep_indices: list or array of repeat indices to keep (length = NREPEATS_kept)
+        PLDall_kept = PLDall_reshaped[:, :, :, :, keep_indices, :]  # (x, y, z, NPLDS, NREPEATS_kept, 2)
+
+        # Step 3: Reshape back to 4D for saving
+        # First: transpose to match original time order: PLD (outer), repeat, control/label (inner)
+        # From shape: (x, y, z, NPLDS, NREPEATS_kept, 2) → (x, y, z, 2 * NREPEATS_kept * NPLDS)
+        PLDall_or = np.transpose(PLDall_kept, (0, 1, 2, 3, 4, 5)).reshape(x, y, z, 2 * NREPEATS_kept * NPLDS)
+
+        # Derive subsets
+        n_vols_per_pld = 2 * NREPEATS_kept
+
+        PLD1to2_or = PLDall_or[:, :, :, :2 * n_vols_per_pld]      # first 2 PLDs, for ATA
+        PLD2tolast_or = PLDall_or[:, :, :, n_vols_per_pld:]       # from PLD2 onward, for CBF
+        # Save all outputs
+        save_outlier_removed(PLDall_or, 'PLDall_controllabel_path', context_data, 'all PLDs for AAT')
+        save_outlier_removed(PLD2tolast_or, 'PLD2tolast_controllabel_path', context_data, '2-to-last PLDs for CBF')
+        save_outlier_removed(PLD1to2_or, 'PLD1to2_controllabel_path', context_data, '1-to-2 PLDs for AAT')
     else:
         logging.info("Outlier removal: No outliers detected")
-
-    # Load original PLD data and reshape
-    PLDall = nib.load(context_data['PLDall_controllabel_path']).get_fdata()
-    PLD_shape = PLDall.shape
-    PLDall_reshaped = PLDall.reshape(*PLD_shape[:3], NREPEATS, NPLDS, 2)
-
-    # Keep only the non-outlier repeats
-    keep_indices = np.where(keep_dynamics)[0]
-    PLDall_kept = PLDall_reshaped[:, :, :, keep_indices, :, :]
-
-    # Reshape back to 4D: (x, y, z, 2 * len(kept) * NPLDS)
-    PLDall_or = PLDall_kept.reshape(*PLD_shape[:3], 2 * len(keep_indices) * NPLDS)
-
-    # Derive subsets
-    PLD2tolast_or = PLDall_or[:, :, :, NREPEATS*2:]       # for CBF
-    PLD1to2_or = PLDall_or[:, :, :, :NREPEATS*2*2]        # for AAT
-
-    # Save all outputs
-    save_outlier_removed(PLDall_or, 'PLDall_controllabel_path', context_data, 'all PLDs for AAT')
-    save_outlier_removed(PLD2tolast_or, 'PLD2tolast_controllabel_path', context_data, '2-to-last PLDs for CBF')
-    save_outlier_removed(PLD1to2_or, 'PLD1to2_controllabel_path', context_data, '1-to-2 PLDs for AAT')
 
     return subject

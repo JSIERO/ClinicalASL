@@ -27,5 +27,5 @@ def append_mc(filename):
 def append_or(filename):
     # Append '_or' before .nii.gz in filename (for outlier removedd files)."""
     if filename.endswith('.nii.gz'):
-        return filename[:-7] + '_mc.nii.gz'
+        return filename[:-7] + '_or.nii.gz'
     return filename
