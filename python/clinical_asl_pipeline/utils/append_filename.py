@@ -11,12 +11,21 @@ Contact: j.c.w.siero@umcutrecht.nl
 
 Description:
     Little utility functions for ClinicalASL, such as appending '_mc' to filenames for motion corrected files.
+    Little utility functions for ClinicalASL, such as appending '_or' to filenames for outlier removed files.
+
 
 License: BSD 3-Clause License
 """
 
 def append_mc(filename):
-    """Append '_mc' before .nii.gz in filename (for motion corrected files)."""
+    # Append '_mc' at the end of the filename .nii.gz in filename (for motion corrected files)."""
+    if filename.endswith('.nii.gz'):
+        return filename[:-7] + '_mc.nii.gz'
+    return filename
+
+
+def append_or(filename):
+    # Append '_or' before .nii.gz in filename (for outlier removedd files)."""
     if filename.endswith('.nii.gz'):
         return filename[:-7] + '_mc.nii.gz'
     return filename

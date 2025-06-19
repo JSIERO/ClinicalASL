@@ -75,9 +75,4 @@ mkdir -p ~/.hd-bet
 wget https://zenodo.org/record/14445620/files/release_v1.5.0.zip -P ~/.hd-bet
 unzip ~/.hd-bet/release_v1.5.0.zip -d ~/.hd-bet
 ```
-### ANTsPy Installation Problems
-```bash
-conda install -n qi -c conda-forge gcc=12.1.0 -y
-conda install -n qi -c conda-forge antspy -y
-```
 For additional support, please open an issue on our GitHub repository.

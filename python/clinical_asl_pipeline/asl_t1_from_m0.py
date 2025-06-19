@@ -59,8 +59,8 @@ def asl_t1_from_m0_compute(DATA4D, MASK, TIMEARRAY):
     # DATA4D: 4D numpy array of M0 data (x, y, z, PLD)
     # MASK: 3D numpy array of brain mask (x, y, z)
     # TIMEARRAY: 1D numpy array of PLD times in seconds
-    dims = DATA4D.shape
-    DATA2D = DATA4D.reshape(-1, dims[3])
+    DATA4D_shape = DATA4D.shape
+    DATA2D = DATA4D.reshape(-1, DATA4D_shape[3])
     brain_voxels = MASK.flatten() > 0
 
     with np.errstate(divide='ignore'):
@@ -85,7 +85,7 @@ def asl_t1_from_m0_compute(DATA4D, MASK, TIMEARRAY):
         except np.linalg.LinAlgError:
             T1fit[i, :] = [0, 0]
 
-    data_R1fit = T1fit[:, 1].reshape(dims[0], dims[1], dims[2])
+    data_R1fit = T1fit[:, 1].reshape(DATA4D_shape[0], DATA4D_shape[1], DATA4D_shape[2])
 
     with np.errstate(divide='ignore', invalid='ignore'):
         data_T1fit_brain = (-1 / data_R1fit) * MASK * 1e3
