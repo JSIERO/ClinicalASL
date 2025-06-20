@@ -97,14 +97,14 @@ def save_data_dicom(image, template_dicom_path, output_dicom_path, name, value_r
     # Modify robust tags via dcmodify
     dcmodify_cmd = [
         "dcmodify", "-nb", "-g",
-        "-i", f"(0008,103e)={name} [{unit_str}]",
-        "-i", f"(0018,1030)={name}",
-        "-i", f"(0028,1053)={1.0 / scalingfactor:.6f}",
-        "-i", "(0028,1052)=0.000000",
-        "-i", "(0028,0100)=16",
-        "-i", "(0028,0101)=16",
-        "-i", "(0028,0102)=15",
-        "-i", f"(0028,0103)={'1' if use_signed else '0'}",
+        "-i", f"(0008,103e)={name} [{unit_str}]",           # SeriesDescription
+        "-i", f"(0018,1030)={name}",                        # ProtocolName
+        "-i", f"(0028,1053)={1.0 / scalingfactor:.6f}",     # RescaleSlope
+        "-i", "(0028,1052)=0.000000",                       # RescaleIntercept
+        "-i", "(0028,0100)=16",                             # BitsAllocated
+        "-i", "(0028,0101)=16",                             # BitsStored
+        "-i", "(0028,0102)=15",                             # HighBit
+        "-i", f"(0028,0103)={'1' if use_signed else '0'}",  # PixelRepresentation
         output_dicom_path
     ]
     subprocess.run(dcmodify_cmd, check=True)
