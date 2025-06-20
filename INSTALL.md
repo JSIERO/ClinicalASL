@@ -31,7 +31,7 @@ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
 source $HOME/miniconda/bin/activate
 
-# Create environment
+# Create environment (important!)
 conda create -n qi python=3.11 -y
 conda activate qi
 ```
@@ -43,6 +43,13 @@ cd qasl_setup
 ./qasl_setup --yes --key=YOUR_LICENSE_KEY_HERE
 cd ..
 ```
+## ClinicalASL Installation
+```bash
+git clone https://github.com/JSIERO/ClinicalASL.git
+cd ClinicalASL/python
+pip install -r requirements.txt
+```
+
 ## HD-BET Installation
 ```bash
 git clone https://github.com/MIC-DKFZ/HD-BET.git
@@ -51,12 +58,7 @@ git checkout v2.0.1
 pip install -e .
 cd ..
 ```
-## ClinicalASL Installation
-```bash
-git clone https://github.com/JSIERO/ClinicalASL.git
-cd ClinicalASL/python
-pip install -r requirements.txt
-```
+
 ### dcm2niix Installation
 ```bash
 conda install -n qi -c conda-forge dcm2niix=1.0.20220720 -y
@@ -69,7 +71,8 @@ python -c "import HD_BET; import ants; from clinical_asl_pipeline import main_pi
 ### QASL Key Errors
 - Ensure your license key is valid
 - Contact support@quantified-imaging.com if issues persist
-### HD-BET Model Download Issues
+
+### HD-BET Model Download Issues (looks default in ~/hd-bet folder)
 ```bash
 mkdir -p ~/.hd-bet
 wget https://zenodo.org/record/14445620/files/release_v1.5.0.zip -P ~/.hd-bet

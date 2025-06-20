@@ -38,10 +38,18 @@ def asl_prepare_asl_data(subject, filename, context_tag):
     # Load source multidelay ASL data: shape [x, y, z, timepoints = control/label 2 x NPLDS x NDYNS], in this order
     data_path = os.path.join(subject['NIFTIdir'], filename)
 
-    # remove scaling, as nibabel nib.load consumes the slope and intercept automatically
-    M0ASL_allPLD = nib.load(data_path).get_fdata()/nib.load(data_path).dataobj.slope 
+    # remove scaling, as nibabel nib.load.get_fdata consumes the slope and intercept: scaled = raw*slope + intercept 
+    img = nib.load(data_path)
+    slope = img.dataobj.slope or 1.0
+    intercept = img.dataobj.inter or 0.0
+    # Reverse the scaling to get raw data
+    raw = (img.get_fdata() - intercept) / slope
+    M0ASL_allPLD = raw 
     M0ASL_allPLD_shape = M0ASL_allPLD.shape
 
+    logging.info(f"SOURCE NIFTI: {data_path}")    
+    logging.info(f"TOTAL DATASIZE (x,y,z,t): {M0ASL_allPLD_shape}")
+    
     # multidelay LookLocker ASL data, M0ASL_allPLD
     NREPEATS = context_data['NREPEATS'] # excluding the M0 (first volume)
     NDYNS = context_data['NDYNS']
