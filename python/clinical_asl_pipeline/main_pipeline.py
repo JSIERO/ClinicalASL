@@ -169,7 +169,7 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
     ###### Step 3: Get SOURCE and DICOM NIFTI files
         nifti_file, dicom_file = get_latest_source_data(subject['DICOMsubjectdir'], subject['NIFTIdir'], context_study_tag=context_study_tag)
         subject[context]['sourceNIFTI_path'] = os.path.join(subject['NIFTIdir'], nifti_file)
-        subject[context]['templateNII_path'] = os.path.join(subject['NIFTIdir'], nifti_file)
+        subject[context]['templateNIFTI_path'] = os.path.join(subject['NIFTIdir'], nifti_file)
         subject[context]['sourceDCM_path']   = os.path.join(subject['DICOMsubjectdir'], dicom_file)
 
     ###### Step 4: Locate template DICOMs

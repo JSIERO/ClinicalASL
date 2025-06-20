@@ -48,7 +48,7 @@ def asl_t1_from_m0(subject, context_tag):
     logging.info('Create T1w image from multiPLD M0')   
 
     T1fromM0 = asl_t1_from_m0_compute(M0_allPLD_noLLcorr, context_data['mask'], context_data['PLDS'])
-    save_data_nifti(T1fromM0, context_data['T1fromM0_path'], context_data['templateNII_path'], 1, [0, 500], context_data['TR'])
+    save_data_nifti(T1fromM0, context_data['T1fromM0_path'], context_data['templateNIFTI_path'], 1, [0, 500], context_data['TR'])
 
     # Final T1fromM0 load
     context_data['T1fromM0'] = nib.load(context_data['T1fromM0_path']).get_fdata()

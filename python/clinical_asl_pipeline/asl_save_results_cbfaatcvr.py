@@ -85,7 +85,7 @@ def asl_save_results_cbfaatcvr(subject):
         for field, range_key, label, _, output_key in fields:
             data = subject[context].get(field) if field != 'CVR_smth' else subject['CVR_smth']
             path = subject[context].get(output_key) if field != 'CVR_smth' else subject['output_CVR_path']
-            template = subject[context]['templateNII_path'] if field != 'CVR_smth' else subject['baseline']['templateNII_path']
+            template = subject[context]['templateNIFTI_path'] if field != 'CVR_smth' else subject['baseline']['templateNIFTI_path']
             TR = subject[context]['TR'] if field != 'CVR_smth' else subject['baseline']['TR']
 
             if data is not None and path:

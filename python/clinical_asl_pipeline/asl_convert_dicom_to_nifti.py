@@ -41,10 +41,44 @@ def asl_convert_dicom_to_nifti(subject):
     nifti_output_dir = subject['NIFTIdir'] # Directory where NIfTI files will be saved
     dicom_input_dir = subject['DICOMinputdir']  # Directory containing the original DICOM files
     dicom_subject_dir = subject['DICOMsubjectdir'] # Directory for original DICOM files copied to subject directory
+    dcmniixlog_dir = subject['SUBJECTdir'] # # Directory for log files dcm2niix for rename and dicom conversiopn 
 
     def run_command(cmd):
         logging.info(f"Running command: {cmd}")
         run_command_with_logging(cmd)
+
+    def copy_dicom_series(dicom_input_dir, dicom_subject_dir):
+        # Check read access to input directory
+        if not os.access(dicom_input_dir, os.R_OK):
+            logging.error(f"No read access to input directory: {dicom_input_dir}")
+            raise PermissionError(f"Cannot read from {dicom_input_dir}")
+
+        # Create destination directory if it doesn't exist
+        os.makedirs(dicom_subject_dir, exist_ok=True)
+
+        # Check write access to destination directory
+        if not os.access(dicom_subject_dir, os.W_OK):
+            logging.error(f"No write access to output directory: {dicom_subject_dir}")
+            raise PermissionError(f"Cannot write to {dicom_subject_dir}")
+
+        logging.info(f"Copying DICOM files from {dicom_input_dir} to {dicom_subject_dir}")
+
+        # Copy files
+        copied_count = 0
+        for fname in os.listdir(dicom_input_dir):
+            src = os.path.join(dicom_input_dir, fname)
+            dst = os.path.join(dicom_subject_dir, fname)
+            if os.path.isfile(src):
+                try:
+                    shutil.copy2(src, dst)
+                    logging.info(f"Copied: {src} → {dst}")
+                    copied_count += 1
+                except Exception as e:
+                    logging.error(f"Failed to copy {src}: {e}")
+            else:
+                logging.warning(f"Skipped (not a file): {src}")
+
+        logging.info(f"Done. Total files copied: {copied_count}")
 
     def rename_files(directory):
         for file in os.listdir(directory):
@@ -77,11 +111,7 @@ def asl_convert_dicom_to_nifti(subject):
                     logging.error(f"Permission error moving {file_path} -> {dst_path}")
 
     # Copy all DICOMs from dicom_input_dir into dicom_subject_dir
-    for file_name in os.listdir(dicom_input_dir):
-        src_file = os.path.join(dicom_input_dir, file_name)
-        dst_file = os.path.join(dicom_subject_dir, file_name)
-        if os.path.isfile(src_file):
-            shutil.copy2(src_file, dst_file)
+    copy_dicom_series(dicom_input_dir, dicom_subject_dir)
         
     # --- Prepare directories ---
     orig_dir = os.path.join(dicom_subject_dir, 'ORIG')
@@ -90,7 +120,7 @@ def asl_convert_dicom_to_nifti(subject):
     logging.info('Converting DICOMs to NIFTI using dcm2niix v1.0.20220720 (initial rename)')
     # Run dcm2niix to rename DICOM files
     # This step is to ensure that the DICOM files are renamed in a readable format before further processing.
-    run_command(f'dcm2niix -w 0 -r y -f %p_%s {dicom_subject_dir} > {os.path.join(nifti_output_dir, "dcm2niix_rename.log")} 2>&1')
+    run_command(f'dcm2niix -v 1 -w 0 -r y -f %p_%s {dicom_subject_dir} > {os.path.join(dcmniixlog_dir, "dcm2niix_rename.log")} 2>&1')
 
     # Clean and organize files
     remove_files_by_pattern(dicom_subject_dir, ['*_Raw', '*_PS'])
@@ -101,7 +131,7 @@ def asl_convert_dicom_to_nifti(subject):
     logging.info('Converting DICOMs to NIFTI using dcm2niix v1.0.20220720 (final conversion)')
     # Run dcm2niix to convert DICOM files to NIfTI format
     # This step compresses the NIfTI files and organizes them in the specified output directory.
-    run_command(f'dcm2niix -w 1 -z y -b y -f %p_%s -o {nifti_output_dir} {dicom_subject_dir} > {os.path.join(nifti_output_dir, "dcm2niix.log")} 2>&1')
+    run_command(f'dcm2niix -w 1 -z y -b y -f %p_%s -o {nifti_output_dir} {dicom_subject_dir} > {os.path.join(dcmniixlog_dir, "dcm2niix.log")} 2>&1')
     logging.info('DICOMs converted to NIFTI')
 
     # Final cleanup

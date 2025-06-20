@@ -41,11 +41,11 @@ def asl_motion_correction(subject, context_tag):
     context_data['PLDall_controllabel_path'] = append_mc(context_data['PLDall_controllabel_path']) # update path to motion corrected data
 
     logging.info("Saving ASL motion-corrected data interleaved label control: 2-to-last PLDs for CBF")
-    save_data_nifti(PLD2tolast, append_mc(context_data['PLD2tolast_controllabel_path']), context_data['templateNII_path'], 1, None, context_data['TR'])
+    save_data_nifti(PLD2tolast, append_mc(context_data['PLD2tolast_controllabel_path']), context_data['templateNIFTI_path'], 1, None, context_data['TR'])
     context_data['PLD2tolast_controllabel_path'] =  append_mc(context_data['PLD2tolast_controllabel_path']) # update path to motion corrected data
 
     logging.info("Saving ASL motion-corrected data interleaved label control: 1-to-2 PLDs for ATA")
-    save_data_nifti(PLD1to2, append_mc(context_data['PLD1to2_controllabel_path']), context_data['templateNII_path'], 1, None, context_data['TR'])
+    save_data_nifti(PLD1to2, append_mc(context_data['PLD1to2_controllabel_path']), context_data['templateNIFTI_path'], 1, None, context_data['TR'])
     context_data['PLD1to2_controllabel_path'] =  append_mc(context_data['PLD1to2_controllabel_path']) # update path to motion corrected data
     
     return subject

@@ -41,7 +41,7 @@ def mad(data, axis=None):
 def save_outlier_removed(data, path, context_data, label):
     new_path = append_or(context_data[path])
     logging.info(f"Saving ASL outlier-removed data: {label}")
-    save_data_nifti(data, new_path, context_data['templateNII_path'], 1, None, context_data['TR'])
+    save_data_nifti(data, new_path, context_data['templateNIFTI_path'], 1, None, context_data['TR'])
     context_data[path] = new_path
 
 

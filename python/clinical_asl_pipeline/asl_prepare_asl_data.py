@@ -73,10 +73,10 @@ def asl_prepare_asl_data(subject, filename, context_tag):
     context_data['M0'] = context_data['M0_allPLD'][:, :, :, 0] # take M0 from first PLD as calibration M0 for quantification
 
     # Log NIFTI template path  
-    logging.info(f"Template NIFTI path: {context_data['templateNII_path']}")
+    logging.info(f"Template NIFTI path: {context_data['templateNIFTI_path']}")
     logging.info("Saving M0 image")
 
-    save_data_nifti(context_data['M0'], context_data['M0_path'] , context_data['templateNII_path'], 1, None, context_data['TR'])
+    save_data_nifti(context_data['M0'], context_data['M0_path'] , context_data['templateNIFTI_path'], 1, None, context_data['TR'])
 
     # Interleave control/label, save per-PLD
     # resulting ASL_controllabel_allPLD is 5D numpy array (x, y, z,  NREPEATS x 2, NPLDS) with interleaved control label volumes -> QASL analysis
@@ -94,12 +94,12 @@ def asl_prepare_asl_data(subject, filename, context_tag):
 
     # Save data to nifti
     logging.info("Saving ASL data interleaved label control: all PLDs for AAT")
-    save_data_nifti(PLDall, context_data['PLDall_controllabel_path'], context_data['templateNII_path'], 1, None, context_data['TR'])
+    save_data_nifti(PLDall, context_data['PLDall_controllabel_path'], context_data['templateNIFTI_path'], 1, None, context_data['TR'])
     
     logging.info("Saving ASL data interleaved label control: 2-to-last PLDs for CBF")
-    save_data_nifti(PLD2tolast, context_data['PLD2tolast_controllabel_path'], context_data['templateNII_path'], 1, None, context_data['TR'])
+    save_data_nifti(PLD2tolast, context_data['PLD2tolast_controllabel_path'], context_data['templateNIFTI_path'], 1, None, context_data['TR'])
 
     logging.info("Saving ASL data interleaved label control: 1-to-2 PLDs for ATA")
-    save_data_nifti(PLD1to2, context_data['PLD1to2_controllabel_path'], context_data['templateNII_path'], 1, None, context_data['TR'])
+    save_data_nifti(PLD1to2, context_data['PLD1to2_controllabel_path'], context_data['templateNIFTI_path'], 1, None, context_data['TR'])
     
     return subject
