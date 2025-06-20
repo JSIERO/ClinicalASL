@@ -85,6 +85,8 @@ def asl_outlier_removal(subject, context_tag, usermask=None):
     NREPEATS_kept =len(keep_indices)
     context_data['outlier_dynamics_indices'] = outlier_indices
 
+    logging.info(f"===================================================================")
+
     if outlier_indices.size > 0:
         logging.info(f"Outlier removal: Volumes removed (1-based): {(outlier_indices + 1).tolist()}")
         # Load the 4D NIfTI
@@ -115,5 +117,7 @@ def asl_outlier_removal(subject, context_tag, usermask=None):
         save_outlier_removed(PLD1to2_or, 'PLD1to2_controllabel_path', context_data, '1-to-2 PLDs for AAT')
     else:
         logging.info("Outlier removal: No outliers detected")
+        
+    logging.info(f"===================================================================")
 
     return subject

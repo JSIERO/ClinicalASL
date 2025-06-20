@@ -1,5 +1,6 @@
 {
     "version": "v1.0-MRI_DIAMOX_MDLL_preACZ_postACZ-2025",
+    "ASL scan": "multi-delay Look-Locker",
     "tau": 2,
     "N_BS": 4,
     "readout": "2D",

@@ -161,7 +161,10 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
     ###### Step 3-11: Unified loop for each ASL context tag: 'baseline', 'stimulus'
     for i, context in enumerate(subject['ASL_CONTEXT']):
         context_study_tag = subject['context_study_tags'][i]
+        logging.info(f"===================================================================")
         logging.info(f"=== Processing context '{context}' (tag: '{context_study_tag}') ===")
+        logging.info(f"===================================================================")
+
 
     ###### Step 3: Get SOURCE and DICOM NIFTI files
         nifti_file, dicom_file = get_latest_source_data(subject['DICOMsubjectdir'], subject['NIFTIdir'], context_study_tag=context_study_tag)

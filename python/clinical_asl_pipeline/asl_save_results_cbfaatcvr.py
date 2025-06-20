@@ -59,6 +59,7 @@ def asl_save_results_cbfaatcvr(subject):
         subject['stimulus']['AAT_2baseline_smth'] = asl_smooth_image(subject['stimulus']['AAT_2baseline'] * subject['stimulus']['nanmask_2baseline'], 2, subject['FWHM'], subject['stimulus']['VOXELSIZE'])   
 
     # === Define output lists ===
+    # for all the context data, baseline, stimulus
     fields_main = [
         ('CBF', 'range_cbf', 'CBF', 'viridis', 'output_CBF_path'),
         ('AAT_smth', 'range_AAT', 'AAT', 'devon', 'output_AAT_path'),
@@ -67,7 +68,7 @@ def asl_save_results_cbfaatcvr(subject):
     fields_cvr = [
         ('CVR_smth', 'range_cvr', 'CVR', 'vik', 'output_CVR_path'),
     ]
-    fields_2baseline = [
+    fields_2baseline = [ # for the registered stimulus output to baseline
         ('CBF_2baseline', 'range_cbf', 'CBF', 'viridis', 'CBF_2baseline_path'),
         ('AAT_2baseline_smth', 'range_AAT', 'AAT', 'devon', 'AAT_2baseline_path'),
         ('ATA_2baseline', 'range_ATA', 'ATA', 'viridis', 'ATA_2baseline_path'),
@@ -108,7 +109,10 @@ def asl_save_results_cbfaatcvr(subject):
         for field, range_key, label, cmap, _ in fields:
             data = subject[context].get(field) if field != 'CVR_smth' else subject['CVR_smth']
             if data is not None:
-                png_name = f'{context_study_tag}_{label}'  # Use clinical tag in filename
+                if field == 'CVR_smth':
+                    png_name = 'CVR'
+                else:
+                    png_name = f'{context}_{context_study_tag}_{label}'  # e.g., baseline_preACZ_CBF
                 save_figure_to_png(data, subject['nanmask_combined'], subject[range_key],
                                     subject['RESULTSdir'], png_name, label, cmap)
                 logging.info(f"Saved PNG: {png_name}.png")
