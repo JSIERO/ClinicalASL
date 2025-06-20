@@ -72,13 +72,12 @@ def save_figure_to_png(data, mask, datarange, outputloc, suffix, label, colormap
 
     # Label mapping
     label_dict = {
-        'CBF': 'ml/100g/min',
-        'CVR': 'ΔCBF ml/100g/min',
+        'CBF': 'CBF (ml/100g/min)',
+        'CVR': 'CVR (Δml/100g/min)',
         'BOLDCVR': 'BOLD CVR (%)',
-        'time': 'time (s)',
-        'time_delta': 'Δtime (s)',
-        'a.u.': 'a.u.',
-        '%': '%'
+        'AAT': ' time (s)',
+        'AATdelta': 'Δtime (s)',
+        'ATA': 'a.u.',
     }
     label2 = label_dict.get(label, label)
 
