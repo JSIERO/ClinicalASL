@@ -117,7 +117,7 @@ def asl_convert_dicom_to_nifti(subject):
     orig_dir = os.path.join(dicom_subject_dir, 'ORIG')
     os.makedirs(orig_dir, exist_ok=True)
 
-    logging.info('Converting DICOMs to NIFTI using dcm2niix v1.0.20220720 (initial rename)')
+    logging.info('Renaming Philips DICOMs using protocolname_seriesnumber filenaming - dcm2niix v1.0.20220720 (initial rename)')
     # Run dcm2niix to rename DICOM files
     # This step is to ensure that the DICOM files are renamed in a readable format before further processing.
     run_command(f'dcm2niix -v 1 -w 0 -r y -f %p_%s {dicom_subject_dir} > {os.path.join(dcmniixlog_dir, "dcm2niix_rename.log")} 2>&1')
@@ -128,7 +128,7 @@ def asl_convert_dicom_to_nifti(subject):
     rename_files(dicom_subject_dir)
 
     # --- Main conversion ---
-    logging.info('Converting DICOMs to NIFTI using dcm2niix v1.0.20220720 (final conversion)')
+    logging.info('Converting DICOMs to NIFTI - dcm2niix v1.0.20220720 (final conversion)')
     # Run dcm2niix to convert DICOM files to NIfTI format
     # This step compresses the NIfTI files and organizes them in the specified output directory.
     run_command(f'dcm2niix -w 1 -z y -b y -f %p_%s -o {nifti_output_dir} {dicom_subject_dir} > {os.path.join(dcmniixlog_dir, "dcm2niix_conversion.log")} 2>&1')
