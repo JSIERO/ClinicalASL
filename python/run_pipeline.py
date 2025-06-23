@@ -103,7 +103,7 @@ def main():
     parser.add_argument("outputdir", type=str, 
                         help="Path to output directory for DICOM results for PACS and IMAGER platform")
     parser.add_argument("--inference-method", type=str, default=None, 
-                        choices=["sssvb", "vaby"],
+                        choices=["ssvb", "vaby"],
                         help="Optional input to choose inference method for fitting: 'ssvb' or 'vaby'. If not provided, uses the value from config.json.")
     parser.add_argument("--config", type=str, default=None,
                         help="Optional path to config.json with processing parameters")
