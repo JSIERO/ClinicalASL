@@ -1,10 +1,10 @@
-# ClinicalASL Tool - Release v1.0.0
+# ClinicalASL Tool - Release v1
 
 **Repository:** [https://github.com/JSIERO/ClinicalASL](https://github.com/JSIERO/ClinicalASL)  
 **Author:** Jeroen Siero, UMC Utrecht  
 **Contact:** j.c.w.siero@umcutrecht.nl  
 **Release Date:** 2025-06-11  
-**Version:** v1.0.0  
+**Version:** v1.0.2  
 
 ## Description
 
@@ -13,6 +13,7 @@ Official ClinicalASL processing pipeline for quantitative multi-delay ASL MRI da
 - DICOM to NIfTI conversion
 - Look-Locker correction
 - Motion correction
+- Outlier removal
 - Quantitative perfusion parameter estimation:
     - Cerebral Blood Flow (CBF)
     - Arterial Arrival Time (AAT)
