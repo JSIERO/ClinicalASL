@@ -123,9 +123,9 @@ def asl_outlier_removal(subject, context_tag, usermask=None):
         context_data['PLD2tolast_controllabel_path'] =  append_or(context_data['PLD2tolast_controllabel_path']) 
         context_data['PLD1to2_controllabel_path'] =  append_or(context_data['PLD1to2_controllabel_path'])
 
-        save_data_nifti(PLDall_or, append_or(context_data['PLDall_controllabel_path']), nifti_template_path,  1, None, TR)
-        save_data_nifti(PLD2tolast_or,append_or(context_data['PLD2tolast_controllabel_path']), nifti_template_path,  1, None, TR)        
-        save_data_nifti(PLD1to2_or, append_or(context_data['PLD1to2_controllabel_path']), nifti_template_path, 1, None,  TR)   
+        save_data_nifti(PLDall_or, context_data['PLDall_controllabel_path'], nifti_template_path,  1, None, TR)
+        save_data_nifti(PLD2tolast_or, context_data['PLD2tolast_controllabel_path'], nifti_template_path,  1, None, TR)        
+        save_data_nifti(PLD1to2_or, context_data['PLD1to2_controllabel_path'], nifti_template_path, 1, None,  TR)   
     
     else:
         logging.info("Outlier removal: No outliers detected")

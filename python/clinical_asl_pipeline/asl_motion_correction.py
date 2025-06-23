@@ -60,8 +60,8 @@ def asl_motion_correction(subject, context_tag):
     logging.info("Saving ASL motion-corrected data interleaved label control: 2-to-last PLDs for CBF")
     logging.info("Saving ASL motion-corrected data interleaved label control: 1-to-2 PLDs for ATA")
 
-    save_data_nifti(PLD2tolast, append_mc(context_data['PLD2tolast_controllabel_path']), nifti_template_path, 1, None, TR)
-    save_data_nifti(PLD1to2, append_mc(context_data['PLD1to2_controllabel_path']), nifti_template_path, 1, None, TR)
+    save_data_nifti(PLD2tolast, context_data['PLD2tolast_controllabel_path'], nifti_template_path, 1, None, TR)
+    save_data_nifti(PLD1to2, context_data['PLD1to2_controllabel_path'], nifti_template_path, 1, None, TR)
     
     return subject
 
