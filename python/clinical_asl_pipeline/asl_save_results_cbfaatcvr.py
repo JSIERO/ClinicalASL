@@ -142,4 +142,4 @@ def asl_save_results_cbfaatcvr(subject):
     save_png('stimulus', fields_2baseline)
 
     # === Final log ===
-    logging.info(f"Results complete: PACS-ready DICOMS, NIFTI, .png's saved for subject {subject['ASLdir']}")
+    logging.info(f"Results complete: PACS-ready DICOMS, NIFTI, .png's saved for subject {subject['SUBJECTdir']}")
