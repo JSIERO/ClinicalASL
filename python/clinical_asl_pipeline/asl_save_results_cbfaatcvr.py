@@ -97,39 +97,36 @@ def asl_save_results_cbfaatcvr(subject):
     # === Helper: Save NIfTI + DICOM ===
     def save_nifti_and_dicom(context, fields, allow_dicom=True):
         context_study_tag = get_context_study_tag(context)
-        for field, range_key, label, _, output_key in fields:
+        for field, range_tag, type_tag, _, output_path in fields:
             data = subject[context].get(field) if field != 'CVR_smth' else subject['CVR_smth']
-            path = subject[context].get(output_key) if field != 'CVR_smth' else subject['output_CVR_path']
+            path = subject[context].get(output_path) if field != 'CVR_smth' else subject['output_CVR_path']
             template = subject[context]['templateNIFTI_path'] if field != 'CVR_smth' else subject['baseline']['templateNIFTI_path']
             TR = subject[context]['TR'] if field != 'CVR_smth' else subject['baseline']['TR']
 
             if data is not None and path:
                 save_data_nifti(data, path, template, 1, None, TR)
-                logging.info(f"Saved NIfTI: {path}")
 
                 if allow_dicom:
-                    dcm_template = subject[context].get(f'templateDCM_{label}_path')
+                    dcm_template =  os.path.basename(subject[context].get(f'templateDCM_{type_tag}_path'))
                     if dcm_template:
                         dcm_outpath = os.path.join(subject['DICOMoutputdir'], dcm_template + '.dcm')
                         save_data_dicom(data,
                                         os.path.join(subject['DICOMsubjectdir'], dcm_template),
                                         dcm_outpath,
-                                        f'WIP {context_study_tag} {label} MD-ASL',  # Here use clinical tag
-                                        subject[range_key], label)
-                        logging.info(f"Saved DICOM: {dcm_outpath}")
-
+                                        f'WIP {context_study_tag} {type_tag} MD-ASL',  # Here use clinical tag (eg 'preACZ')
+                                        subject[range_tag], type_tag)
     # === Helper: Save PNG ===
     def save_png(context, fields):
         context_study_tag = get_context_study_tag(context)
-        for field, range_key, label, cmap, _ in fields:
+        for field, range_tag, type_tag, cmap, _ in fields:
             data = subject[context].get(field) if field != 'CVR_smth' else subject['CVR_smth']
             if data is not None:
                 if field == 'CVR_smth':
                     png_name = 'CVR'
                 else:
-                    png_name = f'{context}_{context_study_tag}_{label}'  # e.g., baseline_preACZ_CBF
-                save_figure_to_png(data, subject['nanmask_combined'], subject[range_key],
-                                    subject['RESULTSdir'], png_name, label, cmap)
+                    png_name = f'{context}_{context_study_tag}_{type_tag}'  # e.g., baseline_preACZ_CBF
+                save_figure_to_png(data, subject['nanmask_combined'], subject[range_tag],
+                                    subject['RESULTSdir'], png_name, type_tag, cmap)
                 logging.info(f"Saved PNG: {png_name}.png")
 
     # === Execute saves ===

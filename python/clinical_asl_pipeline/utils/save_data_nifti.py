@@ -16,6 +16,7 @@ License: BSD 3-Clause License
 """
 
 import warnings
+import logging
 import numpy as np
 import nibabel as nib
 
@@ -82,4 +83,5 @@ def save_data_nifti(data, output_filename, templateNII_filename, scaleslope, dat
         # Assume mm and s as default units in nibabel
         # No enforced string field for units in nibabel header
 
+    logging.info(f"Saved NIfTI: {output_filename}")
     nib.save(nib.Nifti1Image(data, affine, header=data_info), output_filename)

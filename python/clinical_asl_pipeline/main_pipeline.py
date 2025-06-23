@@ -40,9 +40,9 @@ def prepare_subject_paths(subject):
     # - NIFTI
     # - ASL
     # - FIGURE_RESULTS
-    # - (reuses SUBJECTdir as DICOMoutputdir)
-    subject['DICOMoutputdir'] = subject['SUBJECTdir'] #     
-    subject['DICOMsubjectdir'] = os.path.join(subject['SUBJECTdir'], 'DICOMORIG') # folder for original DICOMS in subject output fodler
+    # - (uses SUBJECTdir as DICOMoutputdir)
+    subject['DICOMoutputdir'] = subject['SUBJECTdir'] # folder were the derived CBF, AAT, CVR, ATA DICOMS will be saved
+    subject['DICOMsubjectdir'] = os.path.join(subject['SUBJECTdir'], 'DICOMORIG') # folder location of original DICOMS (copy of PACS)
     subject['NIFTIdir'] = os.path.join(subject['SUBJECTdir'], 'NIFTI')
     subject['ASLdir'] = os.path.join(subject['SUBJECTdir'], 'ASL')
     subject['RESULTSdir'] = os.path.join(subject['SUBJECTdir'], 'FIGURE_RESULTS')
@@ -176,10 +176,13 @@ def find_template_dicom_typetags(subject, context_study_tag, context_tag):
         match = next(
             (f for f in files if fnmatch.fnmatch(f.upper(), series_patterns[1].upper())
             and type_tag in f and context_study_tag in f),
-            ''  # fallback to empty string if no match found
+            None  # fallback to None if no match found        
         )
-    subject[context_tag][f'templateDCM_{type_tag}_path'] = os.path.join(subject['DICOMsubjectdir'], match) if match else ''
-
+        if match is None:
+            raise FileNotFoundError(
+                f"No template DICOM found for type '{type_tag}', context '{context_study_tag}' in {subject['DICOMsubjectdir']}"
+            )
+        subject[context_tag][f'templateDCM_{type_tag}_path'] = os.path.join(subject['DICOMsubjectdir'], match)
     return subject
 
 def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
@@ -242,34 +245,34 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
 
     ###### Step 10: ASL Quantification analysis
         context_data = subject[context]
-        # # all PLD for AAT (arterial arrival time map)
-        asl_qasl_analysis(context_data, ANALYSIS_PARAMETERS, 
-                        context_data['PLDall_controllabel_path'], 
-                        context_data['M0_path'], 
-                        context_data['mask_path'], 
-                        os.path.join(subject['ASLdir'], f'{context}_QASL_allPLD_forAAT'),       # output folder name QASL
-                        context_data['PLDS'][0:], 
-                        subject['inference_method']
-                        )
-        # 2-to-last PLD for CBF map
-        asl_qasl_analysis(context_data, ANALYSIS_PARAMETERS, 
-                        context_data['PLD2tolast_controllabel_path'], 
-                        context_data['M0_path'], 
-                        context_data['mask_path'], 
-                        os.path.join(subject['ASLdir'], f'{context}_QASL_2tolastPLD_forCBF'),   # output folder name QASL
-                        subject[context]['PLDS'][1:], 
-                        subject['inference_method']
-                        )
-        # 1to2 PLDs for ATA map ->  then do no fit for the arterial component 'artoff'
-        asl_qasl_analysis(context_data, ANALYSIS_PARAMETERS, 
-                        context_data['PLD1to2_controllabel_path'], 
-                        context_data['M0_path'], 
-                        context_data['mask_path'], 
-                        os.path.join(subject['ASLdir'], f'{context}_QASL_1to2PLD_forATA'),      # output folder name QASL
-                        context_data['PLDS'][0:2], 
-                        subject['inference_method'],
-                        'artoff'
-                        )
+        # all PLD for AAT (arterial arrival time map)
+        # asl_qasl_analysis(context_data, ANALYSIS_PARAMETERS, 
+        #                 context_data['PLDall_controllabel_path'], 
+        #                 context_data['M0_path'], 
+        #                 context_data['mask_path'], 
+        #                 os.path.join(subject['ASLdir'], f'{context}_QASL_allPLD_forAAT'),       # output folder name QASL
+        #                 context_data['PLDS'][0:], 
+        #                 subject['inference_method']
+        #                 )
+        # # 2-to-last PLD for CBF map
+        # asl_qasl_analysis(context_data, ANALYSIS_PARAMETERS, 
+        #                 context_data['PLD2tolast_controllabel_path'], 
+        #                 context_data['M0_path'], 
+        #                 context_data['mask_path'], 
+        #                 os.path.join(subject['ASLdir'], f'{context}_QASL_2tolastPLD_forCBF'),   # output folder name QASL
+        #                 subject[context]['PLDS'][1:], 
+        #                 subject['inference_method']
+        #                 )
+        # # 1to2 PLDs for ATA map ->  then do no fit for the arterial component 'artoff'
+        # asl_qasl_analysis(context_data, ANALYSIS_PARAMETERS, 
+        #                 context_data['PLD1to2_controllabel_path'], 
+        #                 context_data['M0_path'], 
+        #                 context_data['mask_path'], 
+        #                 os.path.join(subject['ASLdir'], f'{context}_QASL_1to2PLD_forATA'),      # output folder name QASL
+        #                 context_data['PLDS'][0:2], 
+        #                 subject['inference_method'],
+        #                 'artoff'
+        #                 )
 
     ###### Step 11: register post-ACZ ASL data to pre-ACZ ASL data using Elastix 
     asl_registration_stimulus_to_baseline(subject)

@@ -159,5 +159,4 @@ def save_data_dicom(image, template_dicom_path, output_dicom_path, name, value_r
 
     ds.save_as(output_dicom_path)
 
-    logging.info(f"DICOM written to: {output_dicom_path}")
-    logging.info(f"  Content: {content_label.upper()} ({unit_str}), Slope: {1 / scalingfactor:.6f}")
+    logging.info(f"Saved DICOM: {output_dicom_path}")
