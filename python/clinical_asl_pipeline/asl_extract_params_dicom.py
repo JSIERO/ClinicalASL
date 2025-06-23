@@ -22,7 +22,7 @@ import pydicom
 import time
 import numpy as np
 
-def asl_extract_params_dicom(subject, filename, context_tag):
+def asl_extract_params_dicom(subject, context_tag):
     #
     # Extracts ASL (Arterial Spin Labeling) parameters from a DICOM file and updates the subject dictionary.
     # This function reads DICOM metadata for ASL data, extracts relevant imaging parameters such as TR, TE, 
@@ -30,13 +30,10 @@ def asl_extract_params_dicom(subject, filename, context_tag):
     # them into the provided subject dictionary under the specified context tag.
     # Parameters
     # ----------
-    #subject : dict
-    #    Dictionary containing at least the keys 'DICOMsubjectdir', 'tau', 'labeleff', and 'N_BS' - these are NOT read from the DICOM (action for Philips)
-    #    The function will update this dictionary with extracted DICOM parameters.
-    # filename : str
-    #    Name of the DICOM file to read (relative to 'DICOMsubjectdir').
-    # context_tag : str
-    #     Key under which to store the extracted parameters in the subject dictionary.
+    # subject : dict
+    #   Dictionary containing at least the keys 'context, 'DICOMsubjectdir', 'tau', 'labeleff', and 'N_BS' - these are NOT read from the DICOM (action for Philips)
+    #   The function will update this dictionary with extracted DICOM parameters.
+    #    context_tag: string indicating the ASL context tag for the subject's data, e.g., 'baseline', 'stimulus', etc.
     # Returns
     # -------
     # subject : dict
@@ -48,19 +45,25 @@ def asl_extract_params_dicom(subject, filename, context_tag):
     # - The function also estimates slice timing and computes effective labeling efficiency including background suppression.
     #- Full DICOM metadata is stored in the subject dictionary for reference.
 
-    start_time = time.time()
-    logging.info(f"  Reading DICOM info... : {filename} for context: {context_tag}")
+    # Use a shorter alias for subject[context_tag]
+    context_data = subject[context_tag]
+    
+    # filename of the DICOM file to read (relative to 'DICOMsubjectdir').
+    dicom_filename =  context_data['sourceDCM_path']
+    dicom_path = os.path.join(subject['DICOMsubjectdir'], dicom_filename)
 
-    # ? Safely join paths to avoid missing slashes
-    dicom_path = os.path.join(subject['DICOMsubjectdir'], filename)
+    logging.info(f"  Reading DICOM info... : {dicom_filename} for context: {context_tag}")   
     if not os.path.exists(dicom_path):
         raise FileNotFoundError(f"DICOM file not found: {dicom_path}")
 
     # Load DICOM metadata
+    start_time = time.time()
     info = pydicom.dcmread(dicom_path, stop_before_pixels=True)
-
     elapsed_time = round(time.time() - start_time)
     logging.info(f'  DICOM read completed in: {elapsed_time} s')   
+
+    # Store full DICOM info
+    context_data[f"{dicom_filename}_DCMinfo"] = info
 
     # Access the tags (nested)
     # link to the private tag of multiframe Philips DICOM 
@@ -120,51 +123,48 @@ def asl_extract_params_dicom(subject, filename, context_tag):
             frametimes.append(None)
 
     # Save values to subject context dict
-    subject[context_tag]['tau'] = subject['tau'] # labelling duration in  not stored in DICOM,  Philips issue, but provided by user
-    subject[context_tag]['N_BS'] = subject['N_BS'] # not stored in DICOM, but provided by user      
-    subject[context_tag]['labeleff'] = subject['labeleff'] # not stored in DICOM, but provided by user
-    subject[context_tag]['TR'] = TR/1e3 # in s
-    subject[context_tag]['TE'] = echo_time# in ms
-    subject[context_tag]['NPLDS'] = nplds
-    subject[context_tag]['NDYNS'] = ndyns
-    subject[context_tag]['NREPEATS'] =subject[context_tag]['NDYNS'] - 1
-    subject[context_tag]['VOXELSIZE'] = voxelsize # in mm
-    subject[context_tag]['NSLICES'] = nslices
-    subject[context_tag]['FLIPANGLE'] = flipangle
+    context_data['tau'] = subject['tau'] # labelling duration in  not stored in DICOM,  Philips issue, but provided by user
+    context_data['N_BS'] = subject['N_BS'] # not stored in DICOM, but provided by user      
+    context_data['labeleff'] = subject['labeleff'] # not stored in DICOM, but provided by user
+    context_data['TR'] = TR/1e3 # in s
+    context_data['TE'] = echo_time# in ms
+    context_data['NPLDS'] = nplds
+    context_data['NDYNS'] = ndyns
+    context_data['NREPEATS'] =context_data['NDYNS'] - 1
+    context_data['VOXELSIZE'] = voxelsize # in mm
+    context_data['NSLICES'] = nslices
+    context_data['FLIPANGLE'] = flipangle
     
     # Save raw frametimes
-    subject[context_tag]['frametimes'] = frametimes
+    context_data['frametimes'] = frametimes
     
     # Step 2: Extract PLDs (first NPLDS frames), convert to seconds
-    subject[context_tag]['PLDS'] = np.array([ft / 1e3 for ft in frametimes[:subject[context_tag]['NPLDS']] if ft is not None], dtype=np.float32)
-    logging.info(f"PLDs: {subject[context_tag]['PLDS']} s")
+    context_data['PLDS'] = np.array([ft / 1e3 for ft in frametimes[:context_data['NPLDS']] if ft is not None], dtype=np.float32)
+    logging.info(f"PLDs: {context_data['PLDS']} s")
     
     # Step 3: Compute TIs = PLD + tau
-    subject[context_tag]['TIS'] = subject[context_tag]['PLDS'] + subject[context_tag]['tau']
+    context_data['TIS'] = context_data['PLDS'] + context_data['tau']
 
     # TR fo the M0 at the first dynamic
-    subject[context_tag]['TR_M0'] = subject[context_tag]['tau'] + subject[context_tag]['PLDS']
+    context_data['TR_M0'] = context_data['tau'] + context_data['PLDS']
 
     # Step 4: Estimate slice timing
     # Unique + sorted frametimes for first NSLICES frames
     clean_frametimes = [ft for ft in frametimes if ft is not None]
     unique_sorted_frametimes = np.unique(np.sort(clean_frametimes))
     
-    if len(unique_sorted_frametimes) >= subject[context_tag]['NSLICES']:
-        diffs = np.diff(unique_sorted_frametimes[:subject[context_tag]['NSLICES']])
-        subject[context_tag]['slicetime'] = round(float(np.mean(diffs)), 1)  # ms
-        logging.info(f"SLICETIMING: {subject[context_tag]['slicetime']} ms")
+    if len(unique_sorted_frametimes) >= context_data['NSLICES']:
+        diffs = np.diff(unique_sorted_frametimes[:context_data['NSLICES']])
+        context_data['slicetime'] = round(float(np.mean(diffs)), 1)  # ms
+        logging.info(f"SLICETIMING: {context_data['slicetime']} ms")
     else:
-        subject[context_tag]['slicetime'] = None
+        context_data['slicetime'] = None
         warnings.warn("Not enough valid frame times to estimate slice timing.")
 
     # Labeling (inversion) efficiencies
-    subject[context_tag]['alpha_inv'] = subject[context_tag]['labeleff']
-    subject[context_tag]['alpha_BS'] = 0.95 ** subject[context_tag]['N_BS']
-    subject[context_tag]['alpha'] = round(subject[context_tag]['alpha_inv'] * subject[context_tag]['alpha_BS'],2)
-    logging.info(f"ALPHA (effective - incl. background suppresion): {subject[context_tag]['alpha']}")
-
-    # Store full DICOM info
-    subject[context_tag][f"{filename}_DCMinfo"] = info
+    context_data['alpha_inv'] = context_data['labeleff']
+    context_data['alpha_BS'] = 0.95 ** context_data['N_BS']
+    context_data['alpha'] = round(context_data['alpha_inv'] * context_data['alpha_BS'],2)
+    logging.info(f"ALPHA (effective - incl. background suppresion): {context_data['alpha']}")
 
     return subject

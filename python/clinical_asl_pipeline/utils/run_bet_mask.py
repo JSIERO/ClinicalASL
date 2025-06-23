@@ -22,7 +22,7 @@ from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
 from clinical_asl_pipeline.utils.dilate_mask import dilate_mask
 from clinical_asl_pipeline.utils.run_command_with_logging import run_command_with_logging
 
-def run_bet_mask(inputdata_path, mask_output_path, device='cpu', extradata_path=None):
+def run_bet_mask(subject, inputdata_path, mask_output_path, device='cpu', context_tag, extradata_path=None, ):
     #
     # Run HD-BET CLI on the given M0 image, save result as expected mask_path.
     #
@@ -33,8 +33,9 @@ def run_bet_mask(inputdata_path, mask_output_path, device='cpu', extradata_path=
     #Returns:
     #    mask (np.ndarray): Boolean brain mask.
     #    nanmask (np.ndarray): Nan-masked brain mask.
+    context_data = subject[context_tag]
 
-    templateNIFTI_path = inputdata_path
+   # templateNIFTI_path = inputdata_path USED TO BE M0 patch
     logging.info(f"Running brain masking with HD-BET CLI:")
 
     # Build HD-BET CLI command
@@ -88,4 +89,7 @@ def run_bet_mask(inputdata_path, mask_output_path, device='cpu', extradata_path=
     os.remove(mask_bet_path)
     logging.info(f"Deleted unwanted HD-BET masked image: {mask_bet_path}")
 
-    return mask, nanmask
+    context_data['mask'] = mask
+    context_data['nanmask'] = nanmask
+
+    return subject

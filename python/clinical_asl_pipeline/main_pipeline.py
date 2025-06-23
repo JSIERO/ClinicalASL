@@ -20,6 +20,7 @@ License: BSD 3-Clause License
 import os
 import logging
 import warnings
+import fnmatch
 from clinical_asl_pipeline.asl_convert_dicom_to_nifti import asl_convert_dicom_to_nifti
 from clinical_asl_pipeline.asl_extract_params_dicom import asl_extract_params_dicom
 from clinical_asl_pipeline.asl_look_locker_correction import asl_look_locker_correction
@@ -60,7 +61,7 @@ def prepare_subject_paths(subject):
 
 def prepare_input_output_paths(subject):
     # Prepare standard input and derived ASL file paths in subject dictionary.
-    # Initialize context in subject dictionary
+    # Initialize context in subject dictionary; default 'baseline', 'stimulus'
     for context in subject['ASL_CONTEXT']:
         subject[context] = {}
 
@@ -101,17 +102,43 @@ def prepare_input_output_paths(subject):
     logging.info("Input and derived ASL file paths prepared.")
     return subject
 
-def get_latest_source_data(dicomdir, niftidir, context_study_tag):
-    # Find the latest SOURCE_ASL DICOM and NIfTI files for a given tag (e.g., 'baseline' or 'stimulus')
+def get_latest_source_data(subject, context_study_tag, context_tag):
+    # Find the latest matching ASL DICOM and NIfTI files for a given tag (e.g., 'baseline' or 'stimulus')
+    # based on SeriesDescription patterns.
+    #
+    # This function:
+    # - Searches the DICOM and NIfTI directories for files containing a user-defined context tag 
+    #   (e.g., 'baseline', 'stimulus') and matching a specified SeriesDescription pattern.
+    # - By default, the SeriesDescription patterns matched are ['SOURCE*ASL*', 'SWIP*ASL*'] (case-insensitive).
+    # - Picks the latest file (based on sorted filename) when multiple matches are found.
+    #
     # Parameters:
-    #     dicomdir (str): Path to the DICOM directory 
-    #     niftidir (str): Path to the NIfTI directory
-    #     context_study_tag (str): Study-specific context tag to identify filenames for context 'baseline' or 'stimulus', defined at ANALYSIS_PARAMETERS
+    #     dicomdir (str): Path to the DICOM directory to search.
+    #     niftidir (str): Path to the NIfTI directory to search.
+    #     context_study_tag (str): Study-specific context tag for selecting appropriate files.
+    #     context_tag: string indicating the ASL context tag for the subject's data, e.g., 'baseline', 'stimulus', etc.
+    #     subject (dict): Subject dictionary that may contain optional
+    #         'include_dicomseries_description_patterns' key with custom matching patterns.
+    #
     # Returns:
-    #     tuple: (nifti_full_path, dicom_full_path)
+    #     tuple: (nifti_full_path, dicom_full_path) corresponding to the latest matching entries.
 
-    # Find DICOM file names (ending in '2', e.g., series file names)
-    dicom_files = sorted([f for f in os.listdir(dicomdir) if 'SOURCE_ASL' in f and context_study_tag in f and f.endswith('2')])
+    dicomdir = subject['DICOMsubjectdir']
+    niftidir = subject['NIFTIdir']
+    context_study_tag = subject['context_study_tag']  # Make sure this key exists
+    context_data = subject[context_tag]
+
+    # Patterns to search for in filenames, default: SeriesDescription patterns matched are ['SOURCE*ASL*', 'SWIP*ASL*']
+    series_patterns = subject.get('include_dicomseries_description_patterns', ['SOURCE*ASL*', 'SWIP*ASL*'])
+
+    # Filter DICOMs
+    dicom_files = sorted([
+        f for f in os.listdir(dicomdir)
+        if fnmatch.fnmatch(f.upper(), series_patterns[0].upper())  # find matched to first entry patterns, default: 'SOURCE*ASL*'
+        and context_study_tag in f
+        and f.endswith('2')
+    ])
+
     if len(dicom_files) > 1:
         warnings.warn(f'Multiple SOURCE ASL DICOM entries found for "{context_study_tag}". Using latest.')
     if not dicom_files:
@@ -119,20 +146,41 @@ def get_latest_source_data(dicomdir, niftidir, context_study_tag):
 
     dicom_path = os.path.join(dicomdir, dicom_files[-1])
 
-    # Find NIFTI file names (ending in '2.nii.gz', e.g., series file names)
-    files_nifti = sorted([f for f in os.listdir(niftidir) if 'SOURCE_ASL' in f and context_study_tag in f and f.endswith('2.nii.gz')])
-    if len(files_nifti) > 1:
+    # Filter NIfTIs
+    nifti_files = sorted([
+        f for f in os.listdir(niftidir)
+        if fnmatch.fnmatch(f.upper(), series_patterns[0].upper()) # find matched to first entry in series_patterns, default: 'SOURCE*ASL*'
+        and context_study_tag in f
+        and f.endswith('2.nii.gz')
+    ])
+
+    if len(nifti_files) > 1:
         warnings.warn(f'Multiple SOURCE ASL NIFTI files found for "{context_study_tag}". Using latest.')
-    if not files_nifti:
+    if not nifti_files:
         raise FileNotFoundError(f'No SOURCE ASL NIFTI files found for context "{context_study_tag}" in {niftidir}')
 
-    nifti_path = os.path.join(niftidir, files_nifti[-1])
+    nifti_path = os.path.join(niftidir, nifti_files[-1])
 
-    return nifti_path, dicom_path
+    context_data['sourceNIFTI_path'] = os.path.join(subject['NIFTIdir'], nifti_path)
+    context_data['templateNIFTI_path'] = os.path.join(subject['NIFTIdir'], nifti_path)
+    context_data['sourceDCM_path']   = os.path.join(subject['DICOMsubjectdir'], dicom_path)
 
-def find_template_dicom(files, type_tag, context_study_tag): 
-    # Helper function to find a template DICOM file based on type and context tags
-    return next(f for f in files if 'sWIP' in f and type_tag in f and context_study_tag in f)
+    return subject
+
+def find_template_dicom_typetags(subject, type_tag, context_study_tag, context_tag): 
+    # Helper function to find a template DICOM files based on type and context tags
+    files = os.listdir(subject['DICOMsubjectdir'])    
+    series_patterns = subject.get('include_dicomseries_description_patterns', ['SOURCE*ASL*', 'SWIP*ASL*'])
+
+    for type_tag in subject['dicom_typetags_by_context'][context_tag]:
+        match = next(
+            (f for f in files if fnmatch.fnmatch(f.upper(), series_patterns[1].upper())
+            and type_tag in f and context_study_tag in f),
+            ''  # fallback to empty string if no match found
+        )
+    subject[context_tag][f'templateDCM_{type_tag}_path'] = os.path.join(subject['DICOMsubjectdir'], match) if match else ''
+
+    return subject
 
 def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
     # Main function to run the Clinical ASL pipeline for a subject.
@@ -161,33 +209,28 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
     ###### Step 3-11: Unified loop for each ASL context tag: 'baseline', 'stimulus'
     for i, context in enumerate(subject['ASL_CONTEXT']):
         context_study_tag = subject['context_study_tags'][i]
+
         logging.info(f"===================================================================")
         logging.info(f"=== Processing context '{context}' (tag: '{context_study_tag}') ===")
         logging.info(f"===================================================================")
 
-
     ###### Step 3: Get SOURCE and DICOM NIFTI files
-        nifti_file, dicom_file = get_latest_source_data(subject['DICOMsubjectdir'], subject['NIFTIdir'], context_study_tag=context_study_tag)
-        subject[context]['sourceNIFTI_path'] = os.path.join(subject['NIFTIdir'], nifti_file)
-        subject[context]['templateNIFTI_path'] = os.path.join(subject['NIFTIdir'], nifti_file)
-        subject[context]['sourceDCM_path']   = os.path.join(subject['DICOMsubjectdir'], dicom_file)
+        subject = get_latest_source_data(subject, context_study_tag=context_study_tag, context_tag=context)
 
-    ###### Step 4: Locate template DICOMs
-        context_study_tag = subject['context_study_tags'][i]
-        for type_tag in subject['dicom_typetags_by_context'][context]:
-            subject[context][f'templateDCM_{type_tag}_path'] = find_template_dicom(os.listdir(subject['DICOMsubjectdir']), type_tag, context_study_tag)
+    ###### Step 4: Locate template DICOMs for CBF, AAT, CVR, ATA derived data to be generated here
+        subject = find_template_dicom_typetags(subject, context_study_tag, context_tag=context)
 
     ###### Step 5: DICOM scanparameter extraction
-        subject = asl_extract_params_dicom(subject, subject[context]['sourceDCM_path'], context_tag=context)
+        subject = asl_extract_params_dicom(subject, context_tag=context)
 
     ###### Step 6: Look Locker correction
         subject = asl_look_locker_correction(subject, context_tag=context)
 
     ###### Step 7: Interleave control-label, save to NIFTI
-        subject = asl_prepare_asl_data(subject, subject[context]['sourceNIFTI_path'], context_tag=context)
+        subject = asl_prepare_asl_data(subject, context_tag=context)
 
     ###### Step 8: Brain extraction on M0 using HD-BET CLI
-        subject[context]['mask'], subject[context]['nanmask'] = run_bet_mask(subject[context]['M0_path'], subject[context]['mask_path'], device = subject['device'], extradata_path = subject[context]['PLDall_controllabel_path'])
+        subject = run_bet_mask(subject[context], subject[context]['M0_path'], subject[context]['mask_path'], device = subject['device'], extradata_path = subject[context]['PLDall_controllabel_path'])
     
         subject = asl_motion_correction(subject, context_tag=context)
 

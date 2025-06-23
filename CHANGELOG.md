@@ -19,7 +19,7 @@ Initial official release of ClinicalASL:
 - DICOM to NIfTI conversion with dcm2niix
 - Look-Locker correction
 - Motion correction with ANTs
-- Quantification with vaby (BASIL-like) or ssvb
+- Quantification with sssv or vaby (BASIL)
 - Registration of post-stimulus to baseline space
 - Computation of CVR maps
 - PNG and DICOM export for PACS systems

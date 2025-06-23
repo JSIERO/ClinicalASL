@@ -28,14 +28,17 @@ def asl_look_locker_correction(subject, context_tag):
     # Ensure subject dictionary has required keys
     # required_keys = ['FLIPANGLE', 'PLDS', 'T1b']s, ie correction only depends on flip angle, PLDs timing, and T1b
 
+    # Use a shorter alias for subject[context_tag]
+    context_data = subject[context_tag]
+
     # Flip angle in degrees
-    flip_angle = subject[context_tag]['FLIPANGLE']
+    flip_angle = context_data['FLIPANGLE']
 
     # Assume M0 = 1
     M0 = 1
 
     # PLDs in milliseconds
-    PLD = np.array(subject[context_tag]['PLDS']) * 1000  # convert from s to ms
+    PLD = np.array(context_data['PLDS']) * 1000  # convert from s to ms
 
     # Time vector t
     t = np.arange(1, int(PLD[-1] * 1.1) + 1)  # MATLAB-style 1:PLD(end)*1.1
@@ -91,5 +94,6 @@ def asl_look_locker_correction(subject, context_tag):
         f"PLDs(ms): {PLD.tolist()}, and deltaPLD(ms) = {delta_PLD}: "
         f"{LookLocker_correction_factor_perPLD}, JCW SIERO 2020"
     )
-    subject[context_tag]['LookLocker_correction_factor_perPLD'] = LookLocker_correction_factor_perPLD
+    
+    context_data['LookLocker_correction_factor_perPLD'] = LookLocker_correction_factor_perPLD
     return subject

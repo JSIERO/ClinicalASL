@@ -93,9 +93,9 @@ def main():
         epilog="""
     Examples:
     python run_pipeline.py /input /output
-    python run_pipeline.py /input /output --inference-method vaby for BASIL-like output
     python run_pipeline.py /input /output --inference-method ssvb --config /path/to/config.json
-        """
+    python run_pipeline.py /input /output --inference-method vaby for BASIL-like output
+    """
     )
     
     parser.add_argument("inputdir", type=str, 
@@ -103,8 +103,8 @@ def main():
     parser.add_argument("outputdir", type=str, 
                         help="Path to output directory for DICOM results for PACS and IMAGER platform")
     parser.add_argument("--inference-method", type=str, default=None, 
-                        choices=["vaby", "ssvb"],
-                        help="Optional input to choose inference method for fitting: 'vaby' or 'ssvb'. If not provided, uses the value from config.json.")
+                        choices=["sssvb", "vaby"],
+                        help="Optional input to choose inference method for fitting: 'ssvb' or 'vaby'. If not provided, uses the value from config.json.")
     parser.add_argument("--config", type=str, default=None,
                         help="Optional path to config.json with processing parameters")
     parser.add_argument("--version", action="version", version=f"ClinicalASL {TOOL_VERSION}")

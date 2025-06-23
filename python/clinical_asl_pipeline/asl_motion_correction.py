@@ -25,28 +25,42 @@ from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
 
 
 def asl_motion_correction(subject, context_tag):
-    # perform motion correction on PLD ordered data (makes sense for cbf/aat fit) using ANTs with DenseRigid
+    # perform motion correction on PLD ordered data (makes sense for CBF/AAT fit)
+    # method: ANTs with DenseRigid, 6DOF, MattesMutualInformation as cost function metric
+    #
+    # Parameters:
+    #   subject: dict containing subject information including paths and parameters
+    #   context_tag: string, e.g. 'baseline' or 'stimulus' context_tag for the keys in the subject dictionary to store results
+    # Returns:
+    #   motion-corrected PLD ordered NIFTIs, filename appended with '_mc' before '.nii.gz'
 
+    # Use a shorter alias for subject[context_tag]
     context_data = subject[context_tag]
+
+    inputdata_path = context_data['PLDall_controllabel_path']
+    refdata_path = context_data['M0_path']
+    outputdata_path = append_mc(inputdata_path)
+    nifti_template_path = context_data['templateNIFTI_path']
     NREPEATS = context_data['NREPEATS']
-
-    # perform motion correction routine, appenc file name with '_mc' prefix
-    asl_motioncorrection_ants(context_data['PLDall_controllabel_path'], context_data['M0_path'], append_mc(context_data['PLDall_controllabel_path']))
     
-    PLDall_motioncorrected = nib.load(append_mc(context_data['PLDall_controllabel_path'])).get_fdata()
+    # update path to motion corrected data, appeding '_mc' to filename using append_mc
+    context_data['PLDall_controllabel_path'] =  append_mc(context_data['PLDall_controllabel_path'])
+    context_data['PLD2tolast_controllabel_path'] =  append_mc(context_data['PLD2tolast_controllabel_path'])
+    context_data['PLD1to2_controllabel_path'] =  append_mc(context_data['PLD1to2_controllabel_path'])
+
+    # perform motion correction routine, append output file name with '_mc' prefix
+    asl_motioncorrection_ants(inputdata_path, refdata_path, outputdata_path)    
+
+    PLDall_motioncorrected = nib.load(outputdata_path).get_fdata()
     PLD2tolast = PLDall_motioncorrected[:, :, :, NREPEATS*2: ]
-    PLD1to2 = PLDall_motioncorrected[:, :, :, 0:NREPEATS*2*2]
-        
+    PLD1to2 = PLDall_motioncorrected[:, :, :, 0:NREPEATS*2*2]        
+
     logging.info("Saving ASL motion-corrected data interleaved label control: all PLDs for AAT")
-    context_data['PLDall_controllabel_path'] = append_mc(context_data['PLDall_controllabel_path']) # update path to motion corrected data
-
     logging.info("Saving ASL motion-corrected data interleaved label control: 2-to-last PLDs for CBF")
-    save_data_nifti(PLD2tolast, append_mc(context_data['PLD2tolast_controllabel_path']), context_data['templateNIFTI_path'], 1, None, context_data['TR'])
-    context_data['PLD2tolast_controllabel_path'] =  append_mc(context_data['PLD2tolast_controllabel_path']) # update path to motion corrected data
-
     logging.info("Saving ASL motion-corrected data interleaved label control: 1-to-2 PLDs for ATA")
-    save_data_nifti(PLD1to2, append_mc(context_data['PLD1to2_controllabel_path']), context_data['templateNIFTI_path'], 1, None, context_data['TR'])
-    context_data['PLD1to2_controllabel_path'] =  append_mc(context_data['PLD1to2_controllabel_path']) # update path to motion corrected data
+
+    save_data_nifti(PLD2tolast, append_mc(context_data['PLD2tolast_controllabel_path']), nifti_template_path, 1, None, context_data['TR'])
+    save_data_nifti(PLD1to2, append_mc(context_data['PLD1to2_controllabel_path']), nifti_template_path, 1, None, context_data['TR'])
     
     return subject
 

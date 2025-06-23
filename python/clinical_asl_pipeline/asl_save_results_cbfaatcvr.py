@@ -12,6 +12,21 @@ Description:
     It loads registered and original NIfTI images, creates combined masks, computes CVR,
     applies smoothing, and saves results as NIfTI, PNG, and DICOM files for further analysis and PACS export.
 
+    Main steps:
+    - Load CBF, AAT, ATA, and mask images for both baseline and stimulus conditions.
+    - Prepare nanmasks to handle non-brain voxels and combine baseline/stimulus masks.
+    - Compute CVR (Cerebrovascular Reactivity) as the difference between stimulus and baseline CBF.
+    - Apply spatial smoothing to CVR and AAT maps, with method-dependent logic for AAT smoothing.
+    - Define output fields for saving (CBF, AAT, ATA, CVR) and their visualization parameters.
+    - Save results in three formats:
+        * NIfTI: for quantitative analysis and further processing.
+        * DICOM: for clinical PACS integration, using appropriate tags and templates.
+        * PNG: for quick visualization and quality control.
+    - Modular helper functions are used for saving in each format, with logging for traceability.
+
+    This script is intended to be called as part of the ClinicalASL pipeline after ASL quantification
+    and registration steps are complete.
+
 License: BSD 3-Clause License
 """
 

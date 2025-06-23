@@ -40,11 +40,13 @@ def load_parameters(config_path=None):
         "range_cvr": [-50, 50],
         "range_AAT": [0, 3],
         "range_ATA": [0, 125],
-        "inference_method": "vaby",
+        "inference_method": "ssvb",
         "device": "cpu",
         "ASL_CONTEXT": ["baseline", "stimulus"],
-        "context_study_tags": ["preACZ", "postACZ"]
+        "context_study_tags": ["preACZ", "postACZ"],
+        "include_dicomseries_description_patterns": ["SOURCE*ASL*", "SWIP*ASL*"]
         }
+        
         logging.info(f"Config parameters (hardcoded):\n{json.dumps(hardcoded_defaults, indent=2)}")
         return hardcoded_defaults
     else:
