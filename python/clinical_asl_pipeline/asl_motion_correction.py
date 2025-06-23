@@ -42,6 +42,7 @@ def asl_motion_correction(subject, context_tag):
     outputdata_path = append_mc(inputdata_path)
     nifti_template_path = context_data['templateNIFTI_path']
     NREPEATS = context_data['NREPEATS']
+    TR = context_data['TR']
     
     # update path to motion corrected data, appeding '_mc' to filename using append_mc
     context_data['PLDall_controllabel_path'] =  append_mc(context_data['PLDall_controllabel_path'])
@@ -59,8 +60,8 @@ def asl_motion_correction(subject, context_tag):
     logging.info("Saving ASL motion-corrected data interleaved label control: 2-to-last PLDs for CBF")
     logging.info("Saving ASL motion-corrected data interleaved label control: 1-to-2 PLDs for ATA")
 
-    save_data_nifti(PLD2tolast, append_mc(context_data['PLD2tolast_controllabel_path']), nifti_template_path, 1, None, context_data['TR'])
-    save_data_nifti(PLD1to2, append_mc(context_data['PLD1to2_controllabel_path']), nifti_template_path, 1, None, context_data['TR'])
+    save_data_nifti(PLD2tolast, append_mc(context_data['PLD2tolast_controllabel_path']), nifti_template_path, 1, None, TR)
+    save_data_nifti(PLD1to2, append_mc(context_data['PLD1to2_controllabel_path']), nifti_template_path, 1, None, TR)
     
     return subject
 
