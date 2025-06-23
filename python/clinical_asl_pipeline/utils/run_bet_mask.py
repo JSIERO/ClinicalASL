@@ -22,20 +22,22 @@ from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
 from clinical_asl_pipeline.utils.dilate_mask import dilate_mask
 from clinical_asl_pipeline.utils.run_command_with_logging import run_command_with_logging
 
-def run_bet_mask(subject, inputdata_path, mask_output_path, device='cpu', context_tag, extradata_path=None, ):
+def run_bet_mask(subject, context_tag):
     #
     # Run HD-BET CLI on the given M0 image, save result as expected mask_path.
+    # default it uses the M0 as image to genreate the mask 
+    # extradata _path can be used to augment to the default image to base the brain mask on - ie the ASL data ith all the label/control data
     #
-    # Args:
-    #    inputdata_path (str): Path to M0.nii.gz image.
-    #    mask_output_path (str): Target path for brain mask, e.g. M0_brain_mask.nii.gz.
-
     #Returns:
     #    mask (np.ndarray): Boolean brain mask.
     #    nanmask (np.ndarray): Nan-masked brain mask.
     context_data = subject[context_tag]
+    inputdata_path = context_data['M0_path']
+    extradata_path = context_data['PLDall_controllabel_path']
+    mask_output_path = context_data['mask_path']    
+    templateNIFTI_path = context_data['templateNIFTI_path']
+    device = subject['device']
 
-   # templateNIFTI_path = inputdata_path USED TO BE M0 patch
     logging.info(f"Running brain masking with HD-BET CLI:")
 
     # Build HD-BET CLI command
@@ -56,6 +58,7 @@ def run_bet_mask(subject, inputdata_path, mask_output_path, device='cpu', contex
         # Save temporary image for brain extraction
         temp_bet_path = os.path.join(os.path.dirname(mask_output_path), "temp_for_bet.nii.gz")
         save_data_nifti(combineddata, temp_bet_path, templateNIFTI_path, 1)
+
         logging.info(f"Using combined data set for brain masking: sum of  {inputdata_path} and {extradata_path}")
         inputdata_path = temp_bet_path
         # run command HD-BET

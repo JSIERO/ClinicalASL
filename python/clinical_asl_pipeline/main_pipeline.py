@@ -230,7 +230,7 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
         subject = asl_prepare_asl_data(subject, context_tag=context)
 
     ###### Step 8: Brain extraction on M0 using HD-BET CLI
-        subject = run_bet_mask(subject[context], subject[context]['M0_path'], subject[context]['mask_path'], device = subject['device'], extradata_path = subject[context]['PLDall_controllabel_path'])
+        subject = run_bet_mask(subject, context_tag=context)
     
         subject = asl_motion_correction(subject, context_tag=context)
 
