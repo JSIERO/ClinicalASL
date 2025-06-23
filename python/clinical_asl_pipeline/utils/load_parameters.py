@@ -44,7 +44,7 @@ def load_parameters(config_path=None):
         "device": "cpu",
         "ASL_CONTEXT": ["baseline", "stimulus"],
         "context_study_tags": ["preACZ", "postACZ"],
-        "include_dicomseries_description_patterns": ["SOURCE*ASL*", "SWIP*ASL*"]
+        "include_dicomseries_description_patterns": ["*SOURCE*ASL*", "SWIP*ASL*"]
         }
         
         logging.info(f"Config parameters (hardcoded):\n{json.dumps(hardcoded_defaults, indent=2)}")

@@ -33,9 +33,8 @@ def asl_prepare_asl_data(subject, context_tag):
 
     # Use a shorter alias for subject[context_tag]
     context_data = subject[context_tag]
-
-    nifti_filename = context_data['sourceNIFTI_path'], 
-    nifti_path = os.path.join(subject['NIFTIdir'], nifti_filename)
+    
+    nifti_path = os.path.join(subject['NIFTIdir'], context_data['sourceNIFTI_path'])
     nifti_template_path = context_data['templateNIFTI_path']
     LookLocker_correction_factor_perPLD =  context_data['LookLocker_correction_factor_perPLD']
     NREPEATS = context_data['NREPEATS'] # excluding the M0 (first volume)

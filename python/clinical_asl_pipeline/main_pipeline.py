@@ -109,7 +109,7 @@ def get_latest_source_data(subject, context_study_tag, context_tag):
     # This function:
     # - Searches the DICOM and NIfTI directories for files containing a user-defined context tag 
     #   (e.g., 'baseline', 'stimulus') and matching a specified SeriesDescription pattern.
-    # - By default, the SeriesDescription patterns matched are ['SOURCE*ASL*', 'SWIP*ASL*'] (case-insensitive).
+    # - By default, the SeriesDescription patterns matched are ['*SOURCE*ASL*', 'SWIP*ASL*'] (case-insensitive).
     # - Picks the latest file (based on sorted filename) when multiple matches are found.
     #
     # Parameters:
@@ -125,16 +125,16 @@ def get_latest_source_data(subject, context_study_tag, context_tag):
 
     dicomdir = subject['DICOMsubjectdir']
     niftidir = subject['NIFTIdir']
-    context_study_tag = subject['context_study_tag']  # Make sure this key exists
+    #context_study_tag = subject['context_study_tags']  # Make sure this key exists
     context_data = subject[context_tag]
 
-    # Patterns to search for in filenames, default: SeriesDescription patterns matched are ['SOURCE*ASL*', 'SWIP*ASL*']
-    series_patterns = subject.get('include_dicomseries_description_patterns', ['SOURCE*ASL*', 'SWIP*ASL*'])
+    # Patterns to search for in filenames, default: SeriesDescription patterns matched are ['*SOURCE*ASL*', 'SWIP*ASL*']
+    series_patterns = subject.get('include_dicomseries_description_patterns', ['*SOURCE*ASL*', 'SWIP*ASL*'])
 
     # Filter DICOMs
     dicom_files = sorted([
         f for f in os.listdir(dicomdir)
-        if fnmatch.fnmatch(f.upper(), series_patterns[0].upper())  # find matched to first entry patterns, default: 'SOURCE*ASL*'
+        if fnmatch.fnmatch(f.upper(), series_patterns[0].upper())  # find matched to first entry patterns, default: '*SOURCE*ASL*'
         and context_study_tag in f
         and f.endswith('2')
     ])
@@ -149,7 +149,7 @@ def get_latest_source_data(subject, context_study_tag, context_tag):
     # Filter NIfTIs
     nifti_files = sorted([
         f for f in os.listdir(niftidir)
-        if fnmatch.fnmatch(f.upper(), series_patterns[0].upper()) # find matched to first entry in series_patterns, default: 'SOURCE*ASL*'
+        if fnmatch.fnmatch(f.upper(), series_patterns[0].upper()) # find matched to first entry in series_patterns, default: '*SOURCE*ASL*'
         and context_study_tag in f
         and f.endswith('2.nii.gz')
     ])
@@ -167,10 +167,10 @@ def get_latest_source_data(subject, context_study_tag, context_tag):
 
     return subject
 
-def find_template_dicom_typetags(subject, type_tag, context_study_tag, context_tag): 
+def find_template_dicom_typetags(subject, context_study_tag, context_tag): 
     # Helper function to find a template DICOM files based on type and context tags
     files = os.listdir(subject['DICOMsubjectdir'])    
-    series_patterns = subject.get('include_dicomseries_description_patterns', ['SOURCE*ASL*', 'SWIP*ASL*'])
+    series_patterns = subject.get('include_dicomseries_description_patterns', ['*SOURCE*ASL*', 'SWIP*ASL*'])
 
     for type_tag in subject['dicom_typetags_by_context'][context_tag]:
         match = next(
@@ -215,7 +215,7 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
         logging.info(f"===================================================================")
 
     ###### Step 3: Get SOURCE and DICOM NIFTI files
-        subject = get_latest_source_data(subject, context_study_tag=context_study_tag, context_tag=context)
+        subject = get_latest_source_data(subject, context_study_tag, context_tag=context)
 
     ###### Step 4: Locate template DICOMs for CBF, AAT, CVR, ATA derived data to be generated here
         subject = find_template_dicom_typetags(subject, context_study_tag, context_tag=context)
