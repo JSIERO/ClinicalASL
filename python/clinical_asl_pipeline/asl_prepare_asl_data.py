@@ -40,7 +40,6 @@ def asl_prepare_asl_data(subject, context_tag):
     NREPEATS = context_data['NREPEATS'] # excluding the M0 (first volume)
     NDYNS = context_data['NDYNS']
     NPLDS = context_data['NPLDS']
-    TR = context_data['TR'] 
 
     # Load source multidelay ASL nifti data context_data['sourceNIFTI_path'] relative to subject['NIFTIdir']
     # shape [x, y, z, timepoints = control/label x NPLDS x NDYNS], in this order
@@ -81,7 +80,7 @@ def asl_prepare_asl_data(subject, context_tag):
     logging.info(f"Template NIFTI path: {nifti_template_path}")
     logging.info("Saving M0 image")
 
-    save_data_nifti(context_data['M0'], context_data['M0_path'] , nifti_template_path, 1, None, TR)
+    save_data_nifti(context_data['M0'], context_data['M0_path'] , nifti_template_path, 1, None, None)
 
     # Interleave control/label, save per-PLD
     # resulting ASL_controllabel_allPLD is 5D numpy array (x, y, z,  NREPEATS x control/label, NPLDS) with interleaved control label volumes -> QASL analysis
@@ -103,8 +102,8 @@ def asl_prepare_asl_data(subject, context_tag):
     logging.info("Saving ASL data interleaved label control: 2-to-last PLDs for CBF")
     logging.info("Saving ASL data interleaved label control: 1-to-2 PLDs for ATA")
 
-    save_data_nifti(PLDall, context_data['PLDall_controllabel_path'], nifti_template_path, 1, None, TR)    
-    save_data_nifti(PLD2tolast, context_data['PLD2tolast_controllabel_path'], nifti_template_path, 1, None, TR)
-    save_data_nifti(PLD1to2, context_data['PLD1to2_controllabel_path'], nifti_template_path, 1, None, TR)
+    save_data_nifti(PLDall, context_data['PLDall_controllabel_path'], nifti_template_path, 1, None, None)    
+    save_data_nifti(PLD2tolast, context_data['PLD2tolast_controllabel_path'], nifti_template_path, 1, None, None)
+    save_data_nifti(PLD1to2, context_data['PLD1to2_controllabel_path'], nifti_template_path, 1, None, None)
     
     return subject

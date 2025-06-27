@@ -101,8 +101,8 @@ def main():
     parser.add_argument("inputdir", type=str, 
                         help="Path to subject directory containing DICOM data")
     parser.add_argument("outputdir", type=str, 
-                        help="Path to output directory for DICOM results for PACS and IMAGER platform")
-    parser.add_argument("--inference-method", type=str, default=None, 
+                        help="Path to output directory for DICOM results for PACS and IMAGR platform") 
+    parser.add_argument("--inference-method", type=str, default='ssvb', 
                         choices=["ssvb", "vaby"],
                         help="Optional input to choose inference method for fitting: 'ssvb' or 'vaby'. If not provided, uses the value from config.json.")
     parser.add_argument("--config", type=str, default=None,
@@ -112,7 +112,7 @@ def main():
     args = parser.parse_args()
     
     try:
-        run_pipeline(args.inputdir, args.outputdir, 
+        run_pipeline(args.inputdir, args.outputdir,
                     inference_method=args.inference_method, 
                     config_path=args.config)
     except Exception as e:

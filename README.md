@@ -3,7 +3,7 @@
 **Repository:** [https://github.com/JSIERO/ClinicalASL](https://github.com/JSIERO/ClinicalASL)  
 **Author:** Jeroen Siero, UMC Utrecht  
 **Contact:** j.c.w.siero@umcutrecht.nl  
-**Release Date:** 2025-06-11  
+**Release Date:** 2025-06-24  
 **Version:** v1.0.2  
 
 ## Description
@@ -59,7 +59,7 @@ example `config/config_default.json`:
     "device": "cpu",
     "ASL_CONTEXT": ["baseline", "stimulus"],
     "context_study_tags": ["preACZ", "postACZ"],
-    "include_dicomseries_description_patterns": ["*SOURCE*ASL*", "SWIP*ASL*"]
+    "dicomseries_description_patterns": ["*SOURCE*ASL*", "SWIP*ASL*"]
 }
 ```
 ## Dependencies

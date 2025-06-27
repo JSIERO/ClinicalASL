@@ -45,7 +45,6 @@ def asl_t1_from_m0(subject, context_tag):
     M0_allPLD = context_data['M0_allPLD']
     brainmask = context_data['mask'] 
     PLDS =  context_data['PLDS']
-    TR = context_data['TR']
 
     # Remove the Look-Locker correction (by multiplication) to compute the T1w profile (vectorized)
     M0_allPLD_noLLcorr = M0_allPLD * LookLocker_correction_factor_perPLD[None, None, None, :]
@@ -55,7 +54,7 @@ def asl_t1_from_m0(subject, context_tag):
     logging.info('Create T1w image from multiPLD M0')   
 
     T1fromM0 = asl_t1_from_m0_compute(M0_allPLD_noLLcorr, brainmask, PLDS)
-    save_data_nifti(T1fromM0, T1fromM0_path, templateNIFTI_path, 1, [0, 500], TR)
+    save_data_nifti(T1fromM0, T1fromM0_path, templateNIFTI_path, 1, [0, 500], None)
 
     # Final T1fromM0 load
     context_data['T1fromM0'] = nib.load(T1fromM0_path).get_fdata()

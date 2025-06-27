@@ -19,6 +19,7 @@ License: BSD 3-Clause License
 
 import os
 import logging
+import pydicom
 import warnings
 import fnmatch
 from clinical_asl_pipeline.asl_convert_dicom_to_nifti import asl_convert_dicom_to_nifti
@@ -42,7 +43,8 @@ def prepare_subject_paths(subject):
     # - FIGURE_RESULTS
     # - (uses SUBJECTdir as DICOMoutputdir)
     subject['DICOMoutputdir'] = subject['SUBJECTdir'] # folder were the derived CBF, AAT, CVR, ATA DICOMS will be saved
-    subject['DICOMsubjectdir'] = os.path.join(subject['SUBJECTdir'], 'DICOMORIG') # folder location of original DICOMS (copy of PACS)
+    subject['DICOMsubjectdir'] = os.path.join(subject['SUBJECTdir'], 'DICOMORIG') # folder location of DICOMS for processing (copied and renamed from PACS or scanner)
+    subject['DICOMorigdir'] = os.path.join(subject['DICOMsubjectdir'], 'ORIG') # folder location of exact copy of original DICOMS as copied from pACS or Philips scanner
     subject['NIFTIdir'] = os.path.join(subject['SUBJECTdir'], 'NIFTI')
     subject['ASLdir'] = os.path.join(subject['SUBJECTdir'], 'ASL')
     subject['RESULTSdir'] = os.path.join(subject['SUBJECTdir'], 'FIGURE_RESULTS')
@@ -50,6 +52,7 @@ def prepare_subject_paths(subject):
     for path in [
         subject['DICOMoutputdir'],
         subject['DICOMsubjectdir'],
+        subject['DICOMorigdir'] ,
         subject['NIFTIdir'],
         subject['ASLdir'],
         subject['RESULTSdir']
@@ -66,6 +69,7 @@ def prepare_input_output_paths(subject):
         subject[context] = {}
 
     # define DICOM context tags and type tags
+
     subject['dicom_typetags_by_context'] = {
         'baseline':  ['CBF', 'AAT', 'ATA', 'CVR'],
         'stimulus': ['CBF', 'AAT', 'ATA']
@@ -118,40 +122,61 @@ def get_latest_source_data(subject, context_study_tag, context_tag):
     #     context_study_tag (str): Study-specific context tag for selecting appropriate files.
     #     context_tag: string indicating the ASL context tag for the subject's data, e.g., 'baseline', 'stimulus', etc.
     #     subject (dict): Subject dictionary that may contain optional
-    #         'include_dicomseries_description_patterns' key with custom matching patterns.
+    #         'dicomseries_description_patterns' key with custom matching patterns.
     #
     # Returns:
     #     tuple: (nifti_full_path, dicom_full_path) corresponding to the latest matching entries.
 
     dicomdir = subject['DICOMsubjectdir']
     niftidir = subject['NIFTIdir']
-    #context_study_tag = subject['context_study_tags']  # Make sure this key exists
     context_data = subject[context_tag]
 
     # Patterns to search for in filenames, default: SeriesDescription patterns matched are ['*SOURCE*ASL*', 'SWIP*ASL*']
-    series_patterns = subject.get('include_dicomseries_description_patterns', ['*SOURCE*ASL*', 'SWIP*ASL*'])
+    series_patterns = subject.get('dicomseries_description_patterns', ['*SOURCE*ASL*', 'SWIP*ASL*'])
 
     # Filter DICOMs
-    dicom_files = sorted([
-        f for f in os.listdir(dicomdir)
-        if fnmatch.fnmatch(f.upper(), series_patterns[0].upper())  # find matched to first entry patterns, default: '*SOURCE*ASL*'
-        and context_study_tag in f
-        and f.endswith('2')
-    ])
+    if subject['is_singleframe']:
+        series_files = {}
+        for fname in os.listdir(dicomdir):
+            if context_study_tag not in fname or not fnmatch.fnmatch(fname.upper(), series_patterns[0].upper()):
+                continue
+            fpath = os.path.join(dicomdir, fname)
+            try:
+                ds = pydicom.dcmread(fpath, stop_before_pixels=True, force=True)
+                sn = int(getattr(ds, 'SeriesNumber', -1))
+                if sn not in series_files:
+                    series_files[sn] = []
+                series_files[sn].append(fname)
+            except Exception as e:
+                continue  # skip unreadable or invalid DICOMs
 
-    if len(dicom_files) > 1:
-        warnings.warn(f'Multiple SOURCE ASL DICOM entries found for "{context_study_tag}". Using latest.')
-    if not dicom_files:
-        raise FileNotFoundError(f'No SOURCE ASL DICOM entry found for context "{context_study_tag}" in {dicomdir}')
+        if not series_files:
+            raise FileNotFoundError(f"No matching DICOM files found for context '{context_study_tag}' in {dicomdir}")
 
-    dicom_path = os.path.join(dicomdir, dicom_files[-1])
+        highest_sn = max(series_files)
+        selected_dicom_file = sorted(series_files[highest_sn])[0]  # get the first slice in sorted order
+
+        dicom_path = os.path.join(dicomdir, selected_dicom_file)
+
+    elif subject['is_multiframe']:
+        dicom_files = sorted([
+            fname for fname in os.listdir(dicomdir)
+            if fnmatch.fnmatch(fname.upper(), series_patterns[0].upper())  # find matched to first entry patterns, default: '*SOURCE*ASL*'
+            and context_study_tag in fname
+            and fname.endswith('2')
+            ])
+        if len(dicom_files) > 1:
+            warnings.warn(f'Multiple SOURCE ASL DICOM entries found for "{context_study_tag}". Using latest.')
+        if not dicom_files:
+            raise FileNotFoundError(f'No SOURCE ASL DICOM entry found for context "{context_study_tag}" in {dicomdir}')
+        dicom_path = os.path.join(dicomdir, dicom_files[-1])
 
     # Filter NIfTIs
     nifti_files = sorted([
-        f for f in os.listdir(niftidir)
-        if fnmatch.fnmatch(f.upper(), series_patterns[0].upper()) # find matched to first entry in series_patterns, default: '*SOURCE*ASL*'
-        and context_study_tag in f
-        and f.endswith('2.nii.gz')
+        fname for fname in os.listdir(niftidir)
+        if fnmatch.fnmatch(fname.upper(), series_patterns[0].upper()) # find matched to first entry in series_patterns, default: '*SOURCE*ASL*'
+        and context_study_tag in fname
+        and fname.endswith('2.nii.gz')
     ])
 
     if len(nifti_files) > 1:
@@ -161,28 +186,44 @@ def get_latest_source_data(subject, context_study_tag, context_tag):
 
     nifti_path = os.path.join(niftidir, nifti_files[-1])
 
-    context_data['sourceNIFTI_path'] = os.path.join(subject['NIFTIdir'], nifti_path)
-    context_data['templateNIFTI_path'] = os.path.join(subject['NIFTIdir'], nifti_path)
-    context_data['sourceDCM_path']   = os.path.join(subject['DICOMsubjectdir'], dicom_path)
+    context_data['sourceNIFTI_path'] = nifti_path
+    context_data['templateNIFTI_path'] = nifti_path
+    context_data['sourceDCM_path']   = dicom_path
+    logging.info(f"source DICOM file selected: {dicom_path}")
+    logging.info(f"source NIFTI file selected: {nifti_path}")
 
     return subject
 
 def find_template_dicom_typetags(subject, context_study_tag, context_tag): 
     # Helper function to find a template DICOM files based on type and context tags
-    files = os.listdir(subject['DICOMsubjectdir'])    
-    series_patterns = subject.get('include_dicomseries_description_patterns', ['*SOURCE*ASL*', 'SWIP*ASL*'])
+    files_sorted = sorted([
+        f for f in os.listdir(subject['DICOMsubjectdir']) 
+        if os.path.isfile(os.path.join(subject['DICOMsubjectdir'], f))
+    ])
+    series_patterns = subject.get('dicomseries_description_patterns', ['*SOURCE*ASL*', 'SWIP*ASL*'])
+
+    keep_type_tags = []
 
     for type_tag in subject['dicom_typetags_by_context'][context_tag]:
         match = next(
-            (f for f in files if fnmatch.fnmatch(f.upper(), series_patterns[1].upper())
-            and type_tag in f and context_study_tag in f),
-            None  # fallback to None if no match found        
+            (
+                f for f in files_sorted 
+                if fnmatch.fnmatch(f.upper(), series_patterns[1].upper()) 
+                and type_tag in f 
+                and context_study_tag in f
+            ),
+            None # fall back to None, when type_Tag is not found, then remove from dicom_typetags_by_context 
         )
+
         if match is None:
-            raise FileNotFoundError(
-                f"No template DICOM found for type '{type_tag}', context '{context_study_tag}' in {subject['DICOMsubjectdir']}"
-            )
-        subject[context_tag][f'templateDCM_{type_tag}_path'] = os.path.join(subject['DICOMsubjectdir'], match)
+            logging.warning(f"No template DICOM found for type '{type_tag}', context '{context_study_tag}', in {subject['DICOMsubjectdir']}, now ommiting this type")
+        else:
+            keep_type_tags.append(type_tag)
+            subject[context_tag][f'templateDCM_{type_tag}_path'] = os.path.join(subject['DICOMsubjectdir'], match)
+            logging.info(f"Template DICOM found for type '{type_tag}', context '{context_study_tag}' in {subject[context_tag][f'templateDCM_{type_tag}_path']}")
+
+    # Only keep the successfully matched type tags
+    subject['dicom_typetags_by_context'][context_tag] = keep_type_tags
     return subject
 
 def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
@@ -205,13 +246,13 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
 
     # Prepare file paths
     subject = prepare_input_output_paths(subject)
-
+    
     ###### Step 2: Convert DICOM to NIFTI, move input PACS DICOMSinputdir to DICOMsubjectdir for further processing
     subject = asl_convert_dicom_to_nifti(subject)
 
     ###### Step 3-11: Unified loop for each ASL context tag: 'baseline', 'stimulus'
     for i, context in enumerate(subject['ASL_CONTEXT']):
-        context_study_tag = subject['context_study_tags'][i]
+        context_study_tag = subject['context_study_tags'][i] # e.g 'preACZ' and 'postACZ'
 
         logging.info(f"===================================================================")
         logging.info(f"=== Processing context '{context}' (tag: '{context_study_tag}') ===")

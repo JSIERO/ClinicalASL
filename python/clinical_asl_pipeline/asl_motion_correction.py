@@ -23,7 +23,6 @@ import nibabel as nib
 from clinical_asl_pipeline.utils.append_filename import append_mc
 from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
 
-
 def asl_motion_correction(subject, context_tag):
     # perform motion correction on PLD ordered data (makes sense for CBF/AAT fit)
     # method: ANTs with DenseRigid, 6DOF, MattesMutualInformation as cost function metric
@@ -42,7 +41,6 @@ def asl_motion_correction(subject, context_tag):
     outputdata_path = append_mc(inputdata_path)
     nifti_template_path = context_data['templateNIFTI_path']
     NREPEATS = context_data['NREPEATS']
-    TR = context_data['TR']
     
     # update path to motion corrected data, appeding '_mc' to filename using append_mc
     context_data['PLDall_controllabel_path'] =  append_mc(context_data['PLDall_controllabel_path'])
@@ -60,8 +58,8 @@ def asl_motion_correction(subject, context_tag):
     logging.info("Saving ASL motion-corrected data interleaved label control: 2-to-last PLDs for CBF")
     logging.info("Saving ASL motion-corrected data interleaved label control: 1-to-2 PLDs for ATA")
 
-    save_data_nifti(PLD2tolast, context_data['PLD2tolast_controllabel_path'], nifti_template_path, 1, None, TR)
-    save_data_nifti(PLD1to2, context_data['PLD1to2_controllabel_path'], nifti_template_path, 1, None, TR)
+    save_data_nifti(PLD2tolast, context_data['PLD2tolast_controllabel_path'], nifti_template_path, 1, None, None)
+    save_data_nifti(PLD1to2, context_data['PLD1to2_controllabel_path'], nifti_template_path, 1, None, None)
     
     return subject
 

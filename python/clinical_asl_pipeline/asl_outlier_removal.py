@@ -22,13 +22,9 @@ import nibabel as nib
 from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
 from clinical_asl_pipeline.utils.append_filename import append_or
 
-
 def mad(data, axis=None):
     # Median Absolute Deviation: a robust version of standard deviation."""
     return np.median(np.abs(data - np.median(data, axis=axis)), axis=axis)
-
-
-
 
 def asl_outlier_removal(subject, context_tag, usermask=None):
     # Remove outlier volumes from ASL deltaM signal based on mean deltaM in a combined mask.   
@@ -51,7 +47,6 @@ def asl_outlier_removal(subject, context_tag, usermask=None):
     nifti_template_path = context_data['templateNIFTI_path']
     NREPEATS = context_data['NREPEATS']
     NPLDS = context_data['NPLDS']
-    TR = context_data['TR'] 
 
     # Load mask and combine with user-supplied mask if provided
     brainmask = nib.load(brainmask_path).get_fdata() > 0
@@ -123,9 +118,9 @@ def asl_outlier_removal(subject, context_tag, usermask=None):
         context_data['PLD2tolast_controllabel_path'] =  append_or(context_data['PLD2tolast_controllabel_path']) 
         context_data['PLD1to2_controllabel_path'] =  append_or(context_data['PLD1to2_controllabel_path'])
 
-        save_data_nifti(PLDall_or, context_data['PLDall_controllabel_path'], nifti_template_path,  1, None, TR)
-        save_data_nifti(PLD2tolast_or, context_data['PLD2tolast_controllabel_path'], nifti_template_path,  1, None, TR)        
-        save_data_nifti(PLD1to2_or, context_data['PLD1to2_controllabel_path'], nifti_template_path, 1, None,  TR)   
+        save_data_nifti(PLDall_or, context_data['PLDall_controllabel_path'], nifti_template_path,  1, None, None)
+        save_data_nifti(PLD2tolast_or, context_data['PLD2tolast_controllabel_path'], nifti_template_path,  1, None, None)        
+        save_data_nifti(PLD1to2_or, context_data['PLD1to2_controllabel_path'], nifti_template_path, 1, None,  None)   
     
     else:
         logging.info("Outlier removal: No outliers detected")

@@ -18,11 +18,13 @@ import os
 import logging
 import shutil
 import pydicom
+import fnmatch
 from clinical_asl_pipeline.utils.run_command_with_logging import run_command_with_logging
 from glob import glob
 
 def asl_convert_dicom_to_nifti(subject):
 # Convert DICOM files to NIfTI format using dcm2niix.
+# Procedure detects whether singleframe (PACS) or Philips multiframe DICOMS from the scanner
 # This function performs the following steps:
 # 1. Recursively walks through all files and subdirectories in the input directory.
 # 2. Identifies and copies only DICOM files whose Series Description matches user-defined patterns (default: *SOURCE*ASL*, SWIP*ASL*).
@@ -41,17 +43,14 @@ def asl_convert_dicom_to_nifti(subject):
 
     nifti_output_dir = subject['NIFTIdir']
     dicom_input_dir = subject['DICOMinputdir']
-    dicom_subject_dir = subject['DICOMsubjectdir']; # default subject['SUBJECTdir']/DICOMORIG
+    dicom_subject_dir = subject['DICOMsubjectdir'] # default subject['SUBJECTdir']/DICOMORIG
+    dicom_orig_dir = subject['DICOMorigdir'] # default subject['SUBJECTdir']/DICOMORIG/ORIG - exact copy of DICOMS fro origin (PACS or Philips scanner)
     dcmniixlog_dir = subject['SUBJECTdir']
-    # check for input DICOM series description patterns, default ['*SOURCE*ASL*', 'SWIP*ASL*']), case insensitive
-    patterns = subject.get('include_dicomseries_description_patterns', ['*SOURCE*ASL*', 'SWIP*ASL*'])
 
-    def run_command(cmd):
-        logging.info(f"Running command: {cmd}")
-        run_command_with_logging(cmd)
+    # check for input DICOM series description patterns, default ['*SOURCE*ASL*', 'SWIP*ASL*']), case insensitive
+    patterns = subject.get('dicomseries_description_patterns', ['*SOURCE*ASL*', 'SWIP*ASL*'])
 
     def matches_series_description(desc, patterns):
-        import fnmatch
         desc_upper = desc.upper()
         for pattern in patterns:
             if fnmatch.fnmatchcase(desc_upper, pattern.upper()):
@@ -83,7 +82,6 @@ def asl_convert_dicom_to_nifti(subject):
                     if matches_series_description(desc, patterns):
                         dst_path = os.path.join(dst_dir, os.path.basename(src_path))
                         shutil.copy2(src_path, dst_path)
-                        logging.info(f"Copied: {src_path} → {dst_path} [SeriesDescription: {desc}]")
                         copied_count += 1
                         matched_files.append(dst_path)
                     else:
@@ -100,6 +98,7 @@ def asl_convert_dicom_to_nifti(subject):
             raise RuntimeError("DICOM conversion aborted: no matching ASL series found.")
         else:
             logging.info(f"Done. Total files copied: {copied_count}")
+            logging.info(f"Destination directory:  Total files copied: {copied_count}")
 
         return matched_files
 
@@ -120,26 +119,46 @@ def asl_convert_dicom_to_nifti(subject):
                 except FileNotFoundError:
                     pass
 
-    matched_files = copy_filtered_dicoms(dicom_input_dir, dicom_subject_dir, patterns)
+    def detect_multiframe_dicom(files, max_checks=20):
+        # Check if at least one file is a multiframe DICOM based on SOPClassUID
+        multiframe_uid = "1.2.840.10008.5.1.4.1.1.4.1"
+        for file_path in files[:max_checks]:
+            try:
+                ds = pydicom.dcmread(file_path, stop_before_pixels=True, force=True)
+                if ds.get("SOPClassUID", "") == multiframe_uid:
+                    return True
+            except Exception:
+                continue
+        return False
+    
+    matched_files = copy_filtered_dicoms(dicom_input_dir, dicom_orig_dir, patterns)
+    
+    # Detect if it's multiframe
+    is_multiframe = detect_multiframe_dicom(matched_files)
+    logging.info('Multiframe DICOM detected')
+    subject['is_multiframe'] = is_multiframe
+    subject['is_singleframe'] = not is_multiframe
 
-    orig_dir = os.path.join(dicom_subject_dir, 'ORIG')
-    os.makedirs(orig_dir, exist_ok=True)
-
-    # move matched DICOMs from PACS to /ORIG folder
+    # move matched PACS DICOMs from dicom_subject_dir to dicom_orig_dir
     for file_path in matched_files:
         try:
-            shutil.move(file_path, os.path.join(orig_dir, os.path.basename(file_path)))
+            shutil.move(file_path, os.path.join(dicom_orig_dir, os.path.basename(file_path)))
         except Exception as e:
             logging.error(f"Failed to move matched file to ORIG: {file_path}: {e}")
 
-    logging.info('Renaming Philips DICOMs using protocolname_seriesnumber filenaming - dcm2niix v1.0.20220720 (initial rename)')
-    run_command(f'dcm2niix -v 1 -w 0 -r y -f %p_%s -o {dicom_subject_dir} {orig_dir} > {os.path.join(dcmniixlog_dir, "dcm2niix_rename.log")} 2>&1')
+    if subject['is_multiframe']: # when not running on IMAGR, we expect enhanced multiframe DICOM Philips from the scanner
+        logging.info('Renaming Philips Multiframe DICOMs using protocolname_seriesnumber filenaming - dcm2niix v1.0.20220720 (initial rename)')
+        run_command_with_logging(f'dcm2niix -v 1 -w 0 -r y -f %p_%s -o {dicom_subject_dir} {dicom_orig_dir} > {os.path.join(dcmniixlog_dir, "dcm2niix_rename.log")} 2>&1')
 
+    elif subject['is_singleframe']: # when running on IMAGR, we expect classic singleframe DICOM from PACS
+        logging.info('Renaming PACS/IMAGR Singleframe DICOMs using protocolname_seriesnumber_instancenumber filenaming - dcm2niix v1.0.20220720 (initial rename)')
+        run_command_with_logging(f'dcm2niix -v 1 -w 0 -r y -f %p_%s_%r -o {dicom_subject_dir} {dicom_orig_dir} > {os.path.join(dcmniixlog_dir, "dcm2niix_rename.log")} 2>&1')
+    
     remove_files_by_pattern(dicom_subject_dir, ['*_Raw', '*_PS'])
     rename_files(dicom_subject_dir) # remove unwanted characters from filename
-
+    
     logging.info('Converting DICOMs to NIFTI - dcm2niix v1.0.20220720 (final conversion)')
-    run_command(f'dcm2niix -w 1 -z y -b y -f %p_%s -o {nifti_output_dir} {dicom_subject_dir} > {os.path.join(dcmniixlog_dir, "dcm2niix_conversion.log")} 2>&1')
+    run_command_with_logging(f'dcm2niix -w 1 -z y -b y -f %p_%s -o {nifti_output_dir} {dicom_subject_dir} > {os.path.join(dcmniixlog_dir, "dcm2niix_conversion.log")} 2>&1')
     logging.info('DICOMs converted to NIFTI') # remove unwanted characters from filename
 
     rename_files(nifti_output_dir)
