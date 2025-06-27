@@ -135,7 +135,11 @@ def asl_convert_dicom_to_nifti(subject):
     
     # Detect if it's multiframe
     is_multiframe = detect_multiframe_dicom(matched_files)
-    logging.info('Multiframe DICOM detected')
+    if is_multiframe:
+        logging.info('Multiframe DICOMs detected')
+    else:
+        logging.info('Singleframe DICOMs detected')
+
     subject['is_multiframe'] = is_multiframe
     subject['is_singleframe'] = not is_multiframe
 
