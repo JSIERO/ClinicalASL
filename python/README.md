@@ -4,7 +4,7 @@
 **Author:** Jeroen Siero, UMC Utrecht  
 **Contact:** j.c.w.siero@umcutrecht.nl  
 **Release Date:** 2025-06-11  
-**Version:** v1.0.2  
+**Version:** v1.0.3  
 
 ## Description
 
