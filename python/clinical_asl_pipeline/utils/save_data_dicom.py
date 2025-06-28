@@ -16,10 +16,8 @@ License: BSD 3-Clause License
 """
 import os
 import logging
-import shutil
 import numpy as np
 import pydicom
-import subprocess
 from pydicom.uid import generate_uid
 from pydicom.sequence import Sequence
 from pydicom.dataset import Dataset
@@ -57,9 +55,10 @@ def save_data_dicom(image, template_dicom_path, output_dicom_dir, name, value_ra
 #     Notes:
 #         - The image is scaled into the 16-bit integer range for compatibility with DICOM.
 #         - Metadata such as RescaleSlope, SeriesDescription, VOI LUT, and labeling details are inserted.
-#         - No external tools (e.g., DCMTK) are required; all DICOM manipulation is done with `pydicom`.
+#         - All DICOM manipulation is done with `pydicom`.
 #         - Orientation and layout are matched empirically to Philips DICOM expectations.
 #         - Output format is decided based on whether the template DICOM is multiframe.
+
     if not content_label:
         raise ValueError("Please supply a content_label such as 'CBF', 'CVR', 'AAT', or 'ATA'")
 

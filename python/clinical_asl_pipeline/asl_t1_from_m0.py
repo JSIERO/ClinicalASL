@@ -10,7 +10,7 @@ Institution: UMCU (University Medical Center Utrecht), The Netherlands
 Contact: j.c.w.siero@umcutrecht.nl
 
 Description:
-    Functions for brain extraction, computing T1-weighted images from multi-PLD M0 data, and tissue segmentation.
+    Functions for computing T1-weighted images from multi-PLD M0 data, and tissue segmentation.
 
 License: BSD 3-Clause License
 """
@@ -25,7 +25,7 @@ def asl_t1_from_m0(subject, context_tag):
     
     # Process M0 image to compute T1w image from multi-PLD M0 data.
     #
-    # This includes brain extraction, Look-Locker correction, and T1w from mPLD M0 computation.
+    #  This function computes a T1-weighted image from multi-PLD M0 data, which is used in ASL MRI analysis.
     #
     # subject:  Dictionary containing subject data and parameters.
     # context_tag:      String context_tag for the subject's data, eg 'baseline', 'stimulus', etc.

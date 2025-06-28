@@ -18,18 +18,8 @@ import subprocess
 import logging
 import threading
 
-import subprocess
-import logging
-import threading
-
 def run_command_with_logging(cmd):
     logging.info(f"Running command: {cmd}")
-
-    # Define known harmless phrases to suppress (can expand this list)
-    suppress_phrases = [
-        'dcmodify: Modify DICOM files',
-        'usage: dcmodify',
-    ]
 
     def stream_output(stream, log_function, log_in_file=True):
         for line in iter(stream.readline, ''):
@@ -38,9 +28,6 @@ def run_command_with_logging(cmd):
             line = line.rstrip()
             print(line)
 
-            # Suppress harmless messages
-            if any(phrase in line for phrase in suppress_phrases):
-                continue
 
             if log_in_file:
                 log_function(line)

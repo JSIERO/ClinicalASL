@@ -1,3 +1,20 @@
+"""
+ClinicalASL - Clinical Arterial Spin Labeling processing pipeline
+
+DICOM to NIfTI conversion module.
+
+Repository: https://github.com/JSIERO/ClinicalASL
+
+Author: Jeroen Siero
+Institution: UMCU (University Medical Center Utrecht), The Netherlands
+Contact: j.c.w.siero@umcutrecht.nl
+
+Description:
+    Function for registering ASL stimulus data to baseline data using ANTsPy.
+
+License: BSD 3-Clause License
+"""
+
 import os
 import logging
 import shutil
