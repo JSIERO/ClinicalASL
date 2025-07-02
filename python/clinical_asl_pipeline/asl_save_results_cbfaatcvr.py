@@ -51,12 +51,7 @@ def asl_save_results_cbfaatcvr(subject):
     subject['baseline']['ATA'] = nib.load(subject['baseline']['QASL_ATA_path']).get_fdata()
     subject['stimulus']['ATA'] = nib.load(subject['stimulus']['QASL_ATA_path']).get_fdata()
     subject['stimulus']['ATA_2baseline'] = nib.load(subject['stimulus']['ATA_2baseline_path']).get_fdata()
-    subject['baseline']['mask'] = nib.load(subject['baseline']['mask_path']).get_fdata()
-    subject['stimulus']['mask'] = nib.load(subject['stimulus']['mask_path']).get_fdata()
     subject['stimulus']['mask_2baseline'] = nib.load(subject['stimulus']['mask_2baseline_path']).get_fdata()
-
-    subject['baseline']['nanmask'] = np.where(subject['baseline']['mask'], 1.0, np.nan)
-    subject['stimulus']['nanmask'] = np.where(subject['stimulus']['mask'], 1.0, np.nan)
 
     # === Mask prep ===
     subject['stimulus']['nanmask_2baseline'] = np.where(subject['stimulus']['mask_2baseline'], 1.0, np.nan)

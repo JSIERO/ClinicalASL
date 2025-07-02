@@ -59,7 +59,7 @@ pip install -e .
 cd ..
 ```
 
-### dcm2niix Installation
+### dcm2niix Installation: note make sure it has JPGEG2000 support for singleframe PACS DICOMS
 ```bash
 conda install -n qi -c conda-forge dcm2niix=1.0.20220720 -y
 ```
@@ -68,6 +68,9 @@ conda install -n qi -c conda-forge dcm2niix=1.0.20220720 -y
 python -c "import HD_BET; import ants; from clinical_asl_pipeline import main_pipeline; print('Installation successful')"
 ```
 ## Troubleshooting
+### DCM2NIIX conversion of single-frame DICOMS from PACS
+-   make sure the dcm2niix install has JPEG2000 support, can included by compiling your own install, then make sure you checkout v1.0.20220720
+
 ### QASL Key Errors
 - Ensure your license key is valid
 - Contact support@quantified-imaging.com if issues persist
