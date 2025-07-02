@@ -22,7 +22,7 @@ import importlib.resources as pkg_resources
 from matplotlib.colors import ListedColormap
 from scipy.io import loadmat
 
-def save_figure_to_png(data, mask, datarange, outputloc, suffix, label, colormap='viridis'):
+def save_figure_to_png(data, mask, datarange, outputloc, suffix, title,  label, colormap='viridis'):
     # Save a 3D data montage to PNG with black background and white labels.
     #
     # Args:
@@ -123,6 +123,7 @@ def save_figure_to_png(data, mask, datarange, outputloc, suffix, label, colormap
     ax.imshow(rgb_img)
     ax.axis('off')
     fig.patch.set_facecolor('black')
+    ax.set_title(title, color='white', fontsize=20, pad=0) # Title with white text, underscores removed
 
     # Colorbar
     cbar_ax = fig.add_axes([0.2, 0.06, 0.6, 0.03])

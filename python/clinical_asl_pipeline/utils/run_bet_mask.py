@@ -80,12 +80,12 @@ def run_bet_mask(subject, context_tag):
     mask = mask > 0  # Ensure binary mask
 
     # Dilate mask 1 voxels: using 3D and conservative mode for a tight mask
-    mask_dil = dilate_mask(mask, '3D', iterations=1, conservative=True)
+    mask = dilate_mask(mask, '3D', iterations=1, conservative=True)
 
-    nanmask = np.where(mask_dil, 1.0, np.nan)
+    nanmask = np.where(mask, 1.0, np.nan)
 
     # Save final dilated mask
-    save_data_nifti(mask_dil, mask_output_path, templateNIFTI_path, 1)
+    save_data_nifti(mask, mask_output_path, templateNIFTI_path, 1)
     logging.info(f"Saved dilated mask to: {mask_output_path}")
 
     # Delete unwanted HD-BET masked image

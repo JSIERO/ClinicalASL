@@ -35,7 +35,8 @@ import logging
 import numpy as np
 import nibabel as nib
 from clinical_asl_pipeline.asl_smooth_image import asl_smooth_image
-from clinical_asl_pipeline.utils.save_figure_to_png import save_figure_to_png  
+from clinical_asl_pipeline.utils.save_figure_to_png import save_figure_to_png
+from clinical_asl_pipeline.utils.save_png_to_dicom import save_png_to_dicom  
 from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
 from clinical_asl_pipeline.utils.save_data_dicom import save_data_dicom
 
@@ -50,7 +51,12 @@ def asl_save_results_cbfaatcvr(subject):
     subject['baseline']['ATA'] = nib.load(subject['baseline']['QASL_ATA_path']).get_fdata()
     subject['stimulus']['ATA'] = nib.load(subject['stimulus']['QASL_ATA_path']).get_fdata()
     subject['stimulus']['ATA_2baseline'] = nib.load(subject['stimulus']['ATA_2baseline_path']).get_fdata()
+    subject['baseline']['mask'] = nib.load(subject['baseline']['mask_path']).get_fdata()
+    subject['stimulus']['mask'] = nib.load(subject['stimulus']['mask_path']).get_fdata()
     subject['stimulus']['mask_2baseline'] = nib.load(subject['stimulus']['mask_2baseline_path']).get_fdata()
+
+    subject['baseline']['nanmask'] = np.where(subject['baseline']['mask'], 1.0, np.nan)
+    subject['stimulus']['nanmask'] = np.where(subject['stimulus']['mask'], 1.0, np.nan)
 
     # === Mask prep ===
     subject['stimulus']['nanmask_2baseline'] = np.where(subject['stimulus']['mask_2baseline'], 1.0, np.nan)
@@ -117,7 +123,7 @@ def asl_save_results_cbfaatcvr(subject):
                         save_data_dicom(data,
                                         dcm_template,
                                         dcm_outputdir,
-                                        f'WIP {context_study_tag} {type_tag} MD-ASL',  # Here use clinical tag (eg 'preACZ')
+                                        f'ASL {context_study_tag} {type_tag}',  # Here use clinical tag (eg 'ASL preACZ CBF') for SeriesDescription
                                         subject[range_tag],
                                         type_tag
                         )
@@ -128,27 +134,59 @@ def asl_save_results_cbfaatcvr(subject):
     def save_png(context, fields):
         context_study_tag = get_context_study_tag(context)
         for field, range_tag, type_tag, cmap, _ in fields:
-            data = subject[context].get(field) if field != 'CVR_smth' else subject['CVR_smth']
-            
+            data = subject[context].get(field) if field != 'CVR_smth' else subject['CVR_smth']            
             if data is not None:
                 if field == 'CVR_smth':
-                    png_name = 'CVR'
-                
+                    png_name = 'ASL_CVR'
+                    title_name = 'CVR'                  
                 else:
-                    png_name = f'{context}_{context_study_tag}_{type_tag}'  # e.g., baseline_preACZ_CBF
+                    png_name = f'ASL_{context}_{context_study_tag}_{type_tag}'  # e.g., ASL_baseline_preACZ_CBF
+                    title_name = f"ASL {context_study_tag} {type_tag}"  # e.g., ASL preACZ CBF
                 
                 save_figure_to_png(data, subject['nanmask_combined'], subject[range_tag],
-                                    subject['RESULTSdir'], png_name, type_tag, cmap)
+                                    subject['RESULTSdir'], png_name, title_name, type_tag, cmap)                
+                dcm_template = subject[context][f"templateDCM_{type_tag}_path"]
+                save_png_to_dicom(
+                    os.path.join(subject['RESULTSdir'], f"{png_name}.png"),
+                    os.path.join(subject['RESULTSdir'], f"{png_name}.dcm"), 
+                    title_name,
+                    dcm_template
+                )
                 logging.info(f"Saved PNG: {png_name}.png")
 
-    # === Execute saves ===
+    # === Execute saves ===    
+    #   Save NIfTI and DICOM for baseline and stimulus
     save_nifti_and_dicom('baseline', fields_main)
     save_nifti_and_dicom('baseline', fields_cvr)
     save_nifti_and_dicom('stimulus', fields_main)
     save_nifti_and_dicom('stimulus', fields_2baseline, allow_dicom=False)
 
+    # Save PNGs for baseline and stimulus
     save_png('baseline', fields_main + fields_cvr)
     save_png('stimulus', fields_2baseline)
+        
+    # === Save PNGs as DICOM with specific context and type_tag ===    
+    # Save PNG as DICOM for baseline CVR
+    type_tag = fields_cvr[2] # 'CVR' for baseline
+    png_name = f'ASL_{type_tag}'
+    input_png_path =  os.path.join(subject['RESULTSdir'], f"{png_name}.png")
+    output_dcm_path = os.path.join(subject['RESULTSdir'], f"{png_name}.dcm")
+    dcm_template = subject['baseline'][f"templateDCM_{type_tag}_path"]
+    series_description = f"ASL {type_tag}" 
+    instancenumber = 1  # first instance number for CVR
+    save_png_to_dicom(input_png_path, output_dcm_path, series_description, instancenumber, dcm_template)
+
+    # Save PNGs as DICOM for each context and type_tag
+    for _, _, type_tag, _, _ in fields_main:
+        for context in subject['ASL_CONTEXT']:
+            context_study_tag = get_context_study_tag(context)
+            png_name = f'ASL_{context}_{context_study_tag}_{type_tag}'
+            input_png_path =  os.path.join(subject['RESULTSdir'], f"{png_name}.png")
+            output_dcm_path = os.path.join(subject['RESULTSdir'], f"{png_name}.dcm")
+            dcm_template = subject[context][f"templateDCM_{type_tag}_path"]
+            series_description = f"ASL {context_study_tag} {type_tag}"                  
+            instancenumber += 1
+            save_png_to_dicom(input_png_path, output_dcm_path, series_description, instancenumber, dcm_template)
 
     # === Final log ===
     logging.info(f"Results complete: PACS-ready DICOMS, NIFTI, .png's saved for subject {subject['SUBJECTdir']}")

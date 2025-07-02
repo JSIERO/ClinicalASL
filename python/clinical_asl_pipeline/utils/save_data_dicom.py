@@ -92,8 +92,9 @@ def save_data_dicom(image, template_dicom_path, output_dicom_dir, name, value_ra
 
         ds.ImageType = ['DERIVED', 'SECONDARY', 'QUANTITATIVE']
         ds.ContentLabel = content_label.upper()
-        ds.ContentDescription = f"ASL derived map: {content_label.upper()} [{unit_str}]"
-        ds.SeriesDescription = f"{name} [{unit_str}]"
+        ds.ContentDescription = f"ClinicalASL derived map: {content_label.upper()} [{unit_str}]"
+        ds.SeriesDescription = f"{name} [{unit_str}] - derived (ClinicalASL)"
+        ds.SeriesNumber = ds.SeriesNumber + 10  # Increment series number for new series
         ds.ProtocolName = name
         ds.RescaleSlope = 1.0 / scalingfactor
         ds.RescaleIntercept = 0.0
@@ -123,7 +124,7 @@ def save_data_dicom(image, template_dicom_path, output_dicom_dir, name, value_ra
                 frame.FrameVOILUTSequence[0].WindowCenter = float(np.mean(value_range))
                 frame.FrameVOILUTSequence[0].WindowWidth = float(np.ptp(value_range))
 
-        output_filename = os.path.basename(template_dicom_path)
+        output_filename = f"ASL_{name.replace(' ', '_')}_{ds.SeriesNumber}.dcm" # e.g. 'ASL_preACZ_CBF_613.dcm'
         output_path = os.path.join(output_dicom_dir, f"{output_filename}.dcm")
         ds.save_as(output_path)
         logging.info(f"Saved multiframe DICOM: {output_path}")
@@ -168,8 +169,10 @@ def save_data_dicom(image, template_dicom_path, output_dicom_dir, name, value_ra
             ds.decompress()  # Ensure dataset is uncompressed before writing new PixelData
             ds.ImageType = ['DERIVED', 'SECONDARY', 'QUANTITATIVE']
             ds.ContentLabel = content_label.upper()
-            ds.ContentDescription = f"ASL derived map: {content_label.upper()} [{unit_str}]"
-            ds.SeriesDescription = f"{name} [{unit_str}]"
+            ds.ContentDescription = f"ClinicalASL derived map: {content_label.upper()} [{unit_str}]"
+            ds.SeriesDescription = f"{name} [{unit_str}] - derived (ClinicalASL)"
+            ds.SeriesNumber = ds.SeriesNumber + 10  # Increment series number for new series
+            ds.InstanceNumber = i + 1  # InstanceNumber starts at 1
             ds.ProtocolName = name
             ds.RescaleSlope = 1.0 / scalingfactor
             ds.RescaleIntercept = 0.0
@@ -188,6 +191,7 @@ def save_data_dicom(image, template_dicom_path, output_dicom_dir, name, value_ra
             smallest = int(np.min(slice_img))
             largest = int(np.max(slice_img))
 
-            output_path = os.path.join(output_dicom_dir, f"{fname}.dcm")
+            output_filename = f"ASL_{name.replace(' ', '_')}_{ds.SeriesNumber}_{ds.InstanceNumber}.dcm" # e.g. 'ASL_preACZ_CBF_613_1.dcm'
+            output_path = os.path.join(output_dicom_dir, f"{output_filename}.dcm")
             ds.save_as(output_path)
             logging.info(f"Saved slice DICOM: {output_path}")
