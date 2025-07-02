@@ -26,14 +26,10 @@ This guide explains how to install the ClinicalASL processing pipeline.
 ## Conda Environment Setup
 
 ```bash
-# Install Miniconda
+# Install Miniconda (here for Linux, Windows etc can be found in www.anaconda.com)
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
 source $HOME/miniconda/bin/activate
-
-# Create environment
-conda create -n qi python=3.11 -y
-conda activate qi
 ```
 ## QASL Installation
 ```bash
