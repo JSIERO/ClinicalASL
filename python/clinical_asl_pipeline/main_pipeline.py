@@ -231,6 +231,7 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
     #     outputdir (str): Path to the output directory where ASL derived images and generated DICOMS will be saved.
     # Initialize subject dictionary with input and output directories
 
+    subject = {}
     subject['DICOMinputdir'] = inputdir
     subject['SUBJECTdir'] = outputdir 
 
