@@ -4,4 +4,4 @@ scipy>=1.9
 matplotlib>=3.7
 nibabel>=5.2
 pydicom>=2.4
-antspyx>=0.3.9
+antspyx==0.5.4
