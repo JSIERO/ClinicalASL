@@ -25,27 +25,27 @@ def asl_registration_stimulus_to_baseline(subject):
     # subject is a dictionary containing paths to the necessary files.
     # The dictionary should contain the following keys:
     # 'baseline': {
-    #     'T1fromM0_path', 'CBF_path', 'AAT_path', 'ATA_path', 'mask_path'
+    #     'M0_path', 'CBF_path', 'AAT_path', 'ATA_path', 'mask_path'
     # },
     # 'stimulus': {
-    #     'T1fromM0_path', 'CBF_path', 'AAT_path', 'ATA_path', 'mask_path',
-    #     'T1fromM0_2baseline_path', 'CBF_2baseline_path', 'AAT_2baseline_path',
+    #     'M0_path', 'CBF_path', 'AAT_path', 'ATA_path', 'mask_path',
+    #     'M0_2baseline_path', 'CBF_2baseline_path', 'AAT_2baseline_path',
     #     'ATA_2baseline_path', 'mask_2baseline_path'
     # },
     # 'ASLdir'
     # resulting transform will be saved in 'ASLdir' as 'rigid_stimulus_to_baseline.mat'
 
     # Load fixed and moving images for registration
-    logging.info("Registration T1fromM0 stimulus to baseline data (ANTsPy) *********************************************************************")
+    logging.info("Registration M0 stimulus to baseline data (ANTsPy) *********************************************************************")
 
-    fixed = ants.image_read(subject['baseline']['T1fromM0_path'])
-    moving = ants.image_read(subject['stimulus']['T1fromM0_path'])
-
+    fixed = ants.image_read(subject['baseline']['M0_path'])
+    moving = ants.image_read(subject['stimulus']['M0_path'])
+    
     # Run registration
     reg = ants.registration(fixed=fixed, moving=moving, type_of_transform='Rigid', metric='Mattes', reg_iterations=(1000, 500, 250, 100)) 
     interpolator = 'bSpline'
     # Save transformed moving image
-    ants.image_write(reg['warpedmovout'], subject['stimulus']['T1fromM0_2baseline_path'])
+    ants.image_write(reg['warpedmovout'], subject['stimulus']['M0_2baseline_path'])
 
     # Apply same transform to CBF, AAT, ATA, mask
     def apply_transform(moving_path, reference_path, output_path, transformlist, interpolation):

@@ -68,7 +68,7 @@ example `config/config_default.json`:
 - [QASL](https://quantified-imaging.com/) by Quantified Imaging (license key required)
 - [dcm2niix](https://github.com/rordenlab/dcm2niix) (v1.0.20230411 or newer)
 - [HD-BET](https://github.com/MIC-DKFZ/HD-BET) (for brain extraction)
-- [ANTsPy](https://github.com/ANTsX/ANTsPy) (for image registration)
+- [ANTsPy](https://github.com/ANTsX/ANTsPy) v 0.5.4 (for image registration) - version 0.6.1 works bad!
 - Additional Python packages (see `requirements.txt`)
 
 ## Installation

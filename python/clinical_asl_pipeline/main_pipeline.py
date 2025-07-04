@@ -83,7 +83,6 @@ def prepare_input_output_paths(subject):
 
         subject[context]['mask_path'] = os.path.join(subject['ASLdir'], f'{context}_M0_brain_mask.nii.gz')
         subject[context]['M0_path'] = os.path.join(subject['ASLdir'], f'{context}_M0.nii.gz')
-        subject[context]['T1fromM0_path'] = os.path.join(subject['ASLdir'], f'{context}_T1fromM0.nii.gz')
 
         subject[context]['QASL_CBF_path'] = os.path.join(subject['ASLdir'], f'{context}_QASL_2tolastPLD_forCBF/output/native/calib_voxelwise/perfusion.nii.gz')
         subject[context]['QASL_AAT_path'] = os.path.join(subject['ASLdir'], f'{context}_QASL_allPLD_forAAT/output/native/arrival.nii.gz')
@@ -100,7 +99,6 @@ def prepare_input_output_paths(subject):
             subject[context]['AAT_2baseline_path'] = os.path.join(subject['ASLdir'], f'{context}_AAT_2baseline.nii.gz')
             subject[context]['ATA_2baseline_path'] = os.path.join(subject['ASLdir'], f'{context}_ATA_2baseline.nii.gz')
             subject[context]['M0_2baseline_path'] = os.path.join(subject['ASLdir'], f'{context}_M0_2baseline.nii.gz')
-            subject[context]['T1fromM0_2baseline_path'] = os.path.join(subject['ASLdir'], f'{context}_T1fromM0_2baseline.nii.gz')
             subject[context]['mask_2baseline_path'] = os.path.join(subject['ASLdir'], f'{context}_M0_brain_mask_2baseline.nii.gz')
 
     logging.info("Input and derived ASL file paths prepared.")
@@ -233,7 +231,6 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
     #     outputdir (str): Path to the output directory where ASL derived images and generated DICOMS will be saved.
     # Initialize subject dictionary with input and output directories
 
-    subject = {}
     subject['DICOMinputdir'] = inputdir
     subject['SUBJECTdir'] = outputdir 
 
@@ -276,15 +273,13 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
     ###### Step 8: Brain extraction on M0 using HD-BET CLI
         subject = run_bet_mask(subject, context_tag=context)
     
+    ###### Step 9: Motion correction of ASL data using ANTsPy
         subject = asl_motion_correction(subject, context_tag=context)
 
-    ###### Step 8: Outlier timepoint rejection: 2.5 x std + mean CBF (deltaM) 
+    ###### Step 10: Outlier timepoint rejection: 2.5 x std + mean CBF (deltaM) 
         subject = asl_outlier_removal(subject, context_tag=context, usermask=None)
 
-    ###### Step 9: Compute T1 from M0
-        subject = asl_t1_from_m0(subject, context_tag=context)
-
-    ###### Step 10: ASL Quantification analysis
+    ###### Step 11: ASL Quantification analysis
         context_data = subject[context]
         # all PLD for AAT (arterial arrival time map)
         asl_qasl_analysis(context_data, ANALYSIS_PARAMETERS, 
@@ -315,10 +310,10 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
                         'artoff'
                         )
 
-    ###### Step 11: register post-ACZ ASL data to pre-ACZ ASL data using Elastix 
+    ###### Step 12: register post-ACZ ASL data to pre-ACZ ASL data using Elastix 
     asl_registration_stimulus_to_baseline(subject)
 
-    ###### Step 12: Generate CBF/AAT/ATA/CVR results (nifti, dicom PACS, .pngs) for pre- and postACZ, including registration of postACZ to preACZ as reference data, and target for computed CVR map
+    ###### Step 13: Generate CBF/AAT/ATA/CVR results (nifti, dicom PACS, .pngs) for pre- and postACZ, including registration of postACZ to preACZ as reference data, and target for computed CVR map
     asl_save_results_cbfaatcvr(subject)
 
     logging.info("ASL processing pipeline completed successfully.")
