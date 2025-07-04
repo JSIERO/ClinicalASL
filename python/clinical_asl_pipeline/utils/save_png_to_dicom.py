@@ -18,21 +18,23 @@ import pydicom
 import numpy as np
 import datetime
 import logging
-from pydicom.dataset import Dataset, FileDataset
+from clinical_asl_pipeline.__version__ import __version__ as TOOL_VERSION
+from pydicom.sequence import Sequence
+from pydicom.dataset import Dataset, FileDataset, FileMetaDataset
 from pydicom.uid import generate_uid, ExplicitVRLittleEndian, SecondaryCaptureImageStorage
-from pydicom.uid import ExplicitVRLittleEndian
-
 from PIL import Image
 
-def save_png_to_dicom(png_path, output_path, series_description, instancenumber=1, template_dcm_path=None):
+def save_png_to_dicom(png_path, output_path, series_description, series_instance_uid,  instance_number=1, template_dcm_path=None, source_dicom_path=None):
     #   Convert a PNG image to DICOM format.
     #   This function reads a PNG image, converts it to a DICOM dataset, and saves it to the specified output path.
     #   Parameters:
     #      png_path (str): Path to the input PNG image. 
     #      output_path (str): Path where the output DICOM file will be saved.   
     #      series_description (str): Title for the DICOM Series Description. 
+    #      SeriesInstanceUID (str): Unique identifier for the DICOM Series. This is used to group related images.
     #      instancenumber (int): Instance number for the DICOM image. Default is 1.
     #      template_dcm_path (str): Optional path to a template DICOM file for metadata. If not provided, defaults will be used.
+    #      source_dicom_path (str): Optional path to a source DICOM file for referencing. If provided, the function will add a reference to this DICOM.
     #   #   Returns:
     #      None: The function saves the DICOM file to the specified output path.        
 
@@ -44,45 +46,64 @@ def save_png_to_dicom(png_path, output_path, series_description, instancenumber=
     # Load template DICOM if provided
     template_ds = None
     if template_dcm_path:
-        template_ds = pydicom.dcmread(template_dcm_path, stop_before_pixels=True)
+        template_ds = pydicom.dcmread(template_dcm_path, stop_before_pixels=True, force=True)
 
     # File Meta
-    file_meta = pydicom.Dataset()
+    # Generate consistent UID
+    IMPLEMENTATION_UID_ROOT = "1.3.6.1.4.1.54321.1.1" # Example root UID for ClinicalASL, fake PEN
+    uid = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
+    file_meta = FileMetaDataset()
+    file_meta.FileMetaInformationVersion = b'\x00\x01'
     file_meta.MediaStorageSOPClassUID = SecondaryCaptureImageStorage
-    file_meta.MediaStorageSOPInstanceUID = generate_uid()
-    file_meta.ImplementationClassUID = generate_uid()
+    file_meta.MediaStorageSOPInstanceUID = uid
+    file_meta.ImplementationClassUID = IMPLEMENTATION_UID_ROOT
     file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
 
     # Create new DICOM dataset
     ds = FileDataset(output_path, {}, file_meta=file_meta, preamble=b"\0" * 128)
+    ds.file_meta = file_meta
+    ds.SOPInstanceUID = uid
+    ds.SOPClassUID = file_meta.MediaStorageSOPClassUID
+
+    now = datetime.datetime.now()
 
     # Copy metadata from template or generate defaults
-    ds.Modality = template_ds.Modality if template_ds and 'Modality' in template_ds else 'OT'
-    ds.StudyInstanceUID = template_ds.StudyInstanceUID if template_ds and 'StudyInstanceUID' in template_ds else generate_uid()
-    ds.SeriesInstanceUID = generate_uid()  # new series for SC images
-    ds.SOPInstanceUID = file_meta.MediaStorageSOPInstanceUID
-    ds.SOPClassUID = file_meta.MediaStorageSOPClassUID
-    ds.PatientName = template_ds.PatientName if template_ds and 'PatientName' in template_ds else "Anonymous^Patient"
-    ds.PatientID = template_ds.PatientID if template_ds and 'PatientID' in template_ds else "000000"
-    ds.PatientBirthDate = template_ds.PatientBirthDate
-    ds.PatientSex = template_ds.PatientSex
-    ds.StudyDate = template_ds.StudyDate
-    ds.StudyTime = template_ds.StudyTime
-    ds.AccessionNumber = template_ds.AccessionNumber
-    ds.SeriesDescription = f"{series_description} - derived (ClinicalASL)"
-    ds.InstanceNumber = instancenumber if instancenumber else 1 # Default to 1 if not provided
+    ds.Modality = getattr(template_ds, 'Modality', 'OT')
     ds.ImageType = "DERIVED\\SECONDARY\\QUANTITATIVE"
-    ds.StudyID = template_ds.StudyID
-    ds.SeriesNumber = template_ds.SeriesNumber + 100 + instancenumber  # Increment series number for new series
-    ds.StudyDescription = template_ds.StudyDescription
-    ds.SoftwareVersion = 'ClinicalASL https://github.com/JSIERO/ClinicalASL'
-    
+
+    ds.StudyInstanceUID = getattr(template_ds, 'StudyInstanceUID', generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.'))
+    ds.SeriesInstanceUID = series_instance_uid  # use provided SeriesInstanceUID
+    ds.InstanceCreatorUID = IMPLEMENTATION_UID_ROOT
+    ds.SeriesNumber = 999  # Secondary Capture images typically have a fixed series number, here 999 is used as a placeholder
+    ds.InstanceNumber = instance_number
+    ds.SeriesDescription = f"{series_description} - derived (ClinicalASL-Siero)"
+    ds.StudyID = getattr(template_ds, 'StudyID', 'Unknown')
+    ds.StudyDescription = getattr(template_ds, 'StudyDescription', 'Unknown Study')
+    ds.PatientName = getattr(template_ds, 'PatientName', 'Anonymous^Patient')
+    ds.PatientID = getattr(template_ds, 'PatientID', '000000')
+    ds.PatientBirthDate = getattr(template_ds, 'PatientBirthDate', '')
+    ds.PatientSex = getattr(template_ds, 'PatientSex', '')       
+    ds.AccessionNumber = getattr(template_ds, 'AccessionNumber', '') 
+    ds.BodyPartExamined = "BRAIN"
+    ds.PatientOrientation = ['L', 'P']
+    ds.SoftwareVersions = f'ClinicalASL v{TOOL_VERSION}, https://github.com/JSIERO/ClinicalASL'
+    ds.InstitutionName = getattr(template_ds, 'InstitutionName', 'University Medical Center Utrecht')
+    ds.Manufacturer = f"ClinicalASL v{TOOL_VERSION}, https://github.com/JSIERO/ClinicalASL"
+    ds.ReferringPhysicianName = getattr(template_ds, 'ReferringPhysicianName', 'Unknown^Referring Physician')  
+    ds.ConversionType = "WSD"  # WSD = Workstation, standard value for derived images
+    ds.SeriesDescription = ds.SeriesDescription[:64]  # VR LO max length
+    ds.Manufacturer = ds.Manufacturer[:64]  # VR LO max length
+    ds.SoftwareVersions = ds.SoftwareVersions[:64]  # VR LO max length
+    ds.InstitutionName = ds.InstitutionName[:64]  # VR LO max length
     # Add content date/time for this image
-    now = datetime.datetime.now()
     ds.ContentDate = now.strftime('%Y%m%d')
     ds.ContentTime = now.strftime('%H%M%S.%f')
+    ds.InstanceCreationDate = now.strftime('%Y%m%d')
+    ds.InstanceCreationTime = now.strftime('%H%M%S')
+    ds.StudyDate = getattr(template_ds, 'StudyDate', now.strftime('%Y%m%d'))
+    ds.StudyTime = getattr(template_ds, 'StudyTime', now.strftime('%H%M%S'))
 
-    # Image size and type
+    # Pixel data: image size and type
     ds.Rows, ds.Columns = pixel_array.shape[:2]
     if len(pixel_array.shape) == 2:  # Grayscale
         ds.SamplesPerPixel = 1
@@ -99,11 +120,6 @@ def save_png_to_dicom(png_path, output_path, series_description, instancenumber=
 
     # Add pixel data
     ds.PixelData = pixel_array.tobytes()
-
-    # Encoding
-    ds.is_little_endian = True
-    ds.is_implicit_VR = False
-
+    
     # Save
-    ds.save_as(output_path)
-    logging.info(f"PNG-derived DICOM saved to {output_path}")
+    ds.save_as(output_path, enforce_file_format=True)

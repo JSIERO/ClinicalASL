@@ -9,10 +9,10 @@ This guide explains how to install the ClinicalASL processing pipeline.
 ## Table of Contents
 1. [System Requirements](#system-requirements)
 2. [Conda Environment Setup](#conda-environment-setup)
-3. [QASL Installation](#qasl-installation)
-4. [HD-BET Installation](#hd-bet-installation)  
-5. [ANTsPy Installation](#antspy-installation)
-6. [ClinicalASL Installation](#clinicalasl-installation)
+3. [dcm2niix installation](#dcm2niix-installation)
+4. [ClinicalASL Installation](#clinicalasl-installation)
+5. [QASL Installation](#qasl-installation)
+6. [HD-BET Installation](#hd-bet-installation)  
 7. [Docker Installation (Optional)](#docker-installation-optional)
 8. [Verification](#verification)
 9. [Troubleshooting](#troubleshooting)
@@ -46,7 +46,7 @@ cd ..
 ## ClinicalASL Installation
 ```bash
 git clone https://github.com/JSIERO/ClinicalASL.git
-cd ClinicalASL/python
+cd ClinicalASL
 pip install -r requirements.txt
 ```
 
