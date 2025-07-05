@@ -193,8 +193,11 @@ def save_data_dicom(image, template_dicom_path, source_dicom_path, output_dicom_
         ds.StudyTime = getattr(ds, 'StudyTime', '')
         ds.AccessionNumber = getattr(ds, 'AccessionNumber', '') 
 
-        ds.ImageType = ['DERIVED', 'SECONDARY', 'QUANTITATIVE']
-        ds.SeriesNumber = int(getattr(ds, 'SeriesNumber', 0)) + 10
+        ds.SeriesNumber = int(getattr(ds, 'SeriesNumber', 0)) + 10 # Increment SeriesNumber to avoid conflicts with existing series
+        if type_tag.upper() == 'CVR':
+            ds.SeriesNumber = 888  # Special case for CVR to avoid conflicts with CBF series
+
+        ds.ImageType = ['DERIVED', 'SECONDARY', 'QUANTITATIVE']        
         ds.BitsAllocated = 16
         ds.BitsStored = 16
         ds.HighBit = 15
@@ -233,9 +236,9 @@ def save_data_dicom(image, template_dicom_path, source_dicom_path, output_dicom_
                             delattr(item, 'VelocityEncodingDirection')  # Remove VelocityEncodingDirection if present, not relevant for ASL-derived maps, PACS compatibility
 
         output_filename = f"{name.replace(' ', '_')}_{ds.SeriesNumber}.dcm"
-        output_path = os.path.join(output_dicom_dir, f"{output_filename}.dcm")
+        output_path = os.path.join(output_dicom_dir, f"{output_filename}")
 
-        ds.save_as(output_path, enforce_file_format=Ture)
+        ds.save_as(output_path, enforce_file_format=True)
         logging.info(f"Saved multiframe DICOM: {output_path}")
 
     else:
