@@ -24,7 +24,7 @@ from pydicom.dataset import Dataset, FileDataset, FileMetaDataset
 from pydicom.uid import generate_uid, ExplicitVRLittleEndian, SecondaryCaptureImageStorage
 from PIL import Image
 
-def save_png_to_dicom(png_path, output_path, series_description, series_instance_uid,  instance_number=1, template_dcm_path=None, source_dicom_path=None):
+def save_png_to_dicom(png_path, output_path, series_description, series_instance_uid,  instance_number=1, source_dicom_path=None):
     #   Convert a PNG image to DICOM format.
     #   This function reads a PNG image, converts it to a DICOM dataset, and saves it to the specified output path.
     #   Parameters:
@@ -33,8 +33,7 @@ def save_png_to_dicom(png_path, output_path, series_description, series_instance
     #      series_description (str): Title for the DICOM Series Description. 
     #      SeriesInstanceUID (str): Unique identifier for the DICOM Series. This is used to group related images.
     #      instancenumber (int): Instance number for the DICOM image. Default is 1.
-    #      template_dcm_path (str): Optional path to a template DICOM file for metadata. If not provided, defaults will be used.
-    #      source_dicom_path (str): Optional path to a source DICOM file for referencing. If provided, the function will add a reference to this DICOM.
+    #      source_dicom_path (str):  path to a source DICOM file for referencing and template for metadata. 
     #   #   Returns:
     #      None: The function saves the DICOM file to the specified output path.        
 
@@ -45,8 +44,8 @@ def save_png_to_dicom(png_path, output_path, series_description, series_instance
 
     # Load template DICOM if provided
     template_ds = None
-    if template_dcm_path:
-        template_ds = pydicom.dcmread(template_dcm_path, stop_before_pixels=True, force=True)
+    if source_dicom_path:
+        template_ds = pydicom.dcmread(source_dicom_path, stop_before_pixels=True, force=True)
 
     # File Meta
     # Generate consistent UID

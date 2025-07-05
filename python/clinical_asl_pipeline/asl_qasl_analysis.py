@@ -92,7 +92,8 @@ def asl_qasl_analysis(
         f"--calib-aslreg "
         f"--readout={readout} "
         f"--save-calib "
-        f"--overwrite"
+        f"--overwrite "
+        f"--threads"
     )
 
     # Run command

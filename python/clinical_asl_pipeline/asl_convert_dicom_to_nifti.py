@@ -28,7 +28,7 @@ def asl_convert_dicom_to_nifti(subject):
 # Procedure detects whether singleframe (PACS) or Philips multiframe DICOMS from the scanner
 # This function performs the following steps:
 # 1. Recursively walks through all files and subdirectories in the input directory.
-# 2. Identifies and copies only DICOM files whose Series Description matches user-defined patterns (default: *SOURCE*ASL*, SWIP*ASL*).
+# 2. Identifies and copies only DICOM files whose Series Description matches user-defined patterns (default: *SOURCE*ASL*).
 # 3. Logs skipped files with unmatched Series Descriptions.
 # 4. Creates an 'ORIG' subdirectory within the subject DICOM directory for organizing matched ASL DICOM files.
 # 5. Moves matching filtered ASL DICOMs to the 'ORIG' directory.
@@ -48,8 +48,8 @@ def asl_convert_dicom_to_nifti(subject):
     dicom_orig_dir = subject['DICOMorigdir'] # default subject['SUBJECTdir']/DICOMORIG/ORIG - exact copy of DICOMS fro origin (PACS or Philips scanner)
     dcmniixlog_dir = subject['SUBJECTdir']
 
-    # check for input DICOM series description patterns, default ['*SOURCE*ASL*', 'SWIP*ASL*']), case insensitive
-    patterns = subject.get('dicomseries_description_patterns', ['*SOURCE*ASL*', 'SWIP*ASL*'])
+    # check for input DICOM series description patterns, default ['*SOURCE*ASL*']), case insensitive
+    patterns = subject.get('dicomseries_description_patterns', ['*SOURCE*ASL*'])
 
     def matches_series_description(desc, patterns):
         desc_upper = desc.upper()

@@ -111,7 +111,7 @@ def get_latest_source_data(subject, context_study_tag, context_tag):
     # This function:
     # - Searches the DICOM and NIfTI directories for files containing a user-defined context tag 
     #   (e.g., 'baseline', 'stimulus') and matching a specified SeriesDescription pattern.
-    # - By default, the SeriesDescription patterns matched are ['*SOURCE*ASL*', 'SWIP*ASL*'] (case-insensitive).
+    # - By default, the SeriesDescription patterns matched are ['*SOURCE*ASL*''] (case-insensitive).
     # - Picks the latest file (based on sorted filename) when multiple matches are found.
     #
     # Parameters:
@@ -129,8 +129,8 @@ def get_latest_source_data(subject, context_study_tag, context_tag):
     niftidir = subject['NIFTIdir']
     context_data = subject[context_tag]
 
-    # Patterns to search for in filenames, default: SeriesDescription patterns matched are ['*SOURCE*ASL*', 'SWIP*ASL*']
-    series_patterns = subject.get('dicomseries_description_patterns', ['*SOURCE*ASL*', 'SWIP*ASL*'])
+    # Patterns to search for in filenames, default: SeriesDescription patterns matched are ['*SOURCE*ASL*']
+    series_patterns = subject.get('dicomseries_description_patterns', ['*SOURCE*ASL*'])
 
     # Filter DICOMs
     if subject['is_singleframe']:
@@ -185,43 +185,11 @@ def get_latest_source_data(subject, context_study_tag, context_tag):
     nifti_path = os.path.join(niftidir, nifti_files[-1])
 
     context_data['sourceNIFTI_path'] = nifti_path
-    context_data['templateNIFTI_path'] = nifti_path
+    context_data['sourceNIFTI_path'] = nifti_path
     context_data['sourceDCM_path']   = dicom_path
     logging.info(f"source DICOM file selected: {dicom_path}")
     logging.info(f"source NIFTI file selected: {nifti_path}")
 
-    return subject
-
-def find_template_dicom_typetags(subject, context_study_tag, context_tag): 
-    # Helper function to find a template DICOM files based on type and context tags
-    files_sorted = sorted([
-        f for f in os.listdir(subject['DICOMsubjectdir']) 
-        if os.path.isfile(os.path.join(subject['DICOMsubjectdir'], f))
-    ])
-    series_patterns = subject.get('dicomseries_description_patterns', ['*SOURCE*ASL*', 'SWIP*ASL*'])
-
-    keep_type_tags = []
-
-    for type_tag in subject['dicom_typetags_by_context'][context_tag]:
-        match = next(
-            (
-                f for f in files_sorted 
-                if fnmatch.fnmatch(f.upper(), series_patterns[1].upper()) 
-                and type_tag in f 
-                and context_study_tag in f
-            ),
-            None # fall back to None, when type_Tag is not found, then remove from dicom_typetags_by_context 
-        )
-
-        if match is None:
-            logging.warning(f"No template DICOM found for type '{type_tag}', context '{context_study_tag}', in {subject['DICOMsubjectdir']}, using CBF template as fallback.")
-        else:
-            keep_type_tags.append(type_tag)
-            subject[context_tag][f'templateDCM_{type_tag}_path'] = os.path.join(subject['DICOMsubjectdir'], match)
-            logging.info(f"Template DICOM found for type '{type_tag}', context '{context_study_tag}' in {subject[context_tag][f'templateDCM_{type_tag}_path']}")
-
-    # Only keep the successfully matched type tags
-    subject['dicom_typetags_by_context'][context_tag] = keep_type_tags
     return subject
 
 def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
@@ -259,28 +227,25 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
     ###### Step 3: Get SOURCE and DICOM NIFTI files
         subject = get_latest_source_data(subject, context_study_tag, context_tag=context)
 
-    ###### Step 4: Locate template DICOMs for CBF, AAT, CVR, ATA derived data to be generated here
-        subject = find_template_dicom_typetags(subject, context_study_tag, context_tag=context)
-
-    ###### Step 5: DICOM scanparameter extraction
+    ###### Step 4: DICOM scanparameter extraction
         subject = asl_extract_params_dicom(subject, context_tag=context)
 
-    ###### Step 6: Look Locker correction
+    ###### Step 5: Look Locker correction
         subject = asl_look_locker_correction(subject, context_tag=context)
 
-    ###### Step 7: Interleave control-label, save to NIFTI
+    ###### Step 6: Interleave control-label, save to NIFTI
         subject = asl_prepare_asl_data(subject, context_tag=context)
 
-    ###### Step 8: Brain extraction on M0 using HD-BET CLI
+    ###### Step 7: Brain extraction on M0 using HD-BET CLI
         subject = run_bet_mask(subject, context_tag=context)
     
-    ###### Step 9: Motion correction of ASL data using ANTsPy
+    ###### Step 8: Motion correction of ASL data using ANTsPy
         subject = asl_motion_correction(subject, context_tag=context)
 
-    ###### Step 10: Outlier timepoint rejection: 2.5 x std + mean CBF (deltaM) 
+    ###### Step 9: Outlier timepoint rejection: 2.5 x std + mean CBF (deltaM) 
         subject = asl_outlier_removal(subject, context_tag=context, usermask=None)
 
-    ###### Step 11: ASL Quantification analysis
+    ###### Step 10: ASL Quantification analysis
         context_data = subject[context]
         # all PLD for AAT (arterial arrival time map)
         asl_qasl_analysis(context_data, ANALYSIS_PARAMETERS, 
@@ -311,10 +276,10 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
                         'artoff'
                         )
 
-    ###### Step 12: register post-ACZ ASL data to pre-ACZ ASL data using Elastix 
+    ###### Step 11: register post-ACZ ASL data to pre-ACZ ASL data using Elastix 
     asl_registration_stimulus_to_baseline(subject)
 
-    ###### Step 13: Generate CBF/AAT/ATA/CVR results (nifti, dicom PACS, .pngs) for pre- and postACZ, including registration of postACZ to preACZ as reference data, and target for computed CVR map
+    ###### Step 12: Generate CBF/AAT/ATA/CVR results (nifti, dicom PACS, .pngs) for pre- and postACZ, including registration of postACZ to preACZ as reference data, and target for computed CVR map
     asl_save_results_cbfaatcvr(subject)
 
     logging.info("ASL processing pipeline completed successfully.")

@@ -87,7 +87,7 @@ def add_source_dicom_reference(ds, source_dicom_path):
     except Exception as e:
         logging.warning(f"Failed to add ReferencedSeriesSequence: {e}")
 
-def save_data_dicom(image, template_dicom_path, source_dicom_path, output_dicom_dir, name, value_range, type_tag):
+def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_range, type_tag, series_number_incr):
     #
     # Save a 3D ASL-derived image as either a multiframe or single-frame DICOM series,
     # based on the structure of the provided reference DICOM.
@@ -103,10 +103,8 @@ def save_data_dicom(image, template_dicom_path, source_dicom_path, output_dicom_
     # ----------
     # image : np.ndarray
     #     3D ASL image array (Height, Width, Slices), typically from a NIfTI file.
-    # template_dicom_path : str
-    #     Path to a reference DICOM file to use as a metadata template.
     # source_dicom_path : str
-    #     Path to a source DICOM file for referencing in the output DICOM.
+    #     Path to a source DICOM file for referencing and as template in the output DICOM.
     # output_dicom_dir : str
     #     Directory where the output DICOM file(s) will be saved.
     # name : str
@@ -115,6 +113,8 @@ def save_data_dicom(image, template_dicom_path, source_dicom_path, output_dicom_
     #     (min, max) specifying the value range for VOI LUT (windowing).
     # type_tag : str
     #     Label describing the quantitative map type, e.g., 'CBF', 'CVR', 'AAT', or 'ATA'.
+    # series_number_incr : int
+    #     Incremental value to set the SeriesNumber in the DICOM metadata.
 
     # Raises
     # ------
@@ -133,6 +133,8 @@ def save_data_dicom(image, template_dicom_path, source_dicom_path, output_dicom_
     # - The function handles both signed (e.g., CVR) and unsigned (e.g., CBF, AAT, ATA) data types.
     # - The function assumes the input image is in the correct orientation and shape for ASL data.
     #
+
+    template_dicom_path = source_dicom_path
 
     if not type_tag:
         raise ValueError("Please supply a type_tag such as 'CBF', 'CVR', 'AAT', or 'ATA'")
@@ -159,19 +161,76 @@ def save_data_dicom(image, template_dicom_path, source_dicom_path, output_dicom_
 
     ds = pydicom.dcmread(template_dicom_path, force=True)
     is_multiframe = hasattr(ds, 'PerFrameFunctionalGroupsSequence')
+    logging.info(f"Template DICOM is {'multiframe' if is_multiframe else 'single-frame'}.")
 
     if is_multiframe:
-        logging.info("Detected Enhanced Multiframe DICOM template.")
-
         if not hasattr(ds, "file_meta") or not hasattr(ds.file_meta, "TransferSyntaxUID"):
             ds.file_meta = ds.file_meta or pydicom.dataset.FileMetaDataset()
             ds.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
 
+        # Step 1: Extract scan dimensions from private tags
+        try:
+            private_seq = ds.PerFrameFunctionalGroupsSequence[0].get((0x2005, 0x140f))
+            nplds = int(ds.get((0x2001, 0x1017)).value)
+            ndyns = int(private_seq[0].get((0x0020, 0x0105)).value)
+            nslices = int(ds.get((0x2001, 0x1018)).value)
+            total_frames = int(ds.NumberOfFrames)
+            nconditions = total_frames // (nplds * ndyns * nslices)
+
+            logging.info(f"Structure: {nslices} slices x {nplds} PLDs x {ndyns} dynamics x {nconditions} conditions")
+        except Exception as e:
+            raise ValueError(f"Failed to extract dimensions from private tags: {e}")
+        
+        # Step 2: Helper to index into frames
+        def get_frame_indices(pld, dynamic, condition, nslices, ndyns, nplds):
+            return [
+                condition * nslices * ndyns * nplds +
+                s * ndyns * nplds +
+                dynamic * nplds +
+                pld
+                for s in range(nslices)
+            ]
+        selected_indices = get_frame_indices(pld=0, dynamic=0, condition=0, nslices=nslices, ndyns=ndyns, nplds=nplds)
+
+        # Step 3: Compute normal vector for spacing
+        try:
+            orientation = ds.PerFrameFunctionalGroupsSequence[0].PlaneOrientationSequence[0].ImageOrientationPatient
+            row_cosines = np.array(orientation[:3])
+            col_cosines = np.array(orientation[3:])
+            normal_vector = np.cross(row_cosines, col_cosines)
+        except Exception as e:
+            raise ValueError(f"Failed to extract ImageOrientationPatient: {e}")
+
+        # Step 4: Slice pixel data and assign
         image_fordicom = np.flip(np.transpose(image_scaled, (2, 1, 0)), axis=1)
         ds.PixelData = image_fordicom.tobytes()
+        ds.NumberOfFrames = nslices
+
+        # Step 5: Slice PerFrameFunctionalGroupsSequence
+        original_pffs = ds.PerFrameFunctionalGroupsSequence
+
+        # Filter frames based on Z-position
+        ds.PerFrameFunctionalGroupsSequence = pydicom.sequence.Sequence(
+            [original_pffs[i] for i in selected_indices]
+        )
+    
+        # Step 6: Pixel spacing and thickness
+        first_frame = ds.PerFrameFunctionalGroupsSequence[0]
+        try:
+            spacing = first_frame.PixelMeasuresSequence[0].PixelSpacing
+            ds.PixelSpacing = [float(spacing[0]), float(spacing[1])]
+        except Exception as e:
+            logging.warning(f"Failed to extract PixelSpacing: {e}")
+            ds.PixelSpacing = [1.0, 1.0]
+
+        try:
+            thickness = first_frame.PixelMeasuresSequence[0].SliceThickness
+            ds.SliceThickness = float(thickness)
+        except Exception:
+            ds.SliceThickness = float(np.mean(spacings)) if spacings else 1.0
+
 
         ds.SeriesInstanceUID = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
-
         uid = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
         ds.file_meta = ds.file_meta or pydicom.dataset.FileMetaDataset()
         ds.file_meta.MediaStorageSOPInstanceUID = uid
@@ -193,7 +252,7 @@ def save_data_dicom(image, template_dicom_path, source_dicom_path, output_dicom_
         ds.StudyTime = getattr(ds, 'StudyTime', '')
         ds.AccessionNumber = getattr(ds, 'AccessionNumber', '') 
 
-        ds.SeriesNumber = int(getattr(ds, 'SeriesNumber', 0)) + 10 # Increment SeriesNumber to avoid conflicts with existing series
+        ds.SeriesNumber = int(getattr(ds, 'SeriesNumber', 0)) + 10 + series_number_incr # Increment SeriesNumber to avoid conflicts with existing series
         if type_tag.upper() == 'CVR':
             ds.SeriesNumber = 888  # Special case for CVR to avoid conflicts with CBF series
 
@@ -202,12 +261,12 @@ def save_data_dicom(image, template_dicom_path, source_dicom_path, output_dicom_
         ds.BitsStored = 16
         ds.HighBit = 15
         ds.PixelRepresentation = 1 if use_signed else 0
-        ds.PixelSpacing = getattr(ds, 'PixelSpacing', [1.0, 1.0])
-        ds.SliceThickness = getattr(ds, 'SliceThickness', 1.0)
-        ds.SamplesPerPixel = 1
-        ds.PhotometricInterpretation = "MONOCHROME2"
-        ds.NumberOfFrames = image.shape[2]
 
+        # Choose a representative frame — e.g., the first of the selected ones
+        first_frame = ds.PerFrameFunctionalGroupsSequence[selected_indices[0]]
+
+        ds.SamplesPerPixel = 1
+        ds.PhotometricInterpretation = "MONOCHROME2"        
         smallest = int(np.min(image_scaled))
         largest = int(np.max(image_scaled))
         vr = 'SS' if use_signed else 'US'
@@ -239,38 +298,41 @@ def save_data_dicom(image, template_dicom_path, source_dicom_path, output_dicom_
         output_path = os.path.join(output_dicom_dir, f"{output_filename}")
 
         ds.save_as(output_path, enforce_file_format=True)
-        logging.info(f"Saved multiframe DICOM: {output_path}")
+        logging.info(f"Saved multi-frame DICOM: {output_path}")
 
     else:
         # --- SINGLEFRAME EXPORT ---
-        logging.info("Detected template directory. Saving as single-frame DICOM series.")
 
+        num_slices_needed = image.shape[2]
+
+        # Get directory and prefix
         template_dir = os.path.dirname(template_dicom_path)
         template_prefix = os.path.basename(template_dicom_path).rsplit('_', 1)[0] + '_'
 
+        # Get all matching DICOM files
         template_files = [
             f for f in os.listdir(template_dir)
             if f.startswith(template_prefix) and os.path.isfile(os.path.join(template_dir, f))
         ]
 
-        file_instance_pairs = []
+        # Read files and extract SliceLocation 
+        file_slice_pairs = []
         for f in template_files:
             path = os.path.join(template_dir, f)
             try:
                 ds = pydicom.dcmread(path, force=True)
-                instance_number = getattr(ds, 'InstanceNumber', None)
-                if instance_number is not None:
-                    file_instance_pairs.append((f, instance_number))
+                slice_location = getattr(ds, 'SliceLocation', None)
+                if slice_location is not None:
+                    file_slice_pairs.append((f, slice_location))
                 else:
-                    logging.warning(f"Template DICOM {f} missing InstanceNumber.")
+                    logging.warning(f"Template DICOM {f} missing SliceLocation .")
             except Exception as e:
                 logging.error(f"Error reading DICOM {f}: {e}")
 
-        template_files_sorted = [f for f, _ in sorted(file_instance_pairs, key=lambda x: x[1])]
-
-        if len(template_files_sorted) != image.shape[2]:
-            logging.error(f"Mismatch: {len(template_files_sorted)} template DICOMs vs {image.shape[2]} image slices")
-            raise ValueError("Mismatch between number of template DICOMs and image slices")
+        # Sort by slice location and pick the top N slices
+        template_files_sorted = [
+            f for f, _ in sorted(file_slice_pairs, key=lambda x: x[1])
+        ][:num_slices_needed]
 
         series_instance_uid = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
 
@@ -301,7 +363,8 @@ def save_data_dicom(image, template_dicom_path, source_dicom_path, output_dicom_
             ds.StudyTime = getattr(ds, 'StudyTime', '')
             ds.AccessionNumber = getattr(ds, 'AccessionNumber', '') 
             ds.ImageType = ['DERIVED', 'SECONDARY', 'QUANTITATIVE']
-            ds.SeriesNumber = int(getattr(ds, 'SeriesNumber', 0)) + 10
+
+            ds.SeriesNumber = int(getattr(ds, 'SeriesNumber', 0)) + 10 + series_number_incr
             if type_tag.upper() == 'CVR':
                 ds.SeriesNumber = 888  # Special case for CVR to avoid conflicts with CBF series
 
@@ -344,4 +407,4 @@ def save_data_dicom(image, template_dicom_path, source_dicom_path, output_dicom_
             output_path = os.path.join(output_dicom_dir, output_filename)
             
             ds.save_as(output_path, enforce_file_format=True)
-            logging.info(f"Saved slice DICOM: {output_path}")
+            logging.info(f"Saved single-frame DICOM: {output_path}")

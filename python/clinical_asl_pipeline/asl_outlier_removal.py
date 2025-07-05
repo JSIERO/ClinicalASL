@@ -44,7 +44,7 @@ def asl_outlier_removal(subject, context_tag, usermask=None):
     M0ASL_allPLD6D = context_data['M0ASL_allPLD']
     brainmask_path = context_data['mask_path']
     ASL_allPLD4D_path = context_data['PLDall_controllabel_path']
-    nifti_template_path = context_data['templateNIFTI_path']
+    nifti_template_path = context_data['sourceNIFTI_path']
     NREPEATS = context_data['NREPEATS']
     NPLDS = context_data['NPLDS']
 

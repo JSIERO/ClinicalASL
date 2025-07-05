@@ -59,7 +59,7 @@ example `config/config_default.json`:
     "device": "cpu",
     "ASL_CONTEXT": ["baseline", "stimulus"],
     "context_study_tags": ["preACZ", "postACZ"],
-    "dicomseries_description_patterns": ["*SOURCE*ASL*", "SWIP*ASL*"]
+    "dicomseries_description_patterns": ["*SOURCE*ASL*"]
 }
 ```
 ## Dependencies

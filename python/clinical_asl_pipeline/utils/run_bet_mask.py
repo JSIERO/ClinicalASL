@@ -35,7 +35,7 @@ def run_bet_mask(subject, context_tag):
     inputdata_path = context_data['M0_path']
     extradata_path = context_data['PLDall_controllabel_path']
     mask_output_path = context_data['mask_path']    
-    templateNIFTI_path = context_data['templateNIFTI_path']
+    sourceNIFTI_path = context_data['sourceNIFTI_path']
     device = subject['device']
 
     logging.info(f"Running brain masking with HD-BET CLI:")
@@ -57,7 +57,7 @@ def run_bet_mask(subject, context_tag):
 
         # Save temporary image for brain extraction
         temp_bet_path = os.path.join(os.path.dirname(mask_output_path), "temp_for_bet.nii.gz")
-        save_data_nifti(combineddata, temp_bet_path, templateNIFTI_path, 1)
+        save_data_nifti(combineddata, temp_bet_path, sourceNIFTI_path, 1)
 
         logging.info(f"Using combined data set for brain masking: sum of  {inputdata_path} and {extradata_path}")
         inputdata_path = temp_bet_path
@@ -85,7 +85,7 @@ def run_bet_mask(subject, context_tag):
     nanmask = np.where(mask, 1.0, np.nan)
 
     # Save final dilated mask
-    save_data_nifti(mask, mask_output_path, templateNIFTI_path, 1)
+    save_data_nifti(mask, mask_output_path, sourceNIFTI_path, 1)
     logging.info(f"Saved dilated mask to: {mask_output_path}")
 
     # Delete unwanted HD-BET masked image

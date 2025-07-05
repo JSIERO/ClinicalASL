@@ -106,29 +106,22 @@ def asl_save_results_cbfaatcvr(subject):
     # === Helper: Save NIfTI + DICOM ===
     def save_nifti_and_dicom(context, fields, allow_dicom=True):
         context_study_tag = get_context_study_tag(context)
-        
+        series_number_incr = 0  # Initialize series number increment for DICOM, will increment for each DICOM typetag saved except CVR and when allow_dicom is False
+
         for field, range_tag, type_tag, _, output_path in fields:
             data = subject[context].get(field) if field != 'CVR_smth' else subject['CVR_smth']
             path = subject[context].get(output_path) if field != 'CVR_smth' else subject['output_CVR_path']
-            template = subject[context]['templateNIFTI_path'] if field != 'CVR_smth' else subject['baseline']['templateNIFTI_path']
+            template = subject[context]['sourceNIFTI_path'] if field != 'CVR_smth' else subject['baseline']['sourceNIFTI_path']
 
             if data is not None and path:
                 save_data_nifti(data, path, template, 1, None, None)
                 
                 if allow_dicom:
+                    series_number_incr += 1
                     try:
-                        dcm_key = f'templateDCM_{type_tag}_path'
-                        dcm_template_path = subject[context].get(dcm_key)
                         dcm_source_path = subject[context].get('sourceDCM_path', None)
-                        # Fallback if specific template doesn't exist
-                        if not dcm_template_path or not os.path.exists(dcm_template_path):
-                            logging.warning(f"No template for {type_tag} ({context_study_tag}), trying template for CBF fallback.")
-                            dcm_template_path = subject[context]['templateDCM_CBF_path']
-                            if not os.path.exists(dcm_template_path):
-                                raise FileNotFoundError("Fallback CBF template not found.")
-
                         dcm_outputdir = subject['DICOMoutputdir']
-                        
+
                         # Compose SeriesDescription
                         if type_tag == 'CVR':
                             name = f'ASL {type_tag}'
@@ -136,13 +129,13 @@ def asl_save_results_cbfaatcvr(subject):
                             name = f'ASL {type_tag} {context_study_tag}'
 
                         save_data_dicom(
-                            data,
-                            dcm_template_path,
+                            data,                            
                             dcm_source_path,
                             dcm_outputdir,
                             name,
                             subject[range_tag],
-                            type_tag
+                            type_tag,
+                            series_number_incr,
                         )
                     except Exception as e:
                         logging.error(f"Failed to save DICOM for {type_tag} ({context_study_tag}): {e}")
@@ -183,11 +176,10 @@ def asl_save_results_cbfaatcvr(subject):
     png_name = 'ASL_CVR'
     input_png_path =  os.path.join(subject['RESULTSdir'], f"{png_name}.png")
     output_dcm_path = os.path.join(subject['RESULTSdir'], f"{png_name}.dcm")
-    dcm_template_path = subject['baseline'][f"templateDCM_CVR_path"]
     dcm_source_path = subject['baseline']['sourceDCM_path']
     series_description = f"ASL CVR" 
     instance_number = 1  # first instance number for CVR
-    save_png_to_dicom(input_png_path, output_dcm_path, series_description, series_instance_uid, instance_number, dcm_template_path, dcm_source_path)
+    save_png_to_dicom(input_png_path, output_dcm_path, series_description, series_instance_uid, instance_number, dcm_source_path)
 
     # Save PNGs as DICOM for each context and type_tag
     for _, _, type_tag, _, _ in fields_main:
@@ -198,20 +190,10 @@ def asl_save_results_cbfaatcvr(subject):
             output_dcm_path = os.path.join(subject['RESULTSdir'], f"{png_name}.dcm")
             series_description = f"ASL {type_tag} {context_study_tag}"
             instance_number += 1
-
             try:
-                dcm_template_path = subject[context].get(f"templateDCM_{type_tag}_path")
                 dcm_source_path = subject[context].get('sourceDCM_path', None)
-                if not dcm_template_path or not os.path.exists(dcm_template_path):
-                    logging.warning(f"No specific DICOM template found for {type_tag} {context_study_tag}, trying template for CBF fallback")
-                    dcm_template_path = subject[context]['templateDCM_CBF_path']
-
-                    if not os.path.exists(dcm_template_path):
-                        raise FileNotFoundError("Fallback CBF template not found")
-
                 logging.info(f"Saving PNG as DICOM for {context_study_tag} {type_tag} to {output_dcm_path}")
-                save_png_to_dicom(input_png_path, output_dcm_path, series_description, series_instance_uid, instance_number, dcm_template_path, dcm_source_path )
-
+                save_png_to_dicom(input_png_path, output_dcm_path, series_description, series_instance_uid, instance_number, dcm_source_path )
             except Exception as e:
                 logging.error(f"Failed to save PNG as DICOM for {type_tag} {context_study_tag}: {e}")
                 continue  # Skip to the next one

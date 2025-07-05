@@ -104,7 +104,7 @@ def get_latest_source_data(subject, context_study_tag, context_tag):
     # This function:
     # - Searches the DICOM and NIfTI directories for files containing a user-defined context tag 
     #   (e.g., 'baseline', 'stimulus') and matching a specified SeriesDescription pattern.
-    # - By default, the SeriesDescription patterns matched are ['*SOURCE*ASL*', 'SWIP*ASL*'] (case-insensitive).
+    # - By default, the SeriesDescription patterns matched are ['*SOURCE*ASL*'] (case-insensitive).
     # - Picks the latest file (based on sorted filename) when multiple matches are found.
     #
     # Parameters:
@@ -122,7 +122,6 @@ def get_latest_source_data(subject, context_study_tag, context_tag):
     niftidir = subject['NIFTIdir']
     context_data = subject[context_tag]
 
-    # Patterns to search for in filenames, default: SeriesDescription patterns matched are ['*SOURCE*ASL*', 'SWIP*ASL*']
     series_patterns = subject.get('dicomseries_description_patterns', ['*SOURCE*vTR*', '*SOURCE*M0*'])
 
     # Filter DICOMs
@@ -208,7 +207,7 @@ def get_latest_source_data(subject, context_study_tag, context_tag):
         nifti_m0_path = select_nifti_file(1, context_tag, "SOURCE M0")
         
     context_data['sourceNIFTI_path'] = nifti_path
-    context_data['templateNIFTI_path'] = nifti_path
+    context_data['sourceNIFTI_path'] = nifti_path
     context_data['sourceDCM_path']   = dicom_path
     context_data['sourceM0NIFTI_path'] = nifti_m0_path
     context_data['sourceM0DCM_path']   = dicom_m0_path

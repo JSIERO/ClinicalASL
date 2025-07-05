@@ -39,7 +39,7 @@ def asl_motion_correction(subject, context_tag):
     inputdata_path = context_data['PLDall_controllabel_path']
     refdata_path = context_data['M0_path']
     outputdata_path = append_mc(inputdata_path)
-    nifti_template_path = context_data['templateNIFTI_path']
+    nifti_template_path = context_data['sourceNIFTI_path']
     NREPEATS = context_data['NREPEATS']
     
     # update path to motion corrected data, appeding '_mc' to filename using append_mc
