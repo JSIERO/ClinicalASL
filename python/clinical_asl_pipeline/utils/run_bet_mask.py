@@ -41,7 +41,7 @@ def run_bet_mask(subject, context_tag):
     logging.info(f"Running brain masking with HD-BET CLI:")
 
     # Build HD-BET CLI command
-    cmd = f"hd-bet -i {inputdata_path} -o {mask_output_path} -device {device} --disable_tta --save_bet_mask"
+    cmd = f"MKL_THREADING_LAYER=GNU hd-bet -i {inputdata_path} -o {mask_output_path} -device {device} --disable_tta --save_bet_mask"
 
     if extradata_path and os.path.exists(extradata_path):
         # Load input and extra data
