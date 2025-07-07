@@ -45,7 +45,7 @@ def format_config_for_display(config_dict):
     lines.append("-" * 50)
     return "\n".join(lines)
 
-def run_pipeline(inputdir, outputdir, inference_method=None, config_path=None):
+def run_pipeline(inputdir, outputdir, workingdir, inference_method=None, config_path=None):
     print(f"Running pipeline for subject in: {inputdir}")
 
     # Fallback default config if not supplied
@@ -68,6 +68,7 @@ def run_pipeline(inputdir, outputdir, inference_method=None, config_path=None):
     logging.info(f"ClinicalASL pipeline started.")
     logging.info(f"Input: {inputdir}")
     logging.info(f"Output: {outputdir}")
+    logging.info(f"Working Directory: {workingdir}")
     logging.info(f"Config used: {config_path}")
     logging.info(f"Inference method: {inference_method}")  # Log the chosen method
 
@@ -80,7 +81,7 @@ def run_pipeline(inputdir, outputdir, inference_method=None, config_path=None):
         json.dump(ANALYSIS_PARAMETERS, f, indent=4)
 
     # Run main pipeline
-    main_pipeline.mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS)
+    main_pipeline.mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, workingdir, ANALYSIS_PARAMETERS)
 
     logging.info("ClinicalASL pipeline finished successfully.")
     print("Pipeline finished successfully.")
@@ -92,9 +93,9 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
     Examples:
-    python run_pipeline.py /input /output
-    python run_pipeline.py /input /output --inference-method ssvb --config /path/to/config.json
-    python run_pipeline.py /input /output --inference-method vaby for BASIL-like output
+    python run_pipeline.py /input /output /working
+    python run_pipeline.py /input /output /working --inference-method ssvb --config /path/to/config.json
+    python run_pipeline.py /input /output /working --inference-method vaby for BASIL-like output
     """
     )
     
@@ -102,7 +103,10 @@ def main():
                         help="Path to subject directory containing DICOM data")
     parser.add_argument("outputdir", type=str, 
                         help="Path to output directory for DICOM results for PACS and IMAGR platform") 
-    parser.add_argument("--inference-method", type=str, default='ssvb', 
+    parser.add_argument("workingdir", type=str, 
+                        help="Path to working directory for intermediate files (e.g., /tmp/workingdir")
+    parser.add_argument("--inference-method", type=str, 
+                        default='ssvb', 
                         choices=["ssvb", "vaby"],
                         help="Optional input to choose inference method for fitting: 'ssvb' or 'vaby'. If not provided, uses the value from config.json.")
     parser.add_argument("--config", type=str, default=None,
@@ -112,7 +116,7 @@ def main():
     args = parser.parse_args()
     
     try:
-        run_pipeline(args.inputdir, args.outputdir,
+        run_pipeline(args.inputdir, args.outputdir, args.workingdir,
                     inference_method=args.inference_method, 
                     config_path=args.config)
     except Exception as e:

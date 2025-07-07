@@ -42,8 +42,8 @@ def prepare_subject_paths(subject):
     # - ASL
     # - FIGURE_RESULTS
     # - (uses SUBJECTdir as DICOMoutputdir)
+
     subject['DICOMoutputdir'] = subject['SUBJECTdir'] # folder were the derived CBF, AAT, CVR, ATA DICOMS will be saved
-    subject['DICOMsubjectdir'] = os.path.join(subject['SUBJECTdir'], 'DICOMORIG') # folder location of DICOMS for processing (copied and renamed from PACS or scanner)
     subject['DICOMorigdir'] = os.path.join(subject['DICOMsubjectdir'], 'ORIG') # folder location of exact copy of original DICOMS as copied from pACS or Philips scanner
     subject['NIFTIdir'] = os.path.join(subject['SUBJECTdir'], 'NIFTI')
     subject['ASLdir'] = os.path.join(subject['SUBJECTdir'], 'ASL')
@@ -192,7 +192,7 @@ def get_latest_source_data(subject, context_study_tag, context_tag):
 
     return subject
 
-def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
+def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, workingdir, ANALYSIS_PARAMETERS):
     # Main function to run the Clinical ASL pipeline for a subject.
     # Parameters:
     #     inputdir (str): Path to the input directory containing extracted PACS DICOM files.
@@ -201,7 +201,8 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, ANALYSIS_PARAMETERS):
 
     subject = {}
     subject['DICOMinputdir'] = inputdir
-    subject['SUBJECTdir'] = outputdir 
+    subject['SUBJECTdir'] = outputdir
+    subject['DICOMsubjectdir'] = workingdir
 
     ##### Step 1: Prepare subject dictionary with default parameters and paths
     # Add default parameters to subject dictionary, such as context tags for baseline/stimulus scans, scan parameters, FWHM, ranges, etc.
