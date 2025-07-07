@@ -175,7 +175,7 @@ def asl_save_results_cbfaatcvr(subject):
 
     png_name = 'ASL_CVR'
     input_png_path =  os.path.join(subject['RESULTSdir'], f"{png_name}.png")
-    output_dcm_path = os.path.join(subject['RESULTSdir'], f"{png_name}.dcm")
+    output_dcm_path = os.path.join(subject['DICOMoutputdir'], f"{png_name}.dcm")
     dcm_source_path = subject['baseline']['sourceDCM_path']
     series_description = f"ASL CVR" 
     instance_number = 1  # first instance number for CVR
@@ -187,7 +187,7 @@ def asl_save_results_cbfaatcvr(subject):
             context_study_tag = get_context_study_tag(context)
             png_name = f'ASL_{type_tag}_{context}_{context_study_tag}'
             input_png_path = os.path.join(subject['RESULTSdir'], f"{png_name}.png")
-            output_dcm_path = os.path.join(subject['RESULTSdir'], f"{png_name}.dcm")
+            output_dcm_path = os.path.join(subject['DICOMoutputdir'], f"{png_name}.dcm")
             series_description = f"ASL {type_tag} {context_study_tag}"
             instance_number += 1
             try:

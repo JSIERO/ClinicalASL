@@ -34,16 +34,21 @@ from clinical_asl_pipeline.asl_registration_stimulus_to_baseline import asl_regi
 from clinical_asl_pipeline.asl_save_results_cbfaatcvr import asl_save_results_cbfaatcvr
 from clinical_asl_pipeline.utils.run_bet_mask import run_bet_mask
 
-def prepare_subject_paths(subject):
+def prepare_subject_paths(subject, inputdir, outputdir, workingdir):
     # Prepare output folder structure for subject.
     #
     # Creates the following subfolders:
     # - NIFTI
     # - ASL
     # - FIGURE_RESULTS
-    # - (uses SUBJECTdir as DICOMoutputdir)
-
-    subject['DICOMoutputdir'] = subject['SUBJECTdir'] # folder were the derived CBF, AAT, CVR, ATA DICOMS will be saved
+    # - DICOMoutputdir (for derived CBF, AAT, CVR, ATA DICOMS)
+    # - DICOMorigdir (for original DICOMs copied from pACS or Philips scanner)
+    # - DICOMsubjectdir (for working directory with DICOMs) 
+    
+    subject['DICOMinputdir'] = inputdir
+    subject['DICOMoutputdir'] = outputdir # folder were the derived CBF, AAT, CVR, ATA and png-derived DICOMS will be saved
+    subject['SUBJECTdir'] = workingdir
+    subject['DICOMsubjectdir'] = os.path.join(subject['SUBJECTdir'], 'DICOMORIG')
     subject['DICOMorigdir'] = os.path.join(subject['DICOMsubjectdir'], 'ORIG') # folder location of exact copy of original DICOMS as copied from pACS or Philips scanner
     subject['NIFTIdir'] = os.path.join(subject['SUBJECTdir'], 'NIFTI')
     subject['ASLdir'] = os.path.join(subject['SUBJECTdir'], 'ASL')
@@ -51,8 +56,9 @@ def prepare_subject_paths(subject):
 
     for path in [
         subject['DICOMoutputdir'],
+        subject['SUBJECTdir'],
         subject['DICOMsubjectdir'],
-        subject['DICOMorigdir'] ,
+        subject['DICOMorigdir'],
         subject['NIFTIdir'],
         subject['ASLdir'],
         subject['RESULTSdir']
@@ -200,16 +206,13 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, workingdir, ANALYSIS_PA
     # Initialize subject dictionary with input and output directories
 
     subject = {}
-    subject['DICOMinputdir'] = inputdir
-    subject['SUBJECTdir'] = outputdir
-    subject['DICOMsubjectdir'] = workingdir
 
     ##### Step 1: Prepare subject dictionary with default parameters and paths
     # Add default parameters to subject dictionary, such as context tags for baseline/stimulus scans, scan parameters, FWHM, ranges, etc.
     subject.update(ANALYSIS_PARAMETERS)
 
     # Prepare output folders
-    subject = prepare_subject_paths(subject)
+    subject = prepare_subject_paths(subject, inputdir, outputdir, workingdir)
 
     # Prepare file paths
     subject = prepare_input_output_paths(subject)
