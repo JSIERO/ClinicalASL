@@ -192,15 +192,6 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
             ]
         selected_indices = get_frame_indices(pld=0, dynamic=0, condition=0, nslices=nslices, ndyns=ndyns, nplds=nplds)
 
-        # Step 3: Compute normal vector for spacing
-        try:
-            orientation = ds.PerFrameFunctionalGroupsSequence[0].PlaneOrientationSequence[0].ImageOrientationPatient
-            row_cosines = np.array(orientation[:3])
-            col_cosines = np.array(orientation[3:])
-            normal_vector = np.cross(row_cosines, col_cosines)
-        except Exception as e:
-            raise ValueError(f"Failed to extract ImageOrientationPatient: {e}")
-
         # Step 4: Slice pixel data and assign
         image_fordicom = np.flip(np.transpose(image_scaled, (2, 1, 0)), axis=1)
         ds.PixelData = image_fordicom.tobytes()
