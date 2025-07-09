@@ -47,6 +47,12 @@ def asl_extract_params_dicom(subject, context_tag):
         private_seq = info.PerFrameFunctionalGroupsSequence[0].get((0x2005, 0x140f))
         echo_time = float(private_seq[0].get((0x0018, 0x0081)).value) 
         flipangle = float(private_seq[0].get((0x0018, 0x1314)).value)
+        age_patient = getattr(info, 'PatientAge', None)
+        if age_patient:
+            age_number = int(age_patient[:3])  # Takes the first 3 characters and converts to int
+        else:
+            age_number = None
+
         nplds = info.get((0x2001, 0x1017)).value
         ndyns = int(private_seq[0].get((0x0020, 0x0105)).value)
         nslices = info.get((0x2001, 0x1018)).value
@@ -91,6 +97,11 @@ def asl_extract_params_dicom(subject, context_tag):
         hdr0 = headers[0]
         echo_time = float(getattr(hdr0, 'EchoTime', 0.0))
         flipangle = float(getattr(hdr0, 'FlipAngle', 0.0))
+        age_patient = getattr(hdr0, 'PatientAge', None)
+        if age_patient:
+            age_number = int(age_patient[:3])  # Takes the first 3 characters and converts to int
+        else:
+            age_number = None
 
         voxelsize = np.array([
             float(hdr0.PixelSpacing[0]),
@@ -131,6 +142,21 @@ def asl_extract_params_dicom(subject, context_tag):
     context_data['FLIPANGLE'] = flipangle
     context_data['TIS'] = context_data['PLDS'] + context_data['tau']
     context_data['TR_M0'] = context_data['TIS'][0]
+    context_data['age'] = age_patient
+    
+    # Set the range for CBF based on age, there are two ranges:
+    # - < 20 years: 0-75 ml/100g/min
+    # - >= 20 years: 0-125 ml/100g/min
+
+    if context_data['age'] < 20:
+        logging.info(f"Patient is younger than 20 years, setting CBF range for PNGS to {subject['range_cbf_age20min']} ml/100g/min.")
+        subject['range_cbf'] = subject['range_cbf_age20min']
+    elif context_data['age'] >= 20:
+        logging.info(f"Patient is 20 years or older, setting CBF range for PNGS to {subject['range_cbf_age20plus']} ml/100g/min.")
+        subject['range_cbf'] = subject['range_cbf_age20plus']
+    else:
+        logging.warning(f"Patient age not specified or invalid, using default CBF range of {subject['range_cbf_age20plus']} ml/100g/min.")
+        subject['range_cbf'] = subject['range_cbf_age20plus']
 
     # Labeling efficiencies
     context_data['alpha_inv'] = context_data['labeleff']
@@ -148,5 +174,7 @@ def asl_extract_params_dicom(subject, context_tag):
     logging.info(f"NPLDS (number of post-label delays): {nplds}")
     logging.info(f"NDYNS (number of dynamics): {ndyns}")
     logging.info(f"NREPEATS (control/label pair repeats): {ndyns - 1}")
+    logging.info(f"Patient age: {age_patient} (numeric: {age_number})")
+    logging.info(f"Patient range CBF: {subject['range_cbf']}")
 
     return subject
