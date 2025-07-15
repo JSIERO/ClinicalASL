@@ -57,7 +57,7 @@ def run_pipeline(inputdir, outputdir, workingdir, inference_method=None, config_
 
     # Rule: If inference_method is not provided (None), use the one from config.json
     if inference_method is None:
-        inference_method = ANALYSIS_PARAMETERS.get("inference_method", "vaby")  # Default to 'vaby' if not in config
+        inference_method = ANALYSIS_PARAMETERS.get("inference_method", "ssvb")  # Default to 'ssvb' if not in config
     else:
         # Override the config's inference_method with the user-provided value
         ANALYSIS_PARAMETERS["inference_method"] = inference_method

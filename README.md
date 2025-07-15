@@ -56,7 +56,7 @@ example `config/config_default.json`:
     "range_cvr": [-50, 50],
     "range_AAT": [0, 3],
     "range_ATA": [0, 125],
-    "inference_method": "vaby",
+    "inference_method": "ssvb",
     "device": "cpu",
     "ASL_CONTEXT": ["baseline", "stimulus"],
     "context_study_tags": ["preACZ", "postACZ"],
