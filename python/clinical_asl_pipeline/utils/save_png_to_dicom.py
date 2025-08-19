@@ -17,10 +17,9 @@ License: BSD 3-Clause License
 import pydicom
 import numpy as np
 import datetime
-import logging
+import os
 from clinical_asl_pipeline.__version__ import __version__ as TOOL_VERSION
-from pydicom.sequence import Sequence
-from pydicom.dataset import Dataset, FileDataset, FileMetaDataset
+from pydicom.dataset import FileDataset, FileMetaDataset
 from pydicom.uid import generate_uid, ExplicitVRLittleEndian, SecondaryCaptureImageStorage
 from PIL import Image
 
@@ -75,15 +74,19 @@ def save_png_to_dicom(png_path, output_path, series_description, series_instance
     ds.InstanceCreatorUID = IMPLEMENTATION_UID_ROOT
     ds.SeriesNumber = 999  # Secondary Capture images typically have a fixed series number, here 999 is used as a placeholder
     ds.InstanceNumber = instance_number
-    ds.SeriesDescription = f"{series_description} - derived (ClinicalASL-Siero)"
+    ds.SeriesDescription = f"{series_description} - (ClinicalASL-Siero)"
     ds.StudyID = getattr(template_ds, 'StudyID', 'Unknown')
+    ds.PerformedProcedureStepID = getattr(template_ds, 'PerformedProcedureStepID', 'UnknownProcedure')
+    ds.RequestedProcedureID = getattr(template_ds, 'RequestedProcedureID', 'UnknownRequest')
     ds.StudyDescription = getattr(template_ds, 'StudyDescription', 'Unknown Study')
     ds.PatientName = getattr(template_ds, 'PatientName', 'Anonymous^Patient')
     ds.PatientID = getattr(template_ds, 'PatientID', '000000')
     ds.PatientBirthDate = getattr(template_ds, 'PatientBirthDate', '')
+    ds.PatientAge = getattr(template_ds, 'PatientAge', '')
+    ds.PatientWeight = getattr(template_ds, 'PatientWeight', '')
     ds.PatientSex = getattr(template_ds, 'PatientSex', '')       
     ds.AccessionNumber = getattr(template_ds, 'AccessionNumber', '') 
-    ds.BodyPartExamined = "BRAIN"
+    ds.BodyPartExamined = getattr(template_ds, 'BodyPartExamined', 'BRAIN')
     ds.PatientOrientation = ['L', 'P']
     ds.SoftwareVersions = f'ClinicalASL v{TOOL_VERSION}, https://github.com/JSIERO/ClinicalASL'
     ds.InstitutionName = getattr(template_ds, 'InstitutionName', 'University Medical Center Utrecht')
@@ -121,4 +124,8 @@ def save_png_to_dicom(png_path, output_path, series_description, series_instance
     ds.PixelData = pixel_array.tobytes()
     
     # Save
-    ds.save_as(output_path, enforce_file_format=True)
+    # Modify output_path to append 'PNG' and SeriesNumber before the file extension
+    base, ext = os.path.splitext(output_path)
+    new_output_path = f"{base}_{ds.SeriesNumber}_PNG{ext}"
+
+    ds.save_as(new_output_path, enforce_file_format=True)

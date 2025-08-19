@@ -142,22 +142,7 @@ def asl_extract_params_dicom(subject, context_tag):
     context_data['FLIPANGLE'] = flipangle
     context_data['TIS'] = context_data['PLDS'] + context_data['tau']
     context_data['TR_M0'] = context_data['TIS'][0]
-    context_data['age'] = age_number
-    
-    # Set the range for CBF based on age, there are two ranges:
-    # - < 20 years: 0-75 ml/100g/min
-    # - >= 20 years: 0-125 ml/100g/min
-    
-    if context_data['age'] is not None:
-        if context_data['age'] < 20:
-            logging.info(f"Patient is younger than 20 years, setting CBF range for PNGS to {subject['range_cbf_age20min']} ml/100g/min.")
-            subject['range_cbf'] = subject['range_cbf_age20min']
-        elif context_data['age'] >= 20:
-            logging.info(f"Patient is 20 years or older, setting CBF range for PNGS to {subject['range_cbf_age20plus']} ml/100g/min.")
-            subject['range_cbf'] = subject['range_cbf_age20plus']
-    else:
-        logging.warning(f"Patient age not specified or invalid, using default CBF range of {subject['range_cbf_age20plus']} ml/100g/min.")
-        subject['range_cbf'] = subject['range_cbf_age20plus']
+    context_data['age'] = age_number  
 
     # Labeling efficiencies
     context_data['alpha_inv'] = context_data['labeleff']
@@ -176,6 +161,5 @@ def asl_extract_params_dicom(subject, context_tag):
     logging.info(f"NDYNS (number of dynamics): {ndyns}")
     logging.info(f"NREPEATS (control/label pair repeats): {ndyns - 1}")
     logging.info(f"Patient age: {age_patient} (numeric: {age_number})")
-    logging.info(f"Patient range CBF: {subject['range_cbf']}")
 
     return subject

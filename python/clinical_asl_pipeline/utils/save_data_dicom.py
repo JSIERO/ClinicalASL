@@ -33,7 +33,7 @@ def set_common_metadata(ds, name, unit_str, type_tag, TOOL_VERSION):
     ds.ContentTime = now.strftime('%H%M%S.%f')
     ds.ContentLabel = type_tag.upper()
     ds.ContentDescription = f"ClinicalASL-Siero derived: {type_tag.upper()} [{unit_str}]"
-    ds.SeriesDescription = f"{name} [{unit_str}] - derived (ClinicalASL-Siero)"
+    ds.SeriesDescription = f"{name} [{unit_str}] - (ClinicalASL-Siero)"
     ds.DerivationDescription =  f"ClinicalASL-Siero derived: {type_tag.upper()} [{unit_str}]"
     code_item = Dataset()
     code_item.CodeValue = "113072"
@@ -369,6 +369,16 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
                 for item in sequence:
                     if velocity_tag in item:
                         del item[velocity_tag]
+
+            if 'InstanceCreationTime' in ds: # Ensure InstanceCreationTime is set to current time per slice
+                ds.InstanceCreationTime = datetime.datetime.now().strftime('%H%M%S.%f')[:-3]
+
+            if 'NumberOfTemporalPositions' in ds: # Ensure NumberOfTemporalPositions is set to 1 or it will cause issues with PACS slice ordering
+                ds.NumberOfTemporalPositions = 1
+            if Tag(0x2001, 0x1081) in ds:
+                ds[Tag(0x2001, 0x1081)] = DataElement(Tag(0x2001, 0x1081), 'IS', 1)
+            if 'TemporalPositionIdentifier' in ds: # Ensure TemporalPositionIdentifier is set to 1 or it will cause issues with PACS slice ordering
+                ds.TemporalPositionIdentifier = 1
 
             ds.InstanceNumber = i + 1
             ds.RescaleSlope = f"{1.0 / scalingfactor:.10g}"

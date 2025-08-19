@@ -66,6 +66,32 @@ def asl_save_results_cbfaatcvr(subject):
     # === Compute CVR ===
     subject['CVR'] = subject['stimulus']['CBF_2baseline'] - subject['baseline']['CBF']
 
+    # === Compute CBF wholebrain ===
+
+    subject['stimulus']['CBF_wholebrain'] = np.nanmedian(subject['stimulus']['CBF'] * subject['stimulus']['nanmask']) # median CBF in stimulus wholebrain mask
+
+    # === Set range_cbf based on CBF wholebrain during stimulus===
+    # Note we use a factor 1/0.8=1.25 to convert whole brain CBF to gray matter CBF  this factor is based on 100+ patients plotting WB CBF vs  CBF GM
+    wb_cbf = subject['stimulus']['CBF_wholebrain']
+    gm_cbf = wb_cbf * 1.25  # WB → GM conversion factor (1/0.8)
+
+    # Three ranges for GM CBF:
+    # <60 → 0–75 ml/100g/min
+    # 60–80 → 0–100 ml/100g/min
+    # >80 → 0–125 ml/100g/min
+    if np.isnan(gm_cbf):
+        subject['range_cbf'] = (0, 100)  # sensible fallback
+        logging.warning("GM CBF is NaN, defaulting CBF range to (0, 100) ml/100g/min.")
+    elif gm_cbf < 60:
+        subject['range_cbf'] = (0, 75)
+        logging.info(f"GM CBF < 60 → setting range {subject['range_cbf']} ml/100g/min.")
+    elif gm_cbf > 80:
+        subject['range_cbf'] = (0, 125)
+        logging.info(f"GM CBF > 80 → setting range {subject['range_cbf']} ml/100g/min.")
+    else:  # 60 ≤ GM CBF ≤ 80
+        subject['range_cbf'] = (0, 100)
+        logging.info(f"GM CBF 60–80 → setting range {subject['range_cbf']} ml/100g/min.")
+        
     # === Apply smoothing, use nanmask to preserve outside brain edges ===
     subject['CVR_smth'] = asl_smooth_image(subject['CVR'] * subject['nanmask_combined'], 2, subject['FWHM'], subject['baseline']['VOXELSIZE'])
 
@@ -82,7 +108,6 @@ def asl_save_results_cbfaatcvr(subject):
 
     # === Define output lists ===
     # for all the context data, baseline, stimulus
-
 
     fields_main = [
         ('CBF', 'range_cbf', 'CBF', 'viridis', 'output_CBF_path'),
@@ -132,11 +157,11 @@ def asl_save_results_cbfaatcvr(subject):
                             data,                            
                             dcm_source_path,
                             dcm_outputdir,
-                            name,
+                            name, 
                             subject[range_tag],
                             type_tag,
                             series_number_incr,
-                        )
+                        ) # e.g., "ASL_CBF_postACZ_915_1.dcm"
                     except Exception as e:
                         logging.error(f"Failed to save DICOM for {type_tag} ({context_study_tag}): {e}")
 
@@ -150,7 +175,7 @@ def asl_save_results_cbfaatcvr(subject):
                     png_name = 'ASL_CVR'
                     title_name = ' ASL CVR'                  
                 else:
-                    png_name = f'ASL_{type_tag}_{context}_{context_study_tag}'  # e.g., ASL_CBF_baseline_preACZ
+                    png_name = f'ASL_{type_tag}_{context_study_tag}'  # e.g., ASL_CBF_preACZ
                     title_name = f"ASL {type_tag} {context_study_tag}"  # e.g., ASL CBF preACZ
                 
                 save_figure_to_png(data, subject['nanmask_combined'], subject[range_tag],
@@ -177,7 +202,7 @@ def asl_save_results_cbfaatcvr(subject):
     input_png_path =  os.path.join(subject['RESULTSdir'], f"{png_name}.png")
     output_dcm_path = os.path.join(subject['DICOMoutputdir'], f"{png_name}.dcm")
     dcm_source_path = subject['baseline']['sourceDCM_path']
-    series_description = f"ASL CVR" 
+    series_description = f"ASL CVR png" 
     instance_number = 1  # first instance number for CVR
     save_png_to_dicom(input_png_path, output_dcm_path, series_description, series_instance_uid, instance_number, dcm_source_path)
 
@@ -185,10 +210,10 @@ def asl_save_results_cbfaatcvr(subject):
     for _, _, type_tag, _, _ in fields_main:
         for context in subject['ASL_CONTEXT']:
             context_study_tag = get_context_study_tag(context)
-            png_name = f'ASL_{type_tag}_{context}_{context_study_tag}'
+            png_name = f'ASL_{type_tag}_{context_study_tag}' # e.g., ASL_CBF_preACZ
             input_png_path = os.path.join(subject['RESULTSdir'], f"{png_name}.png")
-            output_dcm_path = os.path.join(subject['DICOMoutputdir'], f"{png_name}.dcm")
-            series_description = f"ASL {type_tag} {context_study_tag}"
+            output_dcm_path = os.path.join(subject['DICOMoutputdir'], f"{png_name}.dcm") # e.g., ASL_CBF_preACZ_PNG_999.dcm
+            series_description = f"ASL {type_tag} {context_study_tag} png"  # e.g., ASL CBF preACZ png
             instance_number += 1
             try:
                 dcm_source_path = subject[context].get('sourceDCM_path', None)
