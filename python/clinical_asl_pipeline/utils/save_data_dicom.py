@@ -306,26 +306,46 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
             if f.startswith(template_prefix) and os.path.isfile(os.path.join(template_dir, f))
         ]
 
-        # Read files and extract SliceLocation 
+        # Read files and extract ImagePostionPatient, only select files with TemporalPositionIdentifier == 1, and Phase number (private tag 2001,1008, PLD) == 1
         file_slice_pairs = []
         for f in template_files:
             path = os.path.join(template_dir, f)
             try:
                 ds = pydicom.dcmread(path, force=True)
-                slice_location = getattr(ds, 'SliceLocation', None)
-                if slice_location is not None:
-                    file_slice_pairs.append((f, slice_location))
+                temporal_pos = getattr(ds, 'TemporalPositionIdentifier', None)
+                phase_number = ds.get((0x2001, 0x1008), None).value
+                if temporal_pos == 1 and phase_number == 1:
+                    image_position = getattr(ds, 'ImagePositionPatient', None)
+                    image_z_coord = image_position[2]
+                    if image_z_coord is not None:
+                        file_slice_pairs.append((f, image_z_coord))
+                    else:
+                        logging.warning(f"Template DICOM {f} missing SliceLocation.")
                 else:
-                    logging.warning(f"Template DICOM {f} missing SliceLocation .")
+                    logging.info(f"Skipping {f}: TemporalPositionIdentifier != 1")
             except Exception as e:
                 logging.error(f"Error reading DICOM {f}: {e}")
 
-        # Sort by slice location and pick the top N slices
+        # Sort by unique slice locations and pick the top N slices
+        unique_slices = {}
+        for f, image_z_coord in file_slice_pairs:
+            if image_z_coord not in unique_slices:
+                unique_slices[image_z_coord] = f
+        # Sort by slice location and select up to num_slices_needed
         template_files_sorted = [
-            f for f, _ in sorted(file_slice_pairs, key=lambda x: x[1])
+            unique_slices[loc] for loc in sorted(unique_slices.keys())
         ][:num_slices_needed]
 
         series_instance_uid = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
+
+        for i, fname in enumerate(template_files_sorted):
+            template_file = os.path.join(template_dir, fname)
+            ds = pydicom.dcmread(template_file, force=True)
+            ds.decompress()
+            print(f"Reading template DICOM: {template_file}")
+            print(ds.ImagePositionPatient)   
+            print(ds.SliceLocation) 
+            print(ds.get((0x2001, 0x1008), None).value)
 
         for i, fname in enumerate(template_files_sorted):
             template_file = os.path.join(template_dir, fname)
@@ -370,12 +390,9 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
                     if velocity_tag in item:
                         del item[velocity_tag]
 
-            if 'InstanceCreationTime' in ds: # Ensure InstanceCreationTime is set to current time per slice
-                ds.InstanceCreationTime = datetime.datetime.now().strftime('%H%M%S.%f')[:-3]
-
             if 'NumberOfTemporalPositions' in ds: # Ensure NumberOfTemporalPositions is set to 1 or it will cause issues with PACS slice ordering
                 ds.NumberOfTemporalPositions = 1
-            if Tag(0x2001, 0x1081) in ds:
+            if Tag(0x2001, 0x1081) in ds: # Ensure number of dynamics, Tag(0x2001, 0x1081) is set to 'IS' and has a value of 1
                 ds[Tag(0x2001, 0x1081)] = DataElement(Tag(0x2001, 0x1081), 'IS', 1)
             if 'TemporalPositionIdentifier' in ds: # Ensure TemporalPositionIdentifier is set to 1 or it will cause issues with PACS slice ordering
                 ds.TemporalPositionIdentifier = 1

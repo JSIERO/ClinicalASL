@@ -28,7 +28,6 @@ def run_command_with_logging(cmd):
             line = line.rstrip()
             print(line)
 
-
             if log_in_file:
                 log_function(line)
 
