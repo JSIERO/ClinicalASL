@@ -321,8 +321,6 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
                         file_slice_pairs.append((f, image_z_coord))
                     else:
                         logging.warning(f"Template DICOM {f} missing SliceLocation.")
-                else:
-                    logging.info(f"Skipping {f}: TemporalPositionIdentifier != 1")
             except Exception as e:
                 logging.error(f"Error reading DICOM {f}: {e}")
 
@@ -337,15 +335,6 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
         ][:num_slices_needed]
 
         series_instance_uid = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
-
-        for i, fname in enumerate(template_files_sorted):
-            template_file = os.path.join(template_dir, fname)
-            ds = pydicom.dcmread(template_file, force=True)
-            ds.decompress()
-            print(f"Reading template DICOM: {template_file}")
-            print(ds.ImagePositionPatient)   
-            print(ds.SliceLocation) 
-            print(ds.get((0x2001, 0x1008), None).value)
 
         for i, fname in enumerate(template_files_sorted):
             template_file = os.path.join(template_dir, fname)
