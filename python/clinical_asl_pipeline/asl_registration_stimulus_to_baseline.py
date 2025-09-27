@@ -65,8 +65,9 @@ def asl_registration_stimulus_to_baseline(subject):
     apply_transform(subject['stimulus']['QASL_AAT_path'], subject['baseline']['QASL_AAT_path'], subject['stimulus']['AAT_2baseline_path'], reg['fwdtransforms'], interpolator)
 
     # ATA
-    logging.info("Registration ATA stimulus to baseline (ANTsPy)")
-    apply_transform(subject['stimulus']['QASL_ATA_path'], subject['baseline']['QASL_ATA_path'], subject['stimulus']['ATA_2baseline_path'], reg['fwdtransforms'], interpolator)
+    if subject['dicom_typetags_by_context']['baseline'].__contains__('ATA'): # only if ATA is present in baseline, e.g. ATA not yet generated for vTR data
+        logging.info("Registration ATA stimulus to baseline (ANTsPy)")
+        apply_transform(subject['stimulus']['QASL_ATA_path'], subject['baseline']['QASL_ATA_path'], subject['stimulus']['ATA_2baseline_path'], reg['fwdtransforms'], interpolator)
 
     # Mask (NearestNeighbor interpolation)
     logging.info("Registration mask stimulus to baseline (ANTsPy)")

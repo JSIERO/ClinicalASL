@@ -177,7 +177,7 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
             total_frames = int(ds.NumberOfFrames)
             nconditions = total_frames // (nplds * ndyns * nslices)
 
-            logging.info(f"Structure: {nslices} slices x {nplds} PLDs x {ndyns} dynamics x {nconditions} conditions")
+            logging.info(f"Template structure: {nslices} slices x {nplds} PLDs x {ndyns} dynamics x {nconditions} conditions")
         except Exception as e:
             raise ValueError(f"Failed to extract dimensions from private tags: {e}")
         

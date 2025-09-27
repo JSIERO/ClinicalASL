@@ -28,7 +28,6 @@ from clinical_asl_pipeline.asl_look_locker_correction import asl_look_locker_cor
 from clinical_asl_pipeline.asl_prepare_asl_data import asl_prepare_asl_data
 from clinical_asl_pipeline.asl_motion_correction import asl_motion_correction
 from clinical_asl_pipeline.asl_outlier_removal import asl_outlier_removal
-from clinical_asl_pipeline.asl_t1_from_m0 import asl_t1_from_m0
 from clinical_asl_pipeline.asl_qasl_analysis import asl_qasl_analysis
 from clinical_asl_pipeline.asl_registration_stimulus_to_baseline import asl_registration_stimulus_to_baseline
 from clinical_asl_pipeline.asl_save_results_cbfaatcvr import asl_save_results_cbfaatcvr
@@ -257,7 +256,8 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, workingdir, ANALYSIS_PA
                         context_data['M0_path'], 
                         context_data['mask_path'], 
                         os.path.join(subject['ASLdir'], f'{context}_QASL_allPLD_forAAT'),       # output folder name QASL
-                        context_data['PLDS'][0:], 
+                        context_data['PLDS'][0:],
+                        context_data['tau'], 
                         subject['inference_method']
                         )
         # 2-to-last PLD for CBF map
@@ -266,7 +266,8 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, workingdir, ANALYSIS_PA
                         context_data['M0_path'], 
                         context_data['mask_path'], 
                         os.path.join(subject['ASLdir'], f'{context}_QASL_2tolastPLD_forCBF'),   # output folder name QASL
-                        subject[context]['PLDS'][1:], 
+                        context_data['PLDS'][1:],
+                        context_data['tau'], 
                         subject['inference_method']
                         )
         # 1to2 PLDs for ATA map ->  then do no fit for the arterial component 'artoff'
@@ -275,7 +276,8 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, workingdir, ANALYSIS_PA
                         context_data['M0_path'], 
                         context_data['mask_path'], 
                         os.path.join(subject['ASLdir'], f'{context}_QASL_1to2PLD_forATA'),      # output folder name QASL
-                        context_data['PLDS'][0:2], 
+                        context_data['PLDS'][0:2],
+                        context_data['tau'],
                         subject['inference_method'],
                         'artoff'
                         )

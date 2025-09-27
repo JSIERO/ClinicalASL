@@ -28,12 +28,14 @@ def asl_qasl_analysis(
     location_mask,
     output_map,
     pld_list,
+    tau_list,
     inference_method='ssvb', # or vaby, for BASIL-like output
     artoff=None,
 ):
     # Perform QASL analysis on ASL data using the Oxford ASL toolbox.
     # Parameters:
-    # subject: dict containing subject information including, can be different per context tag   
+    # subject: dict containing subject information including, can be different per context tag  
+    #   - 'ASL scan': type of ASL scan, e.g. 'multi-delay Look-Locker' or 'multi-delay variable-TR'
     #   - 'T1t': T1 tissue relaxation time in seconds
     #   - 'T1b': T1 blood relaxation time in seconds
     #   - 'tau': bolus duration in seconds
@@ -45,6 +47,7 @@ def asl_qasl_analysis(
     # location_mask: path to brain mask NIfTI file
     # output_map: output directory for QASL results
     # pld_list: list of post-labeling delays (PLDs) in seconds
+    # tau_list: list of bolus durations (tau) in seconds
     # inference_method: inference method for QASL ('ssvb' or 'vaby')
     # artoff: optional, set to 'artoff' to disable arterial component modeling
     #
@@ -54,6 +57,7 @@ def asl_qasl_analysis(
 
     # Generate comma-separated PLD string
     pld_string = ",".join([f"{pld:.5g}" for pld in pld_list])
+    tau_string = ",".join([f"{tau:.5g}" for tau in tau_list])
 
     # Arterial component off (optional)
     artoff_string = " --artoff" if artoff == "artoff" else ""
@@ -62,7 +66,6 @@ def asl_qasl_analysis(
     T1t = str(ANALYSIS_PARAMETERS['T1t'])
     T1b = str(ANALYSIS_PARAMETERS['T1b'])
     readout = str(ANALYSIS_PARAMETERS['readout']) # 2D or 3D
-    tau = str(subject['tau'])
     alpha = str(round(subject['alpha'],2))
     TR_M0 = str(subject['TR_M0'])
     slicetime = str(round(subject['slicetime'] / 1000,4))  # convert ms to seconds
@@ -70,31 +73,60 @@ def asl_qasl_analysis(
     start_time = time.time()
 
     # Build qasl command
-    cmd = (
-        f"qasl -i {location_asl_controllabel_pld_nifti} "
-        f"-c {location_m0} "
-        f"-m {location_mask} "
-        f"-o {output_map} "
-        f"--inference-method={inference_method} "
-        f"{artoff_string} "
-        f"--bolus={tau} "
-        f"--slicedt={slicetime} "
-        f"--t1={T1t} "
-        f"--t1b={T1b} "
-        f"--t1t={T1t} "
-        f"--plds={pld_string} "
-        f"--tr={TR_M0} "
-        f"--alpha={alpha} "
-        f"--iaf=tc "
-        f"--ibf=tis "
-        f"--casl "
-        f"--cgain 1.00 "
-        f"--calib-aslreg "
-        f"--readout={readout} "
-        f"--save-calib "
-        f"--overwrite "
-        f"--threads=4"
-    )
+    if subject['ASL scan'] == 'multi-delay Look-Locker':
+        cmd = (
+            f"qasl -i {location_asl_controllabel_pld_nifti} "
+            f"-c {location_m0} "
+            f"-m {location_mask} "
+            f"-o {output_map} "
+            f"--inference-method={inference_method} "
+            f"{artoff_string} "
+            f"--bolus={tau_string} "
+            f"--slicedt={slicetime} "
+            f"--t1={T1t} "
+            f"--t1b={T1b} "
+            f"--t1t={T1t} "
+            f"--plds={pld_string} "
+            f"--tr={TR_M0} "
+            f"--alpha={alpha} "
+            f"--iaf=tc "
+            f"--ibf=tis "
+            f"--casl "
+            f"--cgain 1.00 "
+            f"--calib-aslreg "
+            f"--biascorr-method=none "
+            f"--readout={readout} "
+            f"--save-calib "
+            f"--overwrite "
+            f"--threads=4"
+        )
+    elif subject['ASL scan'] == 'multi-delay variable-TR':
+                cmd = (
+            f"qasl -i {location_asl_controllabel_pld_nifti} "
+            f"-c {location_m0} "
+            f"-m {location_mask} "
+            f"-o {output_map} "
+            f"--inference-method={inference_method} "
+            f"{artoff_string} "
+            f"--bolus={tau_string} "
+            f"--t1={T1t} "
+            f"--t1b={T1b} "
+            f"--t1t={T1t} "
+            f"--plds={pld_string} "
+            f"--tr={TR_M0} "
+            f"--alpha={alpha} "
+            f"--iaf=ct "
+            f"--ibf=tis "
+            f"--casl "
+            f"--cgain 1.00 "
+            f"--calib-aslreg "
+            f"--biascorr-method=none "
+            f"--readout={readout} "
+            f"--save-calib "
+            f"--overwrite "
+            f"--threads=4"
+        )
+
 
     # Run command
     logging.info("Running QASL analysis...")

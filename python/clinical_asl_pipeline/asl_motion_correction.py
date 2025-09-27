@@ -42,25 +42,28 @@ def asl_motion_correction(subject, context_tag):
     nifti_template_path = context_data['sourceNIFTI_path']
     NREPEATS = context_data['NREPEATS']
     
-    # update path to motion corrected data, appeding '_mc' to filename using append_mc
+    # update path to motion corrected data, appending '_mc' to filename using append_mc
     context_data['PLDall_controllabel_path'] =  append_mc(context_data['PLDall_controllabel_path'])
-    context_data['PLD2tolast_controllabel_path'] =  append_mc(context_data['PLD2tolast_controllabel_path'])
-    context_data['PLD1to2_controllabel_path'] =  append_mc(context_data['PLD1to2_controllabel_path'])
 
     # perform motion correction routine, append output file name with '_mc' prefix
-    asl_motioncorrection_ants(inputdata_path, refdata_path, outputdata_path)    
+    asl_motioncorrection_ants(inputdata_path, refdata_path, outputdata_path)
 
-    PLDall_motioncorrected = nib.load(outputdata_path).get_fdata()
-    PLD2tolast = PLDall_motioncorrected[:, :, :, NREPEATS*2: ]
-    PLD1to2 = PLDall_motioncorrected[:, :, :, 0:NREPEATS*2*2]        
+    logging.info("Saving ASL motion-corrected data interleaved label control: all PLDs")
 
-    logging.info("Saving ASL motion-corrected data interleaved label control: all PLDs for AAT")
-    logging.info("Saving ASL motion-corrected data interleaved label control: 2-to-last PLDs for CBF")
-    logging.info("Saving ASL motion-corrected data interleaved label control: 1-to-2 PLDs for ATA")
+    if subject['ASL scan'] == 'multi-delay Look-Locker':
+        context_data['PLD2tolast_controllabel_path'] =  append_mc(context_data['PLD2tolast_controllabel_path'])
+        context_data['PLD1to2_controllabel_path'] =  append_mc(context_data['PLD1to2_controllabel_path'])
 
-    save_data_nifti(PLD2tolast, context_data['PLD2tolast_controllabel_path'], nifti_template_path, 1, None, None)
-    save_data_nifti(PLD1to2, context_data['PLD1to2_controllabel_path'], nifti_template_path, 1, None, None)
-    
+        PLDall_motioncorrected = nib.load(outputdata_path).get_fdata()
+        PLD2tolast_motioncorrected = PLDall_motioncorrected[:, :, :, NREPEATS*2: ]
+        PLD1to2_motioncorrected = PLDall_motioncorrected[:, :, :, 0:NREPEATS*2*2]        
+
+        logging.info("Saving ASL motion-corrected data interleaved label control: 2-to-last PLDs")
+        logging.info("Saving ASL motion-corrected data interleaved label control: 1-to-2 PLDs")
+
+        save_data_nifti(PLD2tolast_motioncorrected, context_data['PLD2tolast_controllabel_path'], nifti_template_path, 1, None, None)
+        save_data_nifti(PLD1to2_motioncorrected, context_data['PLD1to2_controllabel_path'], nifti_template_path, 1, None, None)
+        
     return subject
 
 def asl_motioncorrection_ants(inputdata, refdata, outputdata):

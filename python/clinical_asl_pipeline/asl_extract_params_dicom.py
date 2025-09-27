@@ -117,31 +117,43 @@ def asl_extract_params_dicom(subject, context_tag):
 
         plds = np.array([ft / 1e3 for ft in frametimes[:nplds] if ft is not None], dtype=np.float32)
 
-    # Estimate slice timing if enough unique values in frametimes
-    clean_frametimes = [ft for ft in frametimes if ft is not None]
-    unique_sorted_frametimes = np.unique(np.sort(clean_frametimes))
-    if len(unique_sorted_frametimes) >= nslices:
-        diffs = np.diff(unique_sorted_frametimes[:nslices])
-        slicetime = round(float(np.mean(diffs)), 1)
-    else:
-        slicetime = None
-        warnings.warn("Not enough valid frame times to estimate slice timing.")
-
+    if subject['readout'] == '2D':        
+        # Estimate slice timing if enough unique values in frametimes
+        clean_frametimes = [ft for ft in frametimes if ft is not None]
+        unique_sorted_frametimes = np.unique(np.sort(clean_frametimes))
+        if len(unique_sorted_frametimes) >= nslices:
+            diffs = np.diff(unique_sorted_frametimes[:nslices])
+            slicetime = round(float(np.mean(diffs)), 1)
+        else:
+            slicetime = None
+            warnings.warn("Not enough valid frame times to estimate slice timing.")
+    elif subject['readout'] == '3D':
+        slicetime = 0.0
+        
     # ==== Common fields for both formats ====
-    context_data['tau'] = subject['tau']
+    context_data['ASL scan'] = subject['ASL scan']
+    context_data['tau'] = subject['tau'] # can be list of tau values as well, provided in config
     context_data['N_BS'] = subject['N_BS']
     context_data['labeleff'] = subject['labeleff']
     context_data['TE'] = echo_time
     context_data['slicetime'] = slicetime
-    context_data['PLDS'] = plds
-    context_data['NPLDS'] = nplds
     context_data['NDYNS'] = ndyns
-    context_data['NREPEATS'] = ndyns - 1
+
+    if subject['ASL scan'] == 'multi-delay variable-TR':
+        context_data['PLDS'] = subject['PLDs']  # provided in config for multi-delay variable-TR
+        context_data['NPLDS'] = len(subject['PLDs'])
+        context_data['NREPEATS'] = ndyns  # for multi-delay variable-TR, each dynamic is a control-label pair
+        context_data['TR_M0'] = subject['TR_M0']  # for multi-delay variable-TR, TR_M0 is provided in config
+    else:
+        context_data['PLDS'] = plds          
+        context_data['NPLDS'] = nplds
+        context_data['NREPEATS'] = ndyns - 1
+        context_data['TR_M0'] = context_data['TIS'][0]
+
     context_data['VOXELSIZE'] = voxelsize
     context_data['NSLICES'] = nslices
     context_data['FLIPANGLE'] = flipangle
     context_data['TIS'] = context_data['PLDS'] + context_data['tau']
-    context_data['TR_M0'] = context_data['TIS'][0]
     context_data['age'] = age_number  
 
     # Labeling efficiencies
@@ -149,17 +161,19 @@ def asl_extract_params_dicom(subject, context_tag):
     context_data['alpha_BS'] = 0.95 ** context_data['N_BS']
     context_data['alpha'] = round(context_data['alpha_inv'] * context_data['alpha_BS'], 2)
 
-    logging.info(f"ECHOTIME: {round(echo_time,2)} ms")
-    logging.info(f"SLICETIME: {slicetime} ms")
-    logging.info(f"FLIPANGLE: {flipangle} degrees")
-    logging.info(f"VOXEL SIZE (XYZ): {voxelsize} mm")
-    logging.info(f"NSLICES (number of slices): {nslices}")
+    logging.info(f"ECHOTIME: {round(context_data['TE'],2)} ms")
+    logging.info(f"SLICETIME: {context_data['slicetime']} ms")
+    logging.info(f"FLIPANGLE: {context_data['FLIPANGLE']} degrees")
+    logging.info(f"VOXEL SIZE (XYZ): { context_data['VOXELSIZE']} mm")
+    logging.info(f"NSLICES (number of slices): {context_data['NSLICES']}")
     logging.info(f"label duration: {context_data['tau']} s")
-    logging.info(f"PLDs: {plds} s")
+    logging.info(f"PLDs: {context_data['PLDS']} s")
     logging.info(f"ALPHA (effective - incl. background suppression): {context_data['alpha']}")
-    logging.info(f"NPLDS (number of post-label delays): {nplds}")
-    logging.info(f"NDYNS (number of dynamics): {ndyns}")
-    logging.info(f"NREPEATS (control/label pair repeats): {ndyns - 1}")
-    logging.info(f"Patient age: {age_patient} (numeric: {age_number})")
+    logging.info(f"N_BS (number of background suppression pulses): {context_data['N_BS']}")
+    logging.info(f"TR_M0: {context_data['TR_M0']} s")
+    logging.info(f"NPLDS (number of post-label delays): {context_data['NPLDS']}")
+    logging.info(f"NDYNS (number of dynamics): {context_data['NDYNS']}")
+    logging.info(f"NREPEATS (control/label pair repeats): {context_data['NREPEATS']}")
+    logging.info(f"Patient age: {age_patient} (numeric: { context_data['age']})")
 
     return subject

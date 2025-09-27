@@ -49,9 +49,11 @@ def asl_save_results_cbfaatcvr(subject):
     subject['baseline']['AAT'] = nib.load(subject['baseline']['QASL_AAT_path']).get_fdata()
     subject['stimulus']['AAT'] = nib.load(subject['stimulus']['QASL_AAT_path']).get_fdata()
     subject['stimulus']['AAT_2baseline'] = nib.load(subject['stimulus']['AAT_2baseline_path']).get_fdata()
-    subject['baseline']['ATA'] = nib.load(subject['baseline']['QASL_ATA_path']).get_fdata()
-    subject['stimulus']['ATA'] = nib.load(subject['stimulus']['QASL_ATA_path']).get_fdata()
-    subject['stimulus']['ATA_2baseline'] = nib.load(subject['stimulus']['ATA_2baseline_path']).get_fdata()
+
+    if subject['dicom_typetags_by_context']['baseline'].__contains__('ATA'): # only if ATA is present in baseline, e.g. ATA not yet generated for vTR data
+        subject['baseline']['ATA'] = nib.load(subject['baseline']['QASL_ATA_path']).get_fdata()
+        subject['stimulus']['ATA'] = nib.load(subject['stimulus']['QASL_ATA_path']).get_fdata()
+        subject['stimulus']['ATA_2baseline'] = nib.load(subject['stimulus']['ATA_2baseline_path']).get_fdata()
 
     subject['baseline']['mask'] = nib.load(subject['baseline']['mask_path']).get_fdata()
     subject['stimulus']['mask'] = nib.load(subject['stimulus']['mask_path']).get_fdata()
@@ -215,13 +217,14 @@ def asl_save_results_cbfaatcvr(subject):
             output_dcm_path = os.path.join(subject['DICOMoutputdir'], f"{png_name}.dcm") # e.g., ASL_CBF_preACZ_PNG_999.dcm
             series_description = f"ASL {type_tag} {context_study_tag} png"  # e.g., ASL CBF preACZ png
             instance_number += 1
-            try:
-                dcm_source_path = subject[context].get('sourceDCM_path', None)
-                logging.info(f"Saving PNG as DICOM for {context_study_tag} {type_tag} to {output_dcm_path}")
-                save_png_to_dicom(input_png_path, output_dcm_path, series_description, series_instance_uid, instance_number, dcm_source_path )
-            except Exception as e:
-                logging.error(f"Failed to save PNG as DICOM for {type_tag} {context_study_tag}: {e}")
-                continue  # Skip to the next one
+            if subject[context].get(type_tag) is not None:
+                try:
+                    dcm_source_path = subject[context].get('sourceDCM_path', None)
+                    logging.info(f"Saving PNG as DICOM for {context_study_tag} {type_tag} to {output_dcm_path}")
+                    save_png_to_dicom(input_png_path, output_dcm_path, series_description, series_instance_uid, instance_number, dcm_source_path )
+                except Exception as e:
+                    logging.error(f"Failed to save PNG as DICOM for {type_tag} {context_study_tag}: {e}")
+                    continue  # Skip to the next one
 
     # === Final log ===
     logging.info(f"Results complete: PACS-ready DICOMS, NIFTI, .png's saved for subject {subject['SUBJECTdir']}")
