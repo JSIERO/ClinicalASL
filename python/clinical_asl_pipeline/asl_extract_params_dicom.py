@@ -144,13 +144,13 @@ def asl_extract_params_dicom(subject, context_tag):
         context_data['NPLDS'] = len(subject['PLDs'])
         context_data['NREPEATS'] = ndyns  # for multi-delay variable-TR, each dynamic is a control-label pair
         context_data['TR_M0'] = subject['TR_M0']  # for multi-delay variable-TR, TR_M0 is provided in config
-        context_data['TIS'] = context_data['PLDS'] + context_data['tau']
+        context_data['TIS'] = np.around(context_data['PLDS'] + context_data['tau'], 2).tolist()
     else:
         context_data['PLDS'] = plds          
         context_data['NPLDS'] = nplds
         context_data['NREPEATS'] = ndyns - 1
-        context_data['TIS'] = context_data['PLDS'] + context_data['tau']
-        context_data['TR_M0'] = context_data['TIS'][0]
+        context_data['TIS'] = np.around(context_data['PLDS'] + context_data['tau'], 2).tolist()
+        context_data['TR_M0'] = round(context_data['TIS'][0], 2)
 
     context_data['VOXELSIZE'] = voxelsize
     context_data['NSLICES'] = nslices
@@ -167,8 +167,9 @@ def asl_extract_params_dicom(subject, context_tag):
     logging.info(f"FLIPANGLE: {context_data['FLIPANGLE']} degrees")
     logging.info(f"VOXEL SIZE (XYZ): { context_data['VOXELSIZE']} mm")
     logging.info(f"NSLICES (number of slices): {context_data['NSLICES']}")
-    logging.info(f"label duration: {context_data['tau']} s")
+    logging.info(f"TAU (bolus/label) duration: {context_data['tau']} s")
     logging.info(f"PLDs: {context_data['PLDS']} s")
+    logging.info(f"TIs: {context_data['TIS']} s")
     logging.info(f"ALPHA (effective - incl. background suppression): {context_data['alpha']}")
     logging.info(f"N_BS (number of background suppression pulses): {context_data['N_BS']}")
     logging.info(f"TR_M0: {context_data['TR_M0']} s")

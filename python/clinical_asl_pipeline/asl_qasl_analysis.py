@@ -57,6 +57,10 @@ def asl_qasl_analysis(
 
     # Generate comma-separated PLD string
     pld_string = ",".join([f"{pld:.5g}" for pld in pld_list])
+    
+    # Ensure tau_list is always a list
+    if isinstance(tau_list, (float, int)):
+        tau_list = [tau_list]
     tau_string = ",".join([f"{tau:.5g}" for tau in tau_list])
 
     # Arterial component off (optional)
