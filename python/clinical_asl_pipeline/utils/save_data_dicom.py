@@ -415,3 +415,9 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
             
             ds.save_as(output_path, enforce_file_format=True)
             logging.info(f"Saved single-frame DICOM: {output_path}")
+            # logging of key metadata
+            logging.info(f"StudyID singleframe-derived DICOM: {ds.StudyID}")
+            logging.info(f"StudyInstanceUID singleframe-derived DICOM: {ds.StudyInstanceUID}")
+            logging.info(f"PatientID singleframe-derived DICOM: {ds.PatientID}")
+            logging.info(f"StudyDate singleframe-derived DICOM: {ds.StudyDate}")
+            logging.info(f"StudyTime singleframe-derived DICOM: {ds.StudyTime}")

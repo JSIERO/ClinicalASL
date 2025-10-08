@@ -17,6 +17,7 @@ License: BSD 3-Clause License
 import pydicom
 import numpy as np
 import datetime
+import logging
 import os
 from clinical_asl_pipeline.__version__ import __version__ as TOOL_VERSION
 from pydicom.dataset import FileDataset, FileMetaDataset
@@ -34,7 +35,10 @@ def save_png_to_dicom(png_path, output_path, series_description, series_instance
     #      instancenumber (int): Instance number for the DICOM image. Default is 1.
     #      source_dicom_path (str):  path to a source DICOM file for referencing and template for metadata. 
     #   #   Returns:
-    #      None: The function saves the DICOM file to the specified output path.        
+    #      None: The function saves the DICOM file to the specified output path. 
+
+    now = datetime.datetime.now()
+    IMPLEMENTATION_UID_ROOT = "1.3.6.1.4.1.54321.1.1" # Example root UID for ClinicalASL, fake PEN
 
     # Load PNG image
     img = Image.open(png_path)
@@ -48,34 +52,41 @@ def save_png_to_dicom(png_path, output_path, series_description, series_instance
 
     # File Meta
     # Generate consistent UID
-    IMPLEMENTATION_UID_ROOT = "1.3.6.1.4.1.54321.1.1" # Example root UID for ClinicalASL, fake PEN
-    uid = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
+    sop_instance_uid  = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
     file_meta = FileMetaDataset()
     file_meta.FileMetaInformationVersion = b'\x00\x01'
     file_meta.MediaStorageSOPClassUID = SecondaryCaptureImageStorage
-    file_meta.MediaStorageSOPInstanceUID = uid
+    file_meta.MediaStorageSOPInstanceUID = sop_instance_uid 
     file_meta.ImplementationClassUID = IMPLEMENTATION_UID_ROOT
     file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
 
     # Create new DICOM dataset
     ds = FileDataset(output_path, {}, file_meta=file_meta, preamble=b"\0" * 128)
     ds.file_meta = file_meta
-    ds.SOPInstanceUID = uid
+    ds.SOPInstanceUID = sop_instance_uid 
     ds.SOPClassUID = file_meta.MediaStorageSOPClassUID
-
-    now = datetime.datetime.now()
 
     # Copy metadata from template or generate defaults
     ds.Modality = getattr(template_ds, 'Modality', 'OT')
     ds.ImageType = "DERIVED\\SECONDARY\\QUANTITATIVE"
 
-    ds.StudyInstanceUID = getattr(template_ds, 'StudyInstanceUID', generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.'))
+    ds.StudyInstanceUID = getattr(template_ds, 'StudyInstanceUID', None)
     ds.SeriesInstanceUID = series_instance_uid  # use provided SeriesInstanceUID
     ds.InstanceCreatorUID = IMPLEMENTATION_UID_ROOT
     ds.SeriesNumber = 999  # Secondary Capture images typically have a fixed series number, here 999 is used as a placeholder
     ds.InstanceNumber = instance_number
     ds.SeriesDescription = f"{series_description} - (ClinicalASL-Siero)"
-    ds.StudyID = getattr(template_ds, 'StudyID', 'Unknown')
+    
+    # 2) Copy StudyID exactly as your site uses it; enforce SH (<=12 ASCII)
+    raw_sid = getattr(template_ds, 'StudyID', None)
+    if raw_sid is None or str(raw_sid).strip() == '':
+        # last-resort: derive something stable but short; better: pass study_id explicitly
+        raw_sid = getattr(template_ds, 'AccessionNumber', '') or 'STUDY'
+        
+    # Keep ASCII-only and truncate to 12
+    sid_ascii = ''.join(ch for ch in str(raw_sid) if ord(ch) < 128)[:12]
+    ds.StudyID = sid_ascii
+
     ds.PerformedProcedureStepID = getattr(template_ds, 'PerformedProcedureStepID', 'UnknownProcedure')
     ds.RequestedProcedureID = getattr(template_ds, 'RequestedProcedureID', 'UnknownRequest')
     ds.StudyDescription = getattr(template_ds, 'StudyDescription', 'Unknown Study')
@@ -85,6 +96,8 @@ def save_png_to_dicom(png_path, output_path, series_description, series_instance
     ds.PatientAge = getattr(template_ds, 'PatientAge', '')
     ds.PatientWeight = getattr(template_ds, 'PatientWeight', '')
     ds.PatientSex = getattr(template_ds, 'PatientSex', '')       
+    ds.StudyDate = getattr(template_ds, 'StudyDate', now.strftime('%Y%m%d'))
+    ds.StudyTime = getattr(template_ds, 'StudyTime', now.strftime('%H%M%S'))
     ds.AccessionNumber = getattr(template_ds, 'AccessionNumber', '') 
     ds.BodyPartExamined = getattr(template_ds, 'BodyPartExamined', 'BRAIN')
     ds.PatientOrientation = ['L', 'P']
@@ -102,8 +115,6 @@ def save_png_to_dicom(png_path, output_path, series_description, series_instance
     ds.ContentTime = now.strftime('%H%M%S.%f')
     ds.InstanceCreationDate = now.strftime('%Y%m%d')
     ds.InstanceCreationTime = now.strftime('%H%M%S')
-    ds.StudyDate = getattr(template_ds, 'StudyDate', now.strftime('%Y%m%d'))
-    ds.StudyTime = getattr(template_ds, 'StudyTime', now.strftime('%H%M%S'))
 
     # Pixel data: image size and type
     ds.Rows, ds.Columns = pixel_array.shape[:2]
@@ -127,5 +138,12 @@ def save_png_to_dicom(png_path, output_path, series_description, series_instance
     # Modify output_path to append 'PNG' and SeriesNumber before the file extension
     base, ext = os.path.splitext(output_path)
     new_output_path = f"{base}_{ds.SeriesNumber}_PNG{ext}"
-
     ds.save_as(new_output_path, enforce_file_format=True)
+
+    # logging of key metadata
+    logging.info(f"StudyID PNG-derived DICOM: {ds.StudyID}")
+    logging.info(f"StudyInstanceUID PNG-derived DICOM: {ds.StudyInstanceUID}")
+    logging.info(f"PatientID PNG-derived DICOM: {ds.PatientID}")
+    logging.info(f"StudyDate PNG-derived DICOM: {ds.StudyDate}")
+    logging.info(f"StudyTime PNG-derived DICOM: {ds.StudyTime}")
+
