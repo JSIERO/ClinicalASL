@@ -31,12 +31,15 @@ def set_common_metadata(ds, name, unit_str, type_tag, TOOL_VERSION):
     now = datetime.datetime.now()
     ds.ContentDate = now.strftime('%Y%m%d')
     ds.ContentTime = now.strftime('%H%M%S.%f')
-    ds.ContentLabel = type_tag.upper()
-    ds.ContentDescription = f"ClinicalASL-Siero derived: {type_tag.upper()} [{unit_str}]"
-    ds.SeriesDescription = f"{name} [{unit_str}] - (ClinicalASL-Siero)"
-    ds.DerivationDescription =  f"ClinicalASL-Siero derived: {type_tag.upper()} [{unit_str}]"
+    ds.ContentLabel = f"{type_tag.upper()} [{unit_str}]"
+    ds.ContentDescription = f"ClinicalASL-Siero: {type_tag.upper()} [{unit_str}]"
+    ds.SeriesDescription = f"{name} - (RESEARCH ONLY - ClinicalASL)"
+    ds.DerivationDescription =  f"RESEARCH ONLY - ClinicalASL-Siero: {type_tag.upper()}"
+    
+    # Document the derivation as post-processing in the DICOM metadata. This is important for traceability and to ensure that the DICOM files are correctly identified as derived products in PACS and other DICOM viewers.
     code_item = Dataset()
-    code_item.CodeValue = "113072"
+    # DCM:126302 identifies this image as a post-processed derivative.: Perfusion analysis by Arterial Spin Labeling (ASL) MR techniques, see DICOM PS3.16 2026b, Table D-1
+    code_item.CodeValue = "126302"  
     code_item.CodingSchemeDesignator = "DCM"
     code_item.CodeMeaning = "Post-processing"
 
@@ -44,6 +47,7 @@ def set_common_metadata(ds, name, unit_str, type_tag, TOOL_VERSION):
     ds.SoftwareVersions = f'ClinicalASL v{TOOL_VERSION}, https://github.com/JSIERO/ClinicalASL'
     ds.InstitutionName = getattr(ds, 'InstitutionName', 'University Medical Center Utrecht')
     ds.Manufacturer = f"ClinicalASL v{TOOL_VERSION}, https://github.com/JSIERO/ClinicalASL"
+    ds.ImageComments = "FOR RESEARCH PURPOSES ONLY"
 
     ds.SeriesDescription = ds.SeriesDescription[:64]  # VR LO max length
     ds.Manufacturer = ds.Manufacturer[:64]  # VR LO max length

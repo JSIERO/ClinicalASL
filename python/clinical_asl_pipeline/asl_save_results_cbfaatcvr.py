@@ -175,10 +175,10 @@ def asl_save_results_cbfaatcvr(subject):
             if data is not None:
                 if field == 'CVR_smth':
                     png_name = 'ASL_CVR'
-                    title_name = ' ASL CVR'                  
+                    title_name = 'ASL CVR [RESEARCH ONLY]'  # CVR is research only, so we add a clear label to the title   
                 else:
                     png_name = f'ASL_{type_tag}_{context_study_tag}'  # e.g., ASL_CBF_preACZ
-                    title_name = f"ASL {type_tag} {context_study_tag}"  # e.g., ASL CBF preACZ
+                    title_name = f"ASL {type_tag} {context_study_tag} [RESEARCH ONLY]"  # e.g., ASL CBF preACZ
                 
                 save_figure_to_png(data, subject['nanmask_combined'], subject[range_tag],
                                     subject['RESULTSdir'], png_name, title_name, type_tag, cmap)                
@@ -204,7 +204,7 @@ def asl_save_results_cbfaatcvr(subject):
     input_png_path =  os.path.join(subject['RESULTSdir'], f"{png_name}.png")
     output_dcm_path = os.path.join(subject['DICOMoutputdir'], f"{png_name}.dcm")
     dcm_source_path = subject['baseline']['sourceDCM_path']
-    series_description = f"ASL CVR png" 
+    series_description = f"ASL CVR" 
     instance_number = 1  # first instance number for CVR
     save_png_to_dicom(input_png_path, output_dcm_path, series_description, series_instance_uid, instance_number, dcm_source_path)
 
@@ -215,7 +215,7 @@ def asl_save_results_cbfaatcvr(subject):
             png_name = f'ASL_{type_tag}_{context_study_tag}' # e.g., ASL_CBF_preACZ
             input_png_path = os.path.join(subject['RESULTSdir'], f"{png_name}.png")
             output_dcm_path = os.path.join(subject['DICOMoutputdir'], f"{png_name}.dcm") # e.g., ASL_CBF_preACZ_PNG_999.dcm
-            series_description = f"ASL {type_tag} {context_study_tag} png"  # e.g., ASL CBF preACZ png
+            series_description = f"ASL {type_tag} {context_study_tag}"  # e.g., ASL CBF preACZ
             instance_number += 1
             if subject[context].get(type_tag) is not None:
                 try:
