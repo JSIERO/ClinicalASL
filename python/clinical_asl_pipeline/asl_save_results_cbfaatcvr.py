@@ -135,7 +135,7 @@ def asl_save_results_cbfaatcvr(subject):
         context_study_tag = get_context_study_tag(context)
         series_number_incr = 0  # Initialize series number increment for DICOM, will increment for each DICOM typetag saved except CVR and when allow_dicom is False
 
-        for field, range_tag, type_tag, _, output_path in fields:
+        for field, range_tag, type_tag, cmap, output_path in fields:
             data = subject[context].get(field) if field != 'CVR_smth' else subject['CVR_smth']
             path = subject[context].get(output_path) if field != 'CVR_smth' else subject['output_CVR_path']
             template = subject[context]['sourceNIFTI_path'] if field != 'CVR_smth' else subject['baseline']['sourceNIFTI_path']
@@ -155,14 +155,19 @@ def asl_save_results_cbfaatcvr(subject):
                         else:
                             name = f'ASL {type_tag} {context_study_tag}'
 
+                        # Apply brain mask: non-brain voxels become 0, mapping to
+                        # PALETTE COLOR LUT index 0 (black background)
+                        data_masked = np.nan_to_num(data * subject['nanmask_combined'], nan=0.0)
+
                         save_data_dicom(
-                            data,                            
+                            data_masked,                            
                             dcm_source_path,
                             dcm_outputdir,
                             name, 
                             subject[range_tag],
                             type_tag,
                             series_number_incr,
+                            colormap_name=cmap,
                         ) # e.g., "ASL_CBF_postACZ_915_1.dcm"
                     except Exception as e:
                         logging.error(f"Failed to save DICOM for {type_tag} ({context_study_tag}): {e}")

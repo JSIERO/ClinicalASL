@@ -11,6 +11,7 @@ Contact: j.c.w.siero@umcutrecht.nl
 
 Description:
     Utility function to save data as DICOM files using header information from a template file.
+    Uses PALETTE COLOR photometric interpretation for direct color rendering in PACS viewers.
 
 License: BSD 3-Clause License
 """
@@ -19,6 +20,10 @@ import logging
 import numpy as np
 import pydicom
 import datetime
+import matplotlib.pyplot as plt
+import importlib.resources as pkg_resources
+from matplotlib.colors import ListedColormap
+from scipy.io import loadmat
 from pydicom.uid import generate_uid
 from pydicom.uid import ExplicitVRLittleEndian
 from pydicom.sequence import Sequence
@@ -26,6 +31,115 @@ from pydicom.dataset import Dataset
 from pydicom.dataelem import DataElement
 from pydicom.tag import Tag
 from clinical_asl_pipeline.__version__ import __version__ as TOOL_VERSION
+
+# Default colormap per map type (matches save_figure_to_png usage)
+DEFAULT_COLORMAPS = {
+    'CBF': 'viridis',
+    'CVR': 'vik',       # custom .mat, diverging
+    'AAT': 'devon',     # custom .mat
+    'ATA': 'viridis',
+}
+
+
+def load_colormap(colormap_name):
+    """
+    Load a colormap by name, supporting both matplotlib built-ins and
+    custom .mat colormaps shipped with ClinicalASL (vik, devon).
+
+    Matching save_figure_to_png colormap loading logic.
+
+    Parameters
+    ----------
+    colormap_name : str
+        'viridis', 'jet', 'vik', 'devon', or any matplotlib colormap name.
+
+    Returns
+    -------
+    cmap : matplotlib.colors.Colormap
+    """
+    name_lower = colormap_name.lower()
+
+    if name_lower in ['vik', 'devon']:
+        try:
+            with pkg_resources.files('clinical_asl_pipeline.colormaps').joinpath(f'{name_lower}.mat').open('rb') as f:
+                mat = loadmat(f)
+        except FileNotFoundError:
+            raise ValueError(f"Missing colormap file: {name_lower}.mat")
+
+        cmap_data = mat.get(name_lower)
+        if cmap_data is None:
+            raise ValueError(f"Could not find colormap data in {name_lower}.mat")
+        cmap = ListedColormap(cmap_data)
+    else:
+        cmap = plt.get_cmap(name_lower)
+
+    return cmap
+
+
+def generate_palette_lut(cmap, scalingfactor, value_range, rescale_intercept=0.0):
+    """
+    Generate 65536-entry 16-bit Palette Color LUT that maps stored uint16
+    pixel values through the colormap, respecting value_range for normalization.
+
+    Index 0 is set to black (background/zero values), matching PNG output.
+
+    Parameters
+    ----------
+    cmap : matplotlib.colors.Colormap
+        Colormap to apply.
+    scalingfactor : float
+        Factor used to scale real values to stored uint16 values.
+        real_value = stored_value * (1/scalingfactor) + rescale_intercept
+    value_range : tuple
+        (vmin, vmax) for colormap normalization (same as used for PNG output).
+    rescale_intercept : float
+        RescaleIntercept (nonzero for signed data offset to unsigned).
+
+    Returns
+    -------
+    red, green, blue : np.ndarray (uint16, length 65536)
+    """
+    n = 65536
+    indices = np.arange(n, dtype=np.float64)
+
+    # Map stored pixel values back to real values
+    real_values = indices / scalingfactor + rescale_intercept
+
+    # Normalize to [0, 1] using value_range (matching PNG output)
+    vmin, vmax = value_range
+    if vmax == vmin:
+        normalized = np.full(n, 0.5)
+    else:
+        normalized = np.clip((real_values - vmin) / (vmax - vmin), 0, 1)
+
+    # Apply colormap
+    colors = cmap(normalized)[:, :3]  # (65536, 3) float [0,1]
+
+    # Set index 0 to black (background / zero values), matching PNG output
+    colors[0] = [0, 0, 0]
+
+    lut16 = (colors * 65535).astype(np.uint16)
+    return lut16[:, 0], lut16[:, 1], lut16[:, 2]
+
+
+def set_palette_color_tags(ds, red, green, blue):
+    """
+    Set DICOM Palette Color LUT tags on a dataset.
+
+    Parameters
+    ----------
+    ds : pydicom.Dataset
+    red, green, blue : np.ndarray (uint16, length 65536)
+    """
+    ds.PhotometricInterpretation = "PALETTE COLOR"
+    # 0 encodes 65536 entries per DICOM convention (PS3.3 C.7.6.3.1.6)
+    ds.RedPaletteColorLookupTableDescriptor = [0, 0, 16]
+    ds.GreenPaletteColorLookupTableDescriptor = [0, 0, 16]
+    ds.BluePaletteColorLookupTableDescriptor = [0, 0, 16]
+    ds.RedPaletteColorLookupTableData = red.tobytes()
+    ds.GreenPaletteColorLookupTableData = green.tobytes()
+    ds.BluePaletteColorLookupTableData = blue.tobytes()
+
 
 def set_common_metadata(ds, name, unit_str, type_tag, TOOL_VERSION):
     now = datetime.datetime.now()
@@ -91,7 +205,7 @@ def add_source_dicom_reference(ds, source_dicom_path):
     except Exception as e:
         logging.warning(f"Failed to add ReferencedSeriesSequence: {e}")
 
-def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_range, type_tag, series_number_incr):
+def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_range, type_tag, series_number_incr, colormap_name=None, mask=None):
     #
     # Save a 3D ASL-derived image as either a multiframe or single-frame DICOM series,
     # based on the structure of the provided reference DICOM.
@@ -99,6 +213,10 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
     # This function scales and inserts a quantitative ASL image (e.g., CBF, CVR, AAT, ATA)
     # into a DICOM file or series, updating relevant metadata for quantitative analysis
     # and PACS compatibility.
+
+    # Uses PALETTE COLOR photometric interpretation with an embedded colormap LUT
+    # for direct color rendering in PACS viewers (e.g., Sectra IDS7, MicroDICOM).
+    # Quantitative values are preserved via RescaleSlope/RescaleIntercept.
 
     # The output format (Enhanced MR multiframe or classic single-frame DICOM) is determined
     # from the template DICOM's structure.
@@ -114,11 +232,17 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
     # name : str
     #     Base for filename and Series/Protocol name in DICOM metadata.
     # value_range : tuple
-    #     (min, max) specifying the value range for VOI LUT (windowing).
+    #     (min, max) specifying the value range for colormap normalization and VOI LUT.
     # type_tag : str
     #     Label describing the quantitative map type, e.g., 'CBF', 'CVR', 'AAT', or 'ATA'.
     # series_number_incr : int
     #     Incremental value to set the SeriesNumber in the DICOM metadata.
+    # colormap_name : str or None
+    #     Colormap name. If None, uses DEFAULT_COLORMAPS[type_tag].
+    # mask : np.ndarray or None
+    #     3D mask array (same shape as image). Non-brain voxels (NaN or 0) are set
+    #     to pixel value 0, mapping to black in the Palette Color LUT.
+    #     Required for correct background rendering of signed data (e.g., CVR).
 
     # Raises
     # ------
@@ -134,7 +258,7 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
     # - Output format is chosen based on whether the template DICOM is multiframe or single-frame.
     # - For multiframe, the image is stored as a single DICOM file with multiple frames.
     # - For single-frame, each slice is saved as a separate DICOM file with InstanceNumber.
-    # - The function handles both signed (e.g., CVR) and unsigned (e.g., CBF, AAT, ATA) data types.
+    # - For signed data (CVR), pixel values are offset to unsigned (PALETTE COLOR requirement).
     # - The function assumes the input image is in the correct orientation and shape for ASL data.
     #
 
@@ -143,6 +267,9 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
     if not type_tag:
         raise ValueError("Please supply a type_tag such as 'CBF', 'CVR', 'AAT', or 'ATA'")
     
+    if colormap_name is None:
+        colormap_name = DEFAULT_COLORMAPS.get(type_tag.upper(), 'viridis')
+
     IMPLEMENTATION_UID_ROOT = "1.3.6.1.4.1.54321.1.1" # Example root UID for ClinicalASL, fake PEN
 
     use_signed = type_tag.upper() == 'CVR'
@@ -159,9 +286,26 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
         abs_max = np.max(np.abs(image))
         scalingfactor = (2**15 - 1) / abs_max
         image_scaled = (image * scalingfactor).clip(-2**15, 2**15 - 1).astype(np.int16)
+        # PALETTE COLOR requires unsigned pixel data (PixelRepresentation=0)
+        # Offset int16 [-32768, 32767] to uint16 [0, 65535]
+        image_scaled = (image_scaled.astype(np.int32) + 32768).astype(np.uint16)
+        rescale_intercept = -32768.0 / scalingfactor
     else:
         scalingfactor = (2**16 - 1) / np.nanmax(image)
         image_scaled = (image * scalingfactor).clip(0, 2**16 - 1).astype(np.uint16)
+        rescale_intercept = 0.0
+
+    # Apply mask: set non-brain voxels to 0 so they map to LUT index 0 (black)
+    # This is essential for signed data (CVR) where background voxels would otherwise
+    # map to the colormap midpoint after the unsigned offset.
+    if mask is not None:
+        brain_mask = np.isfinite(mask) & (mask != 0)
+        image_scaled[~brain_mask] = 0
+
+    # Load colormap and generate 65536-entry Palette Color LUT
+    cmap = load_colormap(colormap_name)
+    lut_red, lut_green, lut_blue = generate_palette_lut(cmap, scalingfactor, value_range, rescale_intercept)
+    logging.info(f"Applying PALETTE COLOR with colormap '{colormap_name}', range {value_range} for {type_tag}")
 
     ds = pydicom.dcmread(template_dicom_path, force=True)
     is_multiframe = hasattr(ds, 'PerFrameFunctionalGroupsSequence')
@@ -222,8 +366,7 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
             thickness = first_frame.PixelMeasuresSequence[0].SliceThickness
             ds.SliceThickness = float(thickness)
         except Exception:
-            ds.SliceThickness = float(np.mean(spacings)) if spacings else 1.0
-
+            ds.SliceThickness = 1.0
 
         ds.SeriesInstanceUID = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
         uid = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
@@ -255,27 +398,28 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
         ds.BitsAllocated = 16
         ds.BitsStored = 16
         ds.HighBit = 15
-        ds.PixelRepresentation = 1 if use_signed else 0
+        ds.PixelRepresentation = 0  # always unsigned for PALETTE COLOR
 
-        # Choose a representative frame — e.g., the first of the selected ones
+        # Choose a representative frame
         first_frame = ds.PerFrameFunctionalGroupsSequence[selected_indices[0]]
 
         ds.SamplesPerPixel = 1
-        ds.PhotometricInterpretation = "MONOCHROME2"        
+        # PALETTE COLOR with embedded LUT (replaces MONOCHROME2)
+        set_palette_color_tags(ds, lut_red, lut_green, lut_blue)
+
         smallest = int(np.min(image_scaled))
         largest = int(np.max(image_scaled))
-        vr = 'SS' if use_signed else 'US'
-        ds[Tag(0x0028, 0x0106)] = DataElement(Tag(0x0028, 0x0106), vr, smallest)
-        ds[Tag(0x0028, 0x0107)] = DataElement(Tag(0x0028, 0x0107), vr, largest)
+        ds[Tag(0x0028, 0x0106)] = DataElement(Tag(0x0028, 0x0106), 'US', smallest)
+        ds[Tag(0x0028, 0x0107)] = DataElement(Tag(0x0028, 0x0107), 'US', largest)
 
         set_common_metadata(ds, name, unit_str, type_tag, TOOL_VERSION)
         add_source_dicom_reference(ds, source_dicom_path)
 
-        # Clear existing VOI LUT sequences if present
+        # Update per-frame sequences
         for frame in ds.PerFrameFunctionalGroupsSequence:
             if hasattr(frame, "PixelValueTransformationSequence"):
                 frame.PixelValueTransformationSequence[0].RescaleSlope = f"{1.0 / scalingfactor:.10g}"
-                frame.PixelValueTransformationSequence[0].RescaleIntercept = 0.0
+                frame.PixelValueTransformationSequence[0].RescaleIntercept = f"{rescale_intercept:.10g}"
             if hasattr(frame, "FrameVOILUTSequence"):
                 frame.FrameVOILUTSequence[0].WindowCenter = f"{np.mean(value_range):.10g}"
                 frame.FrameVOILUTSequence[0].WindowWidth = f"{np.ptp(value_range):.10g}"
@@ -293,7 +437,7 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
         output_path = os.path.join(output_dicom_dir, f"{output_filename}")
 
         ds.save_as(output_path, enforce_file_format=True)
-        logging.info(f"Saved multi-frame DICOM: {output_path}")
+        logging.info(f"Saved multi-frame PALETTE COLOR DICOM: {output_path}")
 
     else:
         # --- SINGLEFRAME EXPORT ---
@@ -376,7 +520,7 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
                 del ds.TriggerTime # Removing TriggerTime from DICOM as it is not applicable for ASL-derived map
 
             private_tag = Tag(0x2005, 0x140f)  # Private Per-Frame Sequence
-            velocity_tag = Tag(0x0018, 0x9090)  # VelocityEncodingDirectio
+            velocity_tag = Tag(0x0018, 0x9090)  # VelocityEncodingDirection
             if private_tag in ds:
                 sequence = ds[private_tag].value
                 for item in sequence:
@@ -392,15 +536,16 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
 
             ds.InstanceNumber = i + 1
             ds.RescaleSlope = f"{1.0 / scalingfactor:.10g}"
-            ds.RescaleIntercept = 0.0
+            ds.RescaleIntercept = f"{rescale_intercept:.10g}"
             ds.BitsAllocated = 16
             ds.BitsStored = 16
             ds.HighBit = 15
-            ds.PixelRepresentation = 1 if use_signed else 0
+            ds.PixelRepresentation = 0  # always unsigned for PALETTE COLOR
             ds.PixelSpacing = getattr(ds, 'PixelSpacing', [1.0, 1.0])
             ds.SliceThickness = getattr(ds, 'SliceThickness', 1.0)
             ds.SamplesPerPixel = 1
-            ds.PhotometricInterpretation = "MONOCHROME2"
+            # PALETTE COLOR with embedded LUT (replaces MONOCHROME2)
+            set_palette_color_tags(ds, lut_red, lut_green, lut_blue)
             ds.WindowCenter = f"{np.mean(value_range):.10g}"
             ds.WindowWidth = f"{np.ptp(value_range):.10g}"
 
@@ -418,7 +563,7 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
             output_path = os.path.join(output_dicom_dir, output_filename)
             
             ds.save_as(output_path, enforce_file_format=True)
-            logging.info(f"Saved single-frame DICOM: {output_path}")
+            logging.info(f"Saved single-frame PALETTE COLOR DICOM: {output_path}")
             # logging of key metadata
             logging.info(f"StudyID singleframe-derived DICOM: {ds.StudyID}")
             logging.info(f"StudyInstanceUID singleframe-derived DICOM: {ds.StudyInstanceUID}")
