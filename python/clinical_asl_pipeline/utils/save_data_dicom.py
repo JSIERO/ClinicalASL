@@ -133,9 +133,10 @@ def set_palette_color_tags(ds, red, green, blue):
     """
     ds.PhotometricInterpretation = "PALETTE COLOR"
     # 0 encodes 65536 entries per DICOM convention (PS3.3 C.7.6.3.1.6)
-    ds.RedPaletteColorLookupTableDescriptor = [0, 0, 16]
-    ds.GreenPaletteColorLookupTableDescriptor = [0, 0, 16]
-    ds.BluePaletteColorLookupTableDescriptor = [0, 0, 16]
+    # Explicitly set VR to 'US' to resolve the ambiguous 'US or SS' VR for these tags
+    ds[Tag(0x0028, 0x1101)] = DataElement(Tag(0x0028, 0x1101), 'US', [0, 0, 16])
+    ds[Tag(0x0028, 0x1102)] = DataElement(Tag(0x0028, 0x1102), 'US', [0, 0, 16])
+    ds[Tag(0x0028, 0x1103)] = DataElement(Tag(0x0028, 0x1103), 'US', [0, 0, 16])
     ds.RedPaletteColorLookupTableData = red.tobytes()
     ds.GreenPaletteColorLookupTableData = green.tobytes()
     ds.BluePaletteColorLookupTableData = blue.tobytes()
@@ -145,7 +146,7 @@ def set_common_metadata(ds, name, unit_str, type_tag, TOOL_VERSION):
     now = datetime.datetime.now()
     ds.ContentDate = now.strftime('%Y%m%d')
     ds.ContentTime = now.strftime('%H%M%S.%f')
-    ds.ContentLabel = f"{type_tag.upper()} [{unit_str}]"
+    ds.ContentLabel = type_tag.upper()
     ds.ContentDescription = f"ClinicalASL-Siero: {type_tag.upper()} [{unit_str}]"
     ds.SeriesDescription = f"{name} - (RESEARCH ONLY - ClinicalASL)"
     ds.DerivationDescription =  f"RESEARCH ONLY - ClinicalASL-Siero: {type_tag.upper()}"
