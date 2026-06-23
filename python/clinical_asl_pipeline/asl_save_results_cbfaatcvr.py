@@ -168,6 +168,7 @@ def asl_save_results_cbfaatcvr(subject):
                             type_tag,
                             series_number_incr,
                             colormap_name=cmap,
+                            mask=subject['nanmask_combined'],
                         ) # e.g., "ASL_CBF_postACZ_915_1.dcm"
                     except Exception as e:
                         logging.error(f"Failed to save DICOM for {type_tag} ({context_study_tag}): {e}")
