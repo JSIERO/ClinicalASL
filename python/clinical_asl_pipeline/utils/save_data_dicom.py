@@ -422,8 +422,8 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
                 frame.PixelValueTransformationSequence[0].RescaleSlope = f"{1.0 / scalingfactor:.10g}"
                 frame.PixelValueTransformationSequence[0].RescaleIntercept = f"{rescale_intercept:.10g}"
             if hasattr(frame, "FrameVOILUTSequence"):
-                frame.FrameVOILUTSequence[0].WindowCenter = f"{np.mean(value_range):.10g}"
-                frame.FrameVOILUTSequence[0].WindowWidth = f"{np.ptp(value_range):.10g}"
+                frame.FrameVOILUTSequence[0].WindowCenter = "32768" # Set window center for PALETTE COLOR, set W/L to span the full uint16 stored pixel range so all 65536 LUT entries are accessible:
+                frame.FrameVOILUTSequence[0].WindowWidth = "65536" #  Set window width for PALETTE COLOR, set W/L to span the full uint16 stored pixel range so all 65536 LUT entries are accessible:
                 if 'CardiacSynchronizationSequence' in frame:
                     cs_seq = frame.CardiacSynchronizationSequence
                     for item in cs_seq:
@@ -547,8 +547,8 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
             ds.SamplesPerPixel = 1
             # PALETTE COLOR with embedded LUT (replaces MONOCHROME2)
             set_palette_color_tags(ds, lut_red, lut_green, lut_blue)
-            ds.WindowCenter = f"{np.mean(value_range):.10g}"
-            ds.WindowWidth = f"{np.ptp(value_range):.10g}"
+            ds.WindowCenter = "32768" # Set window center for PALETTE COLOR, set W/L to span the full uint16 stored pixel range so all 65536 LUT entries are accessible:
+            ds.WindowWidth = "65536" # Set window width for PALETTE COLOR, set W/L to span the full uint16 stored pixel range so all 65536 LUT entries are accessible:
 
             slice_img = np.flipud(image_scaled[:, :, i].T)
             ds.Rows, ds.Columns = slice_img.shape
