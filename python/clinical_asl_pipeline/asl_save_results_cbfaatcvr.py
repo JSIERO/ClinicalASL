@@ -39,7 +39,9 @@ from clinical_asl_pipeline.asl_smooth_image import asl_smooth_image
 from clinical_asl_pipeline.utils.save_figure_to_png import save_figure_to_png
 from clinical_asl_pipeline.utils.save_png_to_dicom import save_png_to_dicom  
 from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
-from clinical_asl_pipeline.utils.save_data_dicom import save_data_dicom
+from clinical_asl_pipeline.utils.save_data_dicom_color import save_data_dicom
+from clinical_asl_pipeline.utils.save_data_dicom_grayscale import save_data_dicom as save_data_dicom_grayscale
+from clinical_asl_pipeline.utils.save_data_dicom_color import save_data_dicom as save_data_dicom_color
 
 def asl_save_results_cbfaatcvr(subject):
     # === Load data ===
@@ -159,7 +161,8 @@ def asl_save_results_cbfaatcvr(subject):
                         # PALETTE COLOR LUT index 0 (black background)
                         data_masked = np.nan_to_num(data * subject['nanmask_combined'], nan=0.0)
 
-                        save_data_dicom(
+                        # Quantitative grayscale (for ROI readout, W/L)
+                        save_data_dicom_grayscale(
                             data_masked,                            
                             dcm_source_path,
                             dcm_outputdir,
@@ -170,6 +173,19 @@ def asl_save_results_cbfaatcvr(subject):
                             colormap_name=cmap,
                             mask=subject['nanmask_combined'],
                         ) # e.g., "ASL_CBF_postACZ_915_1.dcm"
+
+                        # Color visualization (PALETTE COLOR)
+                        save_data_dicom_color(
+                            data_masked,                            
+                            dcm_source_path,
+                            dcm_outputdir,
+                            f"{name} COLOR", 
+                            subject[range_tag],
+                            type_tag,
+                            series_number_incr + 100, # offset to avoid series number collision
+                            colormap_name=cmap,
+                            mask=subject['nanmask_combined'],
+                        ) # e.g., "ASL_CBF_postACZ_1015_1.dcm"
                     except Exception as e:
                         logging.error(f"Failed to save DICOM for {type_tag} ({context_study_tag}): {e}")
 
