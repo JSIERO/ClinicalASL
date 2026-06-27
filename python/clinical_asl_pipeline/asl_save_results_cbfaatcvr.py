@@ -170,8 +170,6 @@ def asl_save_results_cbfaatcvr(subject):
                             subject[range_tag],
                             type_tag,
                             series_number_incr,
-                            colormap_name=cmap,
-                            mask=subject['nanmask_combined'],
                         ) # e.g., "ASL_CBF_postACZ_915_1.dcm"
 
                         # Color visualization (PALETTE COLOR)
