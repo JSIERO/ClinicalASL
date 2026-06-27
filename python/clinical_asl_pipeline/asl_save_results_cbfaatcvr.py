@@ -39,7 +39,6 @@ from clinical_asl_pipeline.asl_smooth_image import asl_smooth_image
 from clinical_asl_pipeline.utils.save_figure_to_png import save_figure_to_png
 from clinical_asl_pipeline.utils.save_png_to_dicom import save_png_to_dicom  
 from clinical_asl_pipeline.utils.save_data_nifti import save_data_nifti
-from clinical_asl_pipeline.utils.save_data_dicom_color import save_data_dicom
 from clinical_asl_pipeline.utils.save_data_dicom_grayscale import save_data_dicom as save_data_dicom_grayscale
 from clinical_asl_pipeline.utils.save_data_dicom_color import save_data_dicom as save_data_dicom_color
 
