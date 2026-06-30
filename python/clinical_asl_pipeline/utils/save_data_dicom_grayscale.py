@@ -88,7 +88,7 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
     if not type_tag:
         raise ValueError("Please supply a type_tag such as 'CBF', 'CVR', 'AAT', or 'ATA'")
     
-    IMPLEMENTATION_UID_ROOT = "1.3.6.1.4.1.54321.1.1"
+    IMPLEMENTATION_UID_ROOT = "1.3.6.1.4.1.54321.1.1" # Unique root for ClinicalASL implementation, replace with your own registered root if needed
 
     use_signed = type_tag.upper() == 'CVR'
     unit_str = {
@@ -167,13 +167,13 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
         uid = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
         ds.file_meta = ds.file_meta or pydicom.dataset.FileMetaDataset()
         ds.file_meta.MediaStorageSOPInstanceUID = uid
-        ds.file_meta.MediaStorageSOPClassUID = pydicom.uid.UID("1.2.840.10008.5.1.4.1.1.4")
+        ds.file_meta.MediaStorageSOPClassUID = pydicom.uid.UID("1.2.840.10008.5.1.4.1.1.4") # multiframe Enhanced MR Image Storage
         ds.file_meta.FileMetaInformationVersion = b'\x00\x01'
         ds.file_meta.ImplementationClassUID = IMPLEMENTATION_UID_ROOT
         ds.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
 
         ds.SOPInstanceUID = uid
-        ds.SOPClassUID = pydicom.uid.UID("1.2.840.10008.5.1.4.1.1.4.1")
+        ds.SOPClassUID = pydicom.uid.UID("1.2.840.10008.5.1.4.1.1.4.1") #  multiframe Enhanced MR Image Storage   
         ds.StudyInstanceUID = getattr(ds, 'StudyInstanceUID', generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.'))
         ds.StudyID = getattr(ds, 'StudyID', 'Unknown')
         ds.PatientName = getattr(ds, 'PatientName', 'Anonymous^Patient')
@@ -280,13 +280,13 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
             uid = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
             ds.file_meta = ds.file_meta or pydicom.dataset.FileMetaDataset()
             ds.file_meta.MediaStorageSOPInstanceUID = uid
-            ds.file_meta.MediaStorageSOPClassUID = pydicom.uid.UID("1.2.840.10008.5.1.4.1.1.4")
+            ds.file_meta.MediaStorageSOPClassUID = pydicom.uid.UID("1.2.840.10008.5.1.4.1.1.4") # singleframe  MR Image Storage
             ds.file_meta.FileMetaInformationVersion = b'\x00\x01'
             ds.file_meta.ImplementationClassUID = IMPLEMENTATION_UID_ROOT
             ds.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
             
             ds.SOPInstanceUID = uid
-            ds.SOPClassUID = pydicom.uid.UID("1.2.840.10008.5.1.4.1.1.4")
+            ds.SOPClassUID = pydicom.uid.UID("1.2.840.10008.5.1.4.1.1.4") # singleframe MR Image Storage
             ds.StudyInstanceUID = getattr(ds, 'StudyInstanceUID', generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.'))
             ds.StudyID = getattr(ds, 'StudyID', 'Unknown')
             ds.PatientName = getattr(ds, 'PatientName', 'Anonymous^Patient')
