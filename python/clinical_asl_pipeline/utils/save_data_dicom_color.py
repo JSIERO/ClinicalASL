@@ -40,7 +40,6 @@ DEFAULT_COLORMAPS = {
     'ATA': 'viridis',
 }
 
-
 def load_colormap(colormap_name):
     """
     Load a colormap by name, supporting both matplotlib built-ins and
@@ -205,6 +204,7 @@ def add_source_dicom_reference(ds, source_dicom_path):
     except Exception as e:
         logging.warning(f"Failed to add ReferencedSeriesSequence: {e}")
 
+
 def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_range, type_tag, series_number_incr, colormap_name=None, mask=None):
     #
     # Save a 3D ASL-derived image as either a multiframe or single-frame DICOM series,
@@ -332,10 +332,7 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
         # Step 2: Helper to index into frames
         def get_frame_indices(pld, dynamic, condition, nslices, ndyns, nplds):
             return [
-                condition * nslices * ndyns * nplds +
-                s * ndyns * nplds +
-                dynamic * nplds +
-                pld
+                condition * nslices * ndyns * nplds + s * ndyns * nplds + dynamic * nplds + pld
                 for s in range(nslices)
             ]
         selected_indices = get_frame_indices(pld=0, dynamic=0, condition=0, nslices=nslices, ndyns=ndyns, nplds=nplds)
@@ -399,39 +396,37 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
         ds.BitsStored = 16
         ds.HighBit = 15
         ds.PixelRepresentation = 0  # always unsigned for PALETTE COLOR
-
-        # Choose a representative frame
-        first_frame = ds.PerFrameFunctionalGroupsSequence[selected_indices[0]]
-
         ds.SamplesPerPixel = 1
         # PALETTE COLOR with embedded LUT (replaces MONOCHROME2)
         set_palette_color_tags(ds, lut_red, lut_green, lut_blue)
-
-        smallest = int(np.min(image_scaled))
-        largest = int(np.max(image_scaled))
-        ds[Tag(0x0028, 0x0106)] = DataElement(Tag(0x0028, 0x0106), 'US', smallest)
-        ds[Tag(0x0028, 0x0107)] = DataElement(Tag(0x0028, 0x0107), 'US', largest)
-
         set_common_metadata(ds, name, unit_str, type_tag, TOOL_VERSION)
         add_source_dicom_reference(ds, source_dicom_path)
 
         # Update per-frame sequences
         for frame in ds.PerFrameFunctionalGroupsSequence:
             if hasattr(frame, "PixelValueTransformationSequence"):
-                frame.PixelValueTransformationSequence[0].RescaleSlope = f"{1.0 / scalingfactor:.10g}"
-                frame.PixelValueTransformationSequence[0].RescaleIntercept = f"{rescale_intercept:.10g}"
+                # Not used for PALETTE COLOR SC; delete inherited Philips rescale
+                del frame.PixelValueTransformationSequence
             if hasattr(frame, "FrameVOILUTSequence"):
                 del frame.FrameVOILUTSequence
-                if 'CardiacSynchronizationSequence' in frame:
-                    cs_seq = frame.CardiacSynchronizationSequence
-                    for item in cs_seq:
-                        if 'TriggerTime' in item:
-                            del item.TriggerTime # Remove TriggerTime if present, not relevant for ASL-derived maps, PACS compatibility
-                if 'MRVelocityEncodingSequence' in frame:
-                    for item in frame.MRVelocityEncodingSequence:
-                        if 'VelocityEncodingDirection' in item:
-                            delattr(item, 'VelocityEncodingDirection')  # Remove VelocityEncodingDirection if present, not relevant for ASL-derived maps, PACS compatibility
+            if 'RealWorldValueMappingSequence' in frame:
+                del frame.RealWorldValueMappingSequence
+            if 'CardiacSynchronizationSequence' in frame:
+                cs_seq = frame.CardiacSynchronizationSequence
+                for item in cs_seq:
+                    if 'TriggerTime' in item:
+                        del item.TriggerTime # Remove TriggerTime if present, not relevant for ASL-derived maps, PACS compatibility
+            if 'MRVelocityEncodingSequence' in frame:
+                for item in frame.MRVelocityEncodingSequence:
+                    if 'VelocityEncodingDirection' in item:
+                        delattr(item, 'VelocityEncodingDirection')  # Remove VelocityEncodingDirection if present, not relevant for ASL-derived maps, PACS compatibility
 
+        if 'RealWorldValueMappingSequence' in ds:
+            del ds.RealWorldValueMappingSequence
+        for tag_name in ['RescaleSlope', 'RescaleIntercept', 'RescaleType']:
+            if hasattr(ds, tag_name):
+                delattr(ds, tag_name)
+                
         output_filename = f"{name.replace(' ', '_')}_{ds.SeriesNumber}.dcm"
         output_path = os.path.join(output_dicom_dir, f"{output_filename}")
 
@@ -534,8 +529,6 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
                 ds.TemporalPositionIdentifier = 1
 
             ds.InstanceNumber = i + 1
-            ds.RescaleSlope = f"{1.0 / scalingfactor:.10g}"
-            ds.RescaleIntercept = f"{rescale_intercept:.10g}"
             ds.BitsAllocated = 16
             ds.BitsStored = 16
             ds.HighBit = 15
@@ -543,20 +536,27 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
             ds.PixelSpacing = getattr(ds, 'PixelSpacing', [1.0, 1.0])
             ds.SliceThickness = getattr(ds, 'SliceThickness', 1.0)
             ds.SamplesPerPixel = 1
+
             # PALETTE COLOR with embedded LUT (replaces MONOCHROME2)
             set_palette_color_tags(ds, lut_red, lut_green, lut_blue)
+            # RescaleSlope/Intercept not used for PALETTE COLOR SC (the LUT defines the display mapping)
+            # Remove RescaleSlope/Intercept - not applicable for PALETTE COLOR SC
+            # (the LUT defines the display mapping; quantitative scaling is in grayscale DICOMs only)
+            # Reference: original scaling was RescaleSlope = 1/scalingfactor, RescaleIntercept = 0
+            for tag_name in ['RescaleSlope', 'RescaleIntercept', 'RescaleType']:
+                if hasattr(ds, tag_name):
+                    delattr(ds, tag_name)
             # Remove W/L - not meaningful for PALETTE COLOR, the LUT defines the display mapping
             if hasattr(ds, 'WindowCenter'):
                 del ds.WindowCenter
             if hasattr(ds, 'WindowWidth'):
                 del ds.WindowWidth
-                
+            if 'RealWorldValueMappingSequence' in ds:
+                del ds.RealWorldValueMappingSequence
+
             slice_img = np.flipud(image_scaled[:, :, i].T)
             ds.Rows, ds.Columns = slice_img.shape
             ds.PixelData = slice_img.tobytes()
-
-            smallest = int(np.min(slice_img))
-            largest = int(np.max(slice_img))
 
             set_common_metadata(ds, name, unit_str, type_tag, TOOL_VERSION)
             add_source_dicom_reference(ds, source_dicom_path)

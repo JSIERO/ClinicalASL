@@ -82,6 +82,24 @@ def add_source_dicom_reference(ds, source_dicom_path):
     except Exception as e:
         logging.warning(f"Failed to add ReferencedSeriesSequence: {e}")
 
+def set_real_world_value_mapping(ds, type_tag, unit_str):
+    """Replace inherited Philips Real World Value mapping (RWV) with correct mapping for derived ASL maps.
+    Uses RescaleSlope/Intercept already set on ds for the slope/intercept values."""
+    mu = Dataset()
+    mu.CodeValue = unit_str        # close enough for PACS display
+    mu.CodingSchemeDesignator = "UCUM"
+    mu.CodeMeaning = unit_str
+
+    rwv = Dataset()
+    rwv.RealWorldValueFirstValueMapped = 0
+    rwv.RealWorldValueLastValueMapped = 2 ** ds.BitsStored - 1
+    rwv.RealWorldValueSlope = float(ds.RescaleSlope)
+    rwv.RealWorldValueIntercept = float(ds.RescaleIntercept)
+    rwv.MeasurementUnitsCodeSequence = Sequence([mu])
+    rwv.LUTExplanation = f"{type_tag.upper()} [{unit_str}]"
+
+    ds.RealWorldValueMappingSequence = Sequence([rwv])
+
 def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_range, type_tag, series_number_incr):
     template_dicom_path = source_dicom_path
 
@@ -131,10 +149,7 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
         
         def get_frame_indices(pld, dynamic, condition, nslices, ndyns, nplds):
             return [
-                condition * nslices * ndyns * nplds +
-                s * ndyns * nplds +
-                dynamic * nplds +
-                pld
+                condition * nslices * ndyns * nplds + s * ndyns * nplds + dynamic * nplds + pld
                 for s in range(nslices)
             ]
         selected_indices = get_frame_indices(pld=0, dynamic=0, condition=0, nslices=nslices, ndyns=ndyns, nplds=nplds)
@@ -167,7 +182,7 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
         uid = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
         ds.file_meta = ds.file_meta or pydicom.dataset.FileMetaDataset()
         ds.file_meta.MediaStorageSOPInstanceUID = uid
-        ds.file_meta.MediaStorageSOPClassUID = pydicom.uid.UID("1.2.840.10008.5.1.4.1.1.4") # multiframe Enhanced MR Image Storage
+        ds.file_meta.MediaStorageSOPClassUID = pydicom.uid.UID("1.2.840.10008.5.1.4.1.1.4.1") # multiframe Enhanced MR Image Storage
         ds.file_meta.FileMetaInformationVersion = b'\x00\x01'
         ds.file_meta.ImplementationClassUID = IMPLEMENTATION_UID_ROOT
         ds.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
@@ -195,8 +210,6 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
         ds.HighBit = 15
         ds.PixelRepresentation = 1 if use_signed else 0
 
-        first_frame = ds.PerFrameFunctionalGroupsSequence[selected_indices[0]]
-
         ds.SamplesPerPixel = 1
         ds.PhotometricInterpretation = "MONOCHROME2"        
         smallest = int(np.min(image_scaled))
@@ -211,19 +224,25 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
         for frame in ds.PerFrameFunctionalGroupsSequence:
             if hasattr(frame, "PixelValueTransformationSequence"):
                 frame.PixelValueTransformationSequence[0].RescaleSlope = f"{1.0 / scalingfactor:.10g}"
-                frame.PixelValueTransformationSequence[0].RescaleIntercept = 0.0
+                frame.PixelValueTransformationSequence[0].RescaleIntercept = f"{0.0:.10g}"
             if hasattr(frame, "FrameVOILUTSequence"):
                 frame.FrameVOILUTSequence[0].WindowCenter = f"{np.mean(value_range):.10g}"
                 frame.FrameVOILUTSequence[0].WindowWidth = f"{np.ptp(value_range):.10g}"
-                if 'CardiacSynchronizationSequence' in frame:
-                    cs_seq = frame.CardiacSynchronizationSequence
-                    for item in cs_seq:
-                        if 'TriggerTime' in item:
-                            del item.TriggerTime
-                if 'MRVelocityEncodingSequence' in frame:
-                    for item in frame.MRVelocityEncodingSequence:
-                        if 'VelocityEncodingDirection' in item:
-                            delattr(item, 'VelocityEncodingDirection')
+            if 'CardiacSynchronizationSequence' in frame:
+                cs_seq = frame.CardiacSynchronizationSequence
+                for item in cs_seq:
+                    if 'TriggerTime' in item:
+                        del item.TriggerTime
+            if 'MRVelocityEncodingSequence' in frame:
+                for item in frame.MRVelocityEncodingSequence:
+                    if 'VelocityEncodingDirection' in item:
+                        delattr(item, 'VelocityEncodingDirection')
+            # Remove inherited Philips RWReal World Value mapping (RWVM) (refers to original acquisition, not derived map)
+            if 'RealWorldValueMappingSequence' in frame:
+                del frame.RealWorldValueMappingSequence
+
+        # Set correct Real World Value mapping (RWVM) for derived ASL map (replaces inherited, wrong as based on source data, Philips RWVM)
+        set_real_world_value_mapping(ds, type_tag, unit_str)
 
         output_filename = f"{name.replace(' ', '_')}_{ds.SeriesNumber}.dcm"
         output_path = os.path.join(output_dicom_dir, f"{output_filename}")
@@ -339,11 +358,10 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
             ds.Rows, ds.Columns = slice_img.shape
             ds.PixelData = slice_img.tobytes()
 
-            smallest = int(np.min(slice_img))
-            largest = int(np.max(slice_img))
-
             set_common_metadata(ds, name, unit_str, type_tag, TOOL_VERSION)
             add_source_dicom_reference(ds, source_dicom_path)
+            # Set correct Real World Value mapping (RWVM) for derived ASL map (replaces inherited, wrong as based on source data, Philips RWVM)
+            set_real_world_value_mapping(ds, type_tag, unit_str)
 
             output_filename = f"{name.replace(' ', '_')}_{ds.SeriesNumber}_{ds.InstanceNumber}.dcm"
             output_path = os.path.join(output_dicom_dir, output_filename)
