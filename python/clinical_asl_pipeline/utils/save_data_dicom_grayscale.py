@@ -91,8 +91,13 @@ def set_real_world_value_mapping(ds, type_tag, unit_str):
     mu.CodeMeaning = unit_str
 
     rwv = Dataset()
-    rwv.RealWorldValueFirstValueMapped = 0
-    rwv.RealWorldValueLastValueMapped = 2 ** ds.BitsStored - 1
+    # Range depends on PixelRepresentation: signed [-32768, 32767] vs unsigned [0, 65535]
+    if ds.PixelRepresentation == 1:  # signed (CVR)
+        rwv.RealWorldValueFirstValueMapped = -(2 ** (ds.BitsStored - 1))       # -32768
+        rwv.RealWorldValueLastValueMapped = 2 ** (ds.BitsStored - 1) - 1       # 32767
+    else:  # unsigned (CBF, AAT, ATA)
+        rwv.RealWorldValueFirstValueMapped = 0
+        rwv.RealWorldValueLastValueMapped = 2 ** ds.BitsStored - 1             # 65535
     rwv.RealWorldValueSlope = float(ds.RescaleSlope)
     rwv.RealWorldValueIntercept = float(ds.RescaleIntercept)
     rwv.MeasurementUnitsCodeSequence = Sequence([mu])
