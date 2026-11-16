@@ -194,10 +194,10 @@ def asl_save_results_cbfaatcvr(subject):
             if data is not None:
                 if field == 'CVR_smth':
                     png_name = 'ASL_CVR'
-                    title_name = 'ASL CVR [RESEARCH ONLY]'  # CVR is research only, so we add a clear label to the title   
+                    title_name = 'ASL CVR [RESEARCH ONLY, NOT CE MARKED]'
                 else:
                     png_name = f'ASL_{type_tag}_{context_study_tag}'  # e.g., ASL_CBF_preACZ
-                    title_name = f"ASL {type_tag} {context_study_tag} [RESEARCH ONLY]"  # e.g., ASL CBF preACZ
+                    title_name = f"ASL {type_tag} {context_study_tag} [RESEARCH ONLY, NOT CE MARKED]"  # e.g., ASL CBF preACZ
                 
                 save_figure_to_png(data, subject['nanmask_combined'], subject[range_tag],
                                     subject['RESULTSdir'], png_name, title_name, type_tag, cmap)                

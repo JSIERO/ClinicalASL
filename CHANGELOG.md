@@ -10,6 +10,14 @@ ClinicalASL Pipeline — Changelog
 
 ---
 
+## Unreleased
+
+- Outputs now state "RESEARCH ONLY, NOT CE MARKED": PNG titles, DICOM SeriesDescription (grayscale, colour and
+  PNG series 999; "ClinicalASL" dropped there to stay within 64 characters, still in Manufacturer), ImageComments
+  and DerivationDescription.
+
+---
+
 ## v1.0.0 — June 2025
 
 Initial official release of ClinicalASL:
