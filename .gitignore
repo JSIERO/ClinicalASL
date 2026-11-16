@@ -66,3 +66,6 @@ Thumbs.db
 python/run_for_Vstudio_testing_pipeline.py
 # outputs/
 # results/
+# QASL license key and local build/run logs (never commit)
+qi-key*
+_logs/

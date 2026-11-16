@@ -1,0 +1,14 @@
+# QASL packages (Quantified Imaging, private bitbucket, SSH key required) pinned to the exact commits of the
+# validated production image (jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:latest, Aug 2025, QASL 1.4.2).
+# Install order = qasl_setup order. Format: <package> <commit>
+toblerone a8af40c8b395bd63903f879f8e7c60040e8e12d8
+ssvb ae6ff386571acc247eccbf44f446a7bb76b2e1d6
+ssvb_models_asl 935d4d24e35411ad0aaecf8c2c9e1c019c7136f6
+regtricks 3ca32318f490beb7322be9712691834a80a03d13
+vaby 3c0978a19d1c08e50e38fbea776daefdedd0393e
+vaby_models_asl a664375e6bfda524c38212e4ca1887214ed6f245
+qasl d9bda7a9e4d153e54d19101eb8dcebe16e0388a3
+qasl_enable 89a799f52a985bc883d60b844dc2285a903ec7cd
+qasl_qc 2a98bafc12a6a6f7801da850ee28c0bfb2449880
+qasl_harmonise f81a2bbb7f7e2c6aed3b87ff0681df9cd0ac8911
+qasl_deblur 91021d00b818c9c1b63b3effd40f15c0fbcb6332

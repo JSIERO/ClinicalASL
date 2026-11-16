@@ -1,0 +1,8 @@
+.git
+matlab
+general_files
+_logs
+**/__pycache__
+**/*.pyc
+qi-key*
+*.log
