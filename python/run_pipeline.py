@@ -106,7 +106,7 @@ def main():
     parser.add_argument("workingdir", type=str, 
                         help="Path to working directory for intermediate files (e.g., /tmp/workingdir")
     parser.add_argument("--inference-method", type=str, 
-                        default='ssvb', 
+                        default=None,
                         choices=["ssvb", "vaby"],
                         help="Optional input to choose inference method for fitting: 'ssvb' or 'vaby'. If not provided, uses the value from config.json.")
     parser.add_argument("--config", type=str, default=None,

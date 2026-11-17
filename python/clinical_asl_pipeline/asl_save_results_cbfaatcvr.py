@@ -74,7 +74,7 @@ def asl_save_results_cbfaatcvr(subject):
     subject['stimulus']['CBF_wholebrain'] = np.nanmedian(subject['stimulus']['CBF'] * subject['stimulus']['nanmask']) # median CBF in stimulus wholebrain mask
 
     # === Set range_cbf based on CBF wholebrain during stimulus===
-    # Note we use a factor 1/0.8=1.25 to convert whole brain CBF to gray matter CBF  this factor is based on 100+ patients plotting WB CBF vs  CBF GM
+    # Note we use a factor 1/0.8=1.25 to convert whole brain CBF to gray matter CBF  this factor is based on 100+ patients plotting WB CBF vs CBF GM
     wb_cbf = subject['stimulus']['CBF_wholebrain']
     gm_cbf = wb_cbf * 1.25  # WB → GM conversion factor (1/0.8)
 

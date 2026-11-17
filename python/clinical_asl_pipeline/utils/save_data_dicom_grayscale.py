@@ -102,6 +102,7 @@ def set_real_world_value_mapping(ds, type_tag, unit_str):
     rwv.RealWorldValueIntercept = float(ds.RescaleIntercept)
     rwv.MeasurementUnitsCodeSequence = Sequence([mu])
     rwv.LUTExplanation = f"{type_tag.upper()} [{unit_str}]"
+    rwv.LUTLabel = type_tag.upper()  # Type 1 in the RWV Mapping Item Macro (SH, max 16 chars)
 
     ds.RealWorldValueMappingSequence = Sequence([rwv])
 

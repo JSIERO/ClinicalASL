@@ -59,9 +59,22 @@ pip install -e .
 cd ..
 ```
 
-### dcm2niix Installation: note make sure it has JPGEG2000 support for singleframe PACS DICOMS
+## dcm2niix Installation
+Use v1.0.20220720 built with JPEG 2000 support (OpenJPEG + CharLS), as in the Dockerfile. PACS single-frame DICOM is JPEG 2000 compressed and the conda-forge build cannot read it.
 ```bash
-conda install -n qi -c conda-forge dcm2niix=1.0.20220720 -y
+sudo apt-get install -y git cmake make g++ pkg-config zlib1g-dev libopenjp2-7-dev libcharls-dev
+git clone --depth 1 --branch v1.0.20220720 https://github.com/rordenlab/dcm2niix.git
+cd dcm2niix && mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DUSE_OPENJPEG=ON -DUSE_CHARLS=ON ..
+make -j && sudo cp bin/dcm2niix /usr/local/bin/
+cd ../..
+```
+
+## Docker Installation (Optional)
+The image contains QASL, HD-BET (with parameters), dcm2niix and ClinicalASL. The QASL key is passed as a BuildKit secret and is never stored in the image.
+```bash
+docker build --secret id=qasl_key,src=/path/to/qasl-key --build-arg APP_VERSION=1.1.0 -t jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:1.1.0 .
+docker run --rm --network none -v /path/to/input:/input:ro -v /path/to/output:/output -v /path/to/workingdir:/workingdir jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:1.1.0 /input /output /workingdir
 ```
 ## Verification
 ```bash
@@ -69,7 +82,7 @@ python -c "import HD_BET; import ants; from clinical_asl_pipeline import main_pi
 ```
 ## Troubleshooting
 ### DCM2NIIX conversion of single-frame DICOMS from PACS
--   make sure the dcm2niix install has JPEG2000 support, can included by compiling your own install, then make sure you checkout v1.0.20220720
+-   dcm2niix needs JPEG 2000 support: build v1.0.20220720 from source as described above
 
 ### QASL Key Errors
 - Ensure your license key is valid

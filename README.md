@@ -3,8 +3,8 @@
 **Repository:** [https://github.com/JSIERO/ClinicalASL](https://github.com/JSIERO/ClinicalASL)  
 **Author:** Jeroen Siero, UMC Utrecht  
 **Contact:** j.c.w.siero@umcutrecht.nl  
-**Release Date:** 2025-06-24  
-**Version:** v1.0.3  
+**Release Date:** 2026-11-17  
+**Version:** v1.1.0 (see `python/clinical_asl_pipeline/__version__.py`)  
 
 ## Description
 
@@ -65,7 +65,7 @@ example `config/config_default.json`:
 
 - Python 3.11+
 - [QASL](https://quantified-imaging.com/) by Quantified Imaging (license key required)
-- [dcm2niix](https://github.com/rordenlab/dcm2niix) (v1.0.20230411 or newer)
+- [dcm2niix](https://github.com/rordenlab/dcm2niix) v1.0.20220720 built from source with OpenJPEG + CharLS (PACS single-frame DICOM is JPEG 2000 compressed; the conda-forge build cannot read it)
 - [HD-BET](https://github.com/MIC-DKFZ/HD-BET) (for brain extraction)
 - [ANTsPy](https://github.com/ANTsX/ANTsPy) v 0.5.4 (for image registration) - version 0.6.1 works bad!
 - Additional Python packages (see `requirements.txt`)
@@ -86,7 +86,8 @@ cd qasl_setup
 
 # Set up environment
 conda activate qi
-conda install -n qi -c conda-forge pip dcm2niix
+conda install -n qi -c conda-forge pip
+# dcm2niix: build v1.0.20220720 from source with JPEG 2000 support, see INSTALL.md
 
 # Install HD-BET
 git clone https://github.com/MIC-DKFZ/HD-BET.git
@@ -96,23 +97,28 @@ pip install -e .
 # Install ClinicalASL requirements
 cd ../ClinicalASL/python
 pip install -r requirements.txt
+```
+
+The Docker image (see INSTALL.md) contains all of the above.
 
 ## Running the pipeline
 Example command line:
 
 ```bash
-python run_pipeline.py /path/to/DICOM_INPUT /path/to/OUTPUT_FOLDER \
-    --inference-method [vaby|ssvb] \
-    --config /path/to/config.json
+python run_pipeline.py /path/to/DICOM_INPUT /path/to/OUTPUT_FOLDER /path/to/WORKINGDIR \
+    [--inference-method ssvb|vaby] \
+    [--config /path/to/config.json]
 ```
 
-##Output Structure
+`WORKINGDIR` holds intermediate files. `--inference-method` overrides `inference_method` from the config (default `ssvb`); without it the config value is used.
+
+## Output Structure
 The pipeline generates:
 
 - NIfTI images: CBF, AAT, CVR, ATA maps
 - Quality control PNGs: Visualizations for review
 - DICOM files: PACS-compatible outputs
-- Log file: clinicalasl.log with processing details
+- Log file: `clinicalasl.log` in the output folder (same as stdout)
 - Configuration copy: config_used.json
 
 ## License

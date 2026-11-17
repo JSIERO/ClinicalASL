@@ -8,7 +8,7 @@
 #
 # Build (QASL key passed as BuildKit secret, never stored in a layer):
 #   docker build --secret id=qasl_key,src=G:\DATA\MOYAMOYA\IMAGER\qi-key-jeroen \
-#       --build-arg APP_VERSION=1.0.4 -t jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:1.0.4 .
+#       --build-arg APP_VERSION=1.1.0 -t jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:1.1.0 .
 # =========================
 
 # =========================
@@ -100,7 +100,7 @@ RUN ${Q}/bin/pip uninstall -y pytest pytest-cov pytest-xdist flake8 cython qasl_
 # Final image
 # =========================
 FROM ubuntu:22.04
-ARG APP_VERSION=1.0.4
+ARG APP_VERSION=1.1.0
 LABEL org.opencontainers.image.title="ClinicalASL" \
       org.opencontainers.image.version="${APP_VERSION}" \
       org.opencontainers.image.authors="Jeroen Siero, UMC Utrecht" \

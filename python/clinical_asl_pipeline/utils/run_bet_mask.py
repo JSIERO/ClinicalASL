@@ -40,8 +40,8 @@ def run_bet_mask(subject, context_tag):
 
     logging.info(f"Running brain masking with HD-BET CLI:")
 
-    # Build HD-BET CLI command
-    cmd = f"MKL_THREADING_LAYER=GNU hd-bet -i {inputdata_path} -o {mask_output_path} -device {device} --disable_tta --save_bet_mask"
+    def run_hdbet(input_path):
+        run_command_with_logging(f"MKL_THREADING_LAYER=GNU hd-bet -i {input_path} -o {mask_output_path} -device {device} --disable_tta --save_bet_mask")
 
     if extradata_path and os.path.exists(extradata_path):
         # Load input and extra data
@@ -59,14 +59,14 @@ def run_bet_mask(subject, context_tag):
         temp_bet_path = os.path.join(os.path.dirname(mask_output_path), "temp_for_bet.nii.gz")
         save_data_nifti(combineddata, temp_bet_path, sourceNIFTI_path, 1)
 
-        logging.info(f"Using combined data set for brain masking: sum of  {inputdata_path} and {extradata_path}")
-        inputdata_path = temp_bet_path
-        # run command HD-BET
-        run_command_with_logging(cmd)
-        # remove temp file of combined data for full covering brain mask
-        os.remove(temp_bet_path) 
+        logging.info(f"Using combined data set for brain masking: sum of {inputdata_path} and {extradata_path}")
+        try:
+            run_hdbet(temp_bet_path)  # HD-BET on the combined M0+ASL image for a full-coverage brain mask
+        finally:
+            os.remove(temp_bet_path)
     else:
-        run_command_with_logging(cmd)
+        logging.info(f"Using M0 only for brain masking: {inputdata_path}")
+        run_hdbet(inputdata_path)
 
     # HD-BET will create:
     # - mask_output_path_bet.nii.gz → actual mask (we want this)

@@ -161,6 +161,7 @@ def set_common_metadata(ds, name, unit_str, type_tag, TOOL_VERSION):
     ds.InstitutionName = getattr(ds, 'InstitutionName', 'University Medical Center Utrecht')
     ds.Manufacturer = f"ClinicalASL v{TOOL_VERSION}, https://github.com/JSIERO/ClinicalASL"
     ds.ImageComments = "FOR RESEARCH PURPOSES ONLY - NOT CE MARKED"
+    ds.ConversionType = "WSD"  # SC Equipment module, Type 1 (the source's empty value would be copied otherwise)
 
     ds.SeriesDescription = ds.SeriesDescription[:64]  # VR LO max length
     ds.Manufacturer = ds.Manufacturer[:64]  # VR LO max length
@@ -389,7 +390,7 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
 
         ds.SeriesNumber = int(getattr(ds, 'SeriesNumber', 0)) + 10 + series_number_incr # Increment SeriesNumber to avoid conflicts with existing series
         if type_tag.upper() == 'CVR':
-            ds.SeriesNumber = 888  # Special case for CVR to avoid conflicts with CBF series
+            ds.SeriesNumber = 988  # CVR colour = grayscale CVR (888) + 100, like the other colour series
 
         ds.ImageType = ['DERIVED', 'SECONDARY', 'QUANTITATIVE']        
         ds.BitsAllocated = 16
@@ -508,7 +509,7 @@ def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_rang
 
             ds.SeriesNumber = int(getattr(ds, 'SeriesNumber', 0)) + 10 + series_number_incr
             if type_tag.upper() == 'CVR':
-                ds.SeriesNumber = 888  # Special case for CVR to avoid conflicts with CBF series
+                ds.SeriesNumber = 988  # CVR colour = grayscale CVR (888) + 100, like the other colour series
 
             if 'TriggerTime' in ds: 
                 del ds.TriggerTime # Removing TriggerTime from DICOM as it is not applicable for ASL-derived map

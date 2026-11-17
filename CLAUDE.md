@@ -7,8 +7,8 @@ Sister project: FetalSVR (same container pattern, `..\FetalSVR`).
 
 ## Layout
 - `python/run_pipeline.py`: entry (Look-Locker multi-delay, `config_default.json`). Args: `inputdir outputdir workingdir
-  [--inference-method ssvb|vaby] [--config cfg.json]`. `--inference-method` defaults to `ssvb` in argparse, so the
-  config value is never used unless the default is changed.
+  [--inference-method ssvb|vaby] [--config cfg.json]`. `--inference-method` overrides the config's `inference_method`
+  (default `ssvb`) only when given.
 - `python/clinical_asl_pipeline/main_pipeline.py` `mri_diamox_umcu_clinicalasl_cvr()`: the steps, per context
   (`ASL_CONTEXT` baseline/stimulus <-> `context_study_tags` preACZ/postACZ):
   1 paths, 2 dcm2niix (rename + convert; `asl_convert_dicom_to_nifti.py`), 3 newest SOURCE series per tag
@@ -18,7 +18,9 @@ Sister project: FetalSVR (same container pattern, `..\FetalSVR`).
   11 ANTsPy rigid stimulus->baseline, 12 results + CVR (`asl_save_results_cbfaatcvr.py`).
 - DICOM export: `utils/save_data_dicom_grayscale.py` / `save_data_dicom_color.py` (Enhanced MR multi-frame /
   MR Image Storage; RealWorldValueMapping set from the derived map's own scaling, CVR stored as int16),
-  `utils/save_png_to_dicom.py` (Secondary Capture, series 999). Colour series = grayscale series number + 100.
+  `utils/save_png_to_dicom.py` (Secondary Capture, series 999, one SeriesDescription, map name in ImageComments).
+  Colour series = grayscale series number + 100 (CVR 888 / 988). Check output with dciodvfy/dcentvfy
+  (`I:\ProtonDrive\My files\Documents\studies - IMAGR\dicom3tools_clunie`); expected left: PatientOrientation on colour.
 - External tools are called through `utils/run_command_with_logging.py` (shell=True, raises on non-zero exit).
 - Logging: `utils/setup_logging.py` -> stdout + `<outputdir>/clinicalasl.log`; `config_used.json` in outputdir.
 - Version: `python/clinical_asl_pipeline/__version__.py` (single source; the Docker build overwrites it with APP_VERSION).
@@ -48,22 +50,25 @@ Sister project: FetalSVR (same container pattern, `..\FetalSVR`).
 
 ## Build / run
 ```
-docker build --secret id=qasl_key,src=G:\DATA\MOYAMOYA\IMAGER\qi-key-jeroen --build-arg APP_VERSION=1.0.4 -t jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:1.0.4 .
-docker run --rm --network none -v G:\DATA\MOYAMOYA\IMAGER\ASLtest:/input:ro -v G:\DATA\MOYAMOYA\IMAGER\outputfolder:/output -v G:\DATA\MOYAMOYA\IMAGER\workingdir:/workingdir jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:1.0.4 /input /output /workingdir --inference-method ssvb
+docker build --secret id=qasl_key,src=G:\DATA\MOYAMOYA\IMAGER\qi-key-jeroen --build-arg APP_VERSION=1.1.0 -t jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:1.1.0 .
+docker run --rm --network none -v G:\DATA\MOYAMOYA\IMAGER\ASLtest:/input:ro -v G:\DATA\MOYAMOYA\IMAGER\outputfolder:/output -v G:\DATA\MOYAMOYA\IMAGER\workingdir:/workingdir jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:1.1.0 /input /output /workingdir --inference-method ssvb
 ```
-Debug shell: `docker run --rm -it ... <image> bash`. On Linux hosts (RIBS) the output folder must be writable by the
-container user (chmod 777). Use PowerShell, not Git Bash, for docker runs with Windows paths.
+Debug shell: `docker run --rm -it ... <image> bash`. On Linux hosts the output folder must be writable by the container
+user. Use PowerShell, not Git Bash, for docker runs with Windows paths.
 
 ## Test data
 - `G:\DATA\MOYAMOYA\IMAGER\ASLtest`: one PACS export (single-frame DICOM, not anonymized). Never in the repo or on
   ProtonDrive; never echo patient tags or names. Outputs to `outputfolder\`, intermediates to `workingdir\`.
+- Test runs/comparisons: `G:\DATA\MOYAMOYA\IMAGER\tests\<name>\` (scripts in `tests\_scripts\`); no new top-level
+  folders in IMAGER. `IMAGER\dciodvfy\` (DICOM validation logs) is the final tool-validation step.
+- Fast check of PNG/DICOM export changes: `python/export_results.py <workingdir> <outputdir>` re-runs only step 12
+  on a COPY of an earlier run's workingdir (~10 min on G:, NIfTIs bit-identical). Test working-tree code without a
+  rebuild: `docker run ... -w /fix -e PYTHONPATH=/fix -v <repo>\python:/fix:ro --entrypoint python <image>
+  /fix/export_results.py /workingdir /output`.
 - No automated tests in the repo.
 
 ## Known issues (open)
-- `utils/run_bet_mask.py`: `cmd` is built before `inputdata_path` is switched to the combined M0+ASL image, so HD-BET
-  always runs on M0 alone; the combined `temp_for_bet.nii.gz` is written and deleted unused.
-- README/INSTALL mention `python run_pipeline.py in out` without workingdir and log `clinicalasl.log`; dcm2niix
-  version in README (1.0.20230411+) differs from the one actually used (1.0.20220720).
+- None.
 
 ## Rules
 - Never commit DICOM, NIfTI, logs or keys (see .gitignore). Never print patient tags (name, ID, birth date).

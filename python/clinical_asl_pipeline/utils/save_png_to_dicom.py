@@ -30,7 +30,8 @@ def save_png_to_dicom(png_path, output_path, series_description, series_instance
     #   Parameters:
     #      png_path (str): Path to the input PNG image. 
     #      output_path (str): Path where the output DICOM file will be saved.   
-    #      series_description (str): Title for the DICOM Series Description. 
+    #      series_description (str): Map name (e.g. 'ASL CBF preACZ'), stored per image in ImageComments;
+    #                                the shared series 999 gets one fixed SeriesDescription.
     #      SeriesInstanceUID (str): Unique identifier for the DICOM Series. This is used to group related images.
     #      instancenumber (int): Instance number for the DICOM image. Default is 1.
     #      source_dicom_path (str):  path to a source DICOM file for referencing and template for metadata. 
@@ -75,7 +76,9 @@ def save_png_to_dicom(png_path, output_path, series_description, series_instance
     ds.InstanceCreatorUID = IMPLEMENTATION_UID_ROOT
     ds.SeriesNumber = 999  # Secondary Capture images typically have a fixed series number, here 999 is used as a placeholder
     ds.InstanceNumber = instance_number
-    ds.SeriesDescription = f"{series_description} (RESEARCH ONLY, NOT CE MARKED)"
+    # All PNG captures share one series (999): one SeriesDescription for the series, the map name per image
+    ds.SeriesDescription = "ASL results (RESEARCH ONLY, NOT CE MARKED)"
+    ds.ImageComments = f"{series_description} - RESEARCH ONLY, NOT CE MARKED"
     
     # 2) Copy StudyID exactly as your site uses it; enforce SH (<=12 ASCII)
     raw_sid = getattr(template_ds, 'StudyID', None)
@@ -100,6 +103,7 @@ def save_png_to_dicom(png_path, output_path, series_description, series_instance
     ds.StudyTime = getattr(template_ds, 'StudyTime', now.strftime('%H%M%S'))
     ds.AccessionNumber = getattr(template_ds, 'AccessionNumber', '') 
     ds.BodyPartExamined = getattr(template_ds, 'BodyPartExamined', 'BRAIN')
+    ds.Laterality = getattr(template_ds, 'Laterality', '')  # General Series, Type 2C: as in the map series (empty = unknown)
     ds.PatientOrientation = ['L', 'P']
     ds.SoftwareVersions = f'ClinicalASL v{TOOL_VERSION}, https://github.com/JSIERO/ClinicalASL'
     ds.InstitutionName = getattr(template_ds, 'InstitutionName', 'University Medical Center Utrecht')
