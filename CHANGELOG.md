@@ -12,6 +12,9 @@ ClinicalASL Pipeline — Changelog
 
 ## Unreleased
 
+- Removed the variable-TR (vTR) variant: `run_pipeline_vTR.py`, `main_pipeline_vTR.py`, `config_vTR.json`,
+  the vTR branches in parameter extraction, data preparation and QASL, and the vTR MATLAB scripts/exe.
+  Only multi-delay Look-Locker ASL is supported; other `ASL scan` types now raise an error.
 - Outputs now state "RESEARCH ONLY, NOT CE MARKED": PNG titles, DICOM SeriesDescription (grayscale, colour and
   PNG series 999; "ClinicalASL" dropped there to stay within 64 characters, still in Manufacturer), ImageComments
   and DerivationDescription.

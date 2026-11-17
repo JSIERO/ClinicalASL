@@ -35,7 +35,7 @@ def asl_qasl_analysis(
     # Perform QASL analysis on ASL data using the Oxford ASL toolbox.
     # Parameters:
     # subject: dict containing subject information including, can be different per context tag  
-    #   - 'ASL scan': type of ASL scan, e.g. 'multi-delay Look-Locker' or 'multi-delay variable-TR'
+    #   - 'ASL scan': type of ASL scan, 'multi-delay Look-Locker'
     #   - 'T1t': T1 tissue relaxation time in seconds
     #   - 'T1b': T1 blood relaxation time in seconds
     #   - 'tau': bolus duration in seconds
@@ -104,32 +104,8 @@ def asl_qasl_analysis(
             f"--overwrite "
             f"--threads=4"
         )
-    elif subject['ASL scan'] == 'multi-delay variable-TR':
-                cmd = (
-            f"qasl -i {location_asl_controllabel_pld_nifti} "
-            f"-c {location_m0} "
-            f"-m {location_mask} "
-            f"-o {output_map} "
-            f"--inference-method={inference_method} "
-            f"{artoff_string} "
-            f"--bolus={tau_string} "
-            f"--t1={T1t} "
-            f"--t1b={T1b} "
-            f"--t1t={T1t} "
-            f"--plds={pld_string} "
-            f"--tr={TR_M0} "
-            f"--alpha={alpha} "
-            f"--iaf=ct "
-            f"--ibf=tis "
-            f"--casl "
-            f"--cgain 1.00 "
-            f"--calib-aslreg "
-            f"--biascorr-method=none "
-            f"--readout={readout} "
-            f"--save-calib "
-            f"--overwrite "
-            f"--threads=4"
-        )
+    else:
+        raise ValueError(f"Unsupported ASL scan type: {subject['ASL scan']} (only 'multi-delay Look-Locker')")
 
 
     # Run command

@@ -9,8 +9,6 @@ Sister project: FetalSVR (same container pattern, `..\FetalSVR`).
 - `python/run_pipeline.py`: entry (Look-Locker multi-delay, `config_default.json`). Args: `inputdir outputdir workingdir
   [--inference-method ssvb|vaby] [--config cfg.json]`. `--inference-method` defaults to `ssvb` in argparse, so the
   config value is never used unless the default is changed.
-- `python/run_pipeline_vTR.py`: variable-TR 3D variant (`config_vTR.json`, `main_pipeline_vTR.py`). BROKEN as entry:
-  `main()` calls `run_pipeline()` without `workingdir`. The QASL step in `main_pipeline_vTR.py` is commented out.
 - `python/clinical_asl_pipeline/main_pipeline.py` `mri_diamox_umcu_clinicalasl_cvr()`: the steps, per context
   (`ASL_CONTEXT` baseline/stimulus <-> `context_study_tags` preACZ/postACZ):
   1 paths, 2 dcm2niix (rename + convert; `asl_convert_dicom_to_nifti.py`), 3 newest SOURCE series per tag
@@ -64,7 +62,6 @@ container user (chmod 777). Use PowerShell, not Git Bash, for docker runs with W
 ## Known issues (open)
 - `utils/run_bet_mask.py`: `cmd` is built before `inputdata_path` is switched to the combined M0+ASL image, so HD-BET
   always runs on M0 alone; the combined `temp_for_bet.nii.gz` is written and deleted unused.
-- `run_pipeline_vTR.py` missing `workingdir` argument (see above).
 - README/INSTALL mention `python run_pipeline.py in out` without workingdir and log `clinicalasl.log`; dcm2niix
   version in README (1.0.20230411+) differs from the one actually used (1.0.20220720).
 

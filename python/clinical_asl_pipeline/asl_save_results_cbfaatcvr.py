@@ -51,7 +51,7 @@ def asl_save_results_cbfaatcvr(subject):
     subject['stimulus']['AAT'] = nib.load(subject['stimulus']['QASL_AAT_path']).get_fdata()
     subject['stimulus']['AAT_2baseline'] = nib.load(subject['stimulus']['AAT_2baseline_path']).get_fdata()
 
-    if subject['dicom_typetags_by_context']['baseline'].__contains__('ATA'): # only if ATA is present in baseline, e.g. ATA not yet generated for vTR data
+    if subject['dicom_typetags_by_context']['baseline'].__contains__('ATA'): # only if ATA is present in baseline
         subject['baseline']['ATA'] = nib.load(subject['baseline']['QASL_ATA_path']).get_fdata()
         subject['stimulus']['ATA'] = nib.load(subject['stimulus']['QASL_ATA_path']).get_fdata()
         subject['stimulus']['ATA_2baseline'] = nib.load(subject['stimulus']['ATA_2baseline_path']).get_fdata()

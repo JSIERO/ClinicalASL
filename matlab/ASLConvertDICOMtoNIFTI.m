@@ -1,4 +1,4 @@
-function SUBJECT = ASLConvertDICOMtoNIFTI(SUBJECT, imager, vTR_only)
+function SUBJECT = ASLConvertDICOMtoNIFTI(SUBJECT, imager)
 % ClinicalASL toolbox 2023, JCWSiero
 SUBJECTdir = SUBJECT.SUBJECTdir;
 DICOMinputdir = SUBJECT.DICOMdir;
@@ -53,29 +53,8 @@ if isunix  % unix
         system(['rename -v -f '  '''s/-//g''' ' ' fullfile(DICOMinputdir,'*')]);
 
         % Convert DICOM files to NIFTI output in NIFTI folder
-        % check for vTR-ASL
-        switch nargin
-            case 1
-                system(['dcm2niix -w 1 -z y -b y -f %p_%s  -o ' NIFTIoutputdir ' ' DICOMinputdir '> ' NIFTIoutputdir 'dcm2niix.log 2>&1']);
-            case 3
-                if strcmp(vTR_only,'vTR_only')
-                    % find SOURCE data vTR ASL
-                    files_vTRASL_DCM = dir(fullfile(DICOMinputdir, '*PRIDE*SOURCE*vTR*'));
-                    if ~isempty(files_vTRASL_DCM)
-                        system(['rm ' fullfile(NIFTIoutputdir, 'PRIDE*SOURCE*vTR*.*')]);
-                        for i=1:length(files_vTRASL_DCM)
-                            system(['dcm2niix -w 2 -z y -b y -f %p_%s -s y -o ' NIFTIoutputdir ' ' fullfile(DICOMinputdir, files_vTRASL_DCM(i,1).name) '> ' NIFTIoutputdir 'dcm2niix.log 2>&1']);
-                        end
-                    end
-                    % find SOURCE M0 data vTR ASL
-                    files_M0_DCM = dir([DICOMinputdir, '*SOURCE*M0*']);
-                    if ~isempty(files_M0_DCM)
-                        system(['del /F /Q ' NIFTIoutputdir '*SOURCE*M0*.*']);
-                        for i=1:length(files_M0_DCM)
-                            system(['dcm2niix -w 2 -z y -b y -f %p_%s -s y -o ' NIFTIoutputdir ' ' DICOMinputdir '\' files_M0_DCM(i,1).name '> ' NIFTIoutputdir 'dcm2niix.log 2>&1']);
-                        end
-                    end
-                end
+        if nargin == 1
+            system(['dcm2niix -w 1 -z y -b y -f %p_%s  -o ' NIFTIoutputdir ' ' DICOMinputdir '> ' NIFTIoutputdir 'dcm2niix.log 2>&1']);
         end
     end
     % remove '-' character from filename, otherwise problems with structure fieldnames
@@ -100,29 +79,8 @@ elseif ispc % windows
     system(['cmd /e:on /v:on /c "for %f in ("' DICOMinputdir '\*-*") do (set "n=%~nxf" & set "n=!n:-=!" & move /Y "%~ff" ' DICOMinputdir '\"!n!" )"']);
 
     % Convert DICOM files to NIFTI output in NIFTI folder
-    % check for vTR-ASL
-    switch nargin
-        case 2
-            system(['dcm2niix -w 1 -z y -b y -f %p_%s  -o ' NIFTIoutputdir ' ' DICOMinputdir '> dcm2niix.log 2>&1']);
-        case 3
-            if strcmp(vTR_only,'vTR_only')
-                % find SOURCE ASL CBF and AAT data vTR ASL
-                files_vTRASL_DCM = dir(fullfile(DICOMinputdir, '*PRIDE*SOURCE*vTR*'));
-                if ~isempty(files_vTRASL_DCM)
-                    system(['del /F /Q ' fullfile(NIFTIoutputdir, 'PRIDE*SOURCE*vTR*.*')]);
-                    for i=1:length(files_vTRASL_DCM)
-                        system(['dcm2niix -w 2 -z y -b y -f %p_%s -s y -o ' NIFTIoutputdir ' ' fullfile(DICOMinputdir, files_vTRASL_DCM(i,1).name) '> dcm2niix.log 2>&1']);
-                    end
-                end
-                % find SOURCE M0 data vTR ASL
-                files_M0_DCM = dir([DICOMinputdir, '*SOURCE*M0*']);
-                if ~isempty(files_M0_DCM)
-                    system(['del /F /Q ' NIFTIoutputdir '*SOURCE*M0*.*']);
-                    for i=1:length(files_M0_DCM)
-                        system(['dcm2niix -w 2 -z y -b y -f %p_%s -s y -o ' NIFTIoutputdir ' ' DICOMinputdir '\' files_M0_DCM(i,1).name '> dcm2niix.log 2>&1']);
-                    end
-                end
-            end
+    if nargin == 2
+        system(['dcm2niix -w 1 -z y -b y -f %p_%s  -o ' NIFTIoutputdir ' ' DICOMinputdir '> dcm2niix.log 2>&1']);
     end
     % remove '-' character from filename, otherwise problems with structure fieldnames
     system(['cmd /e:on /v:on /c "for %f in ("' NIFTIoutputdir '\*_-_*") do (set "n=%~nxf" & set "n=!n:_-_=_!" & move /Y "%~ff" ' NIFTIoutputdir '\"!n!" )"']);

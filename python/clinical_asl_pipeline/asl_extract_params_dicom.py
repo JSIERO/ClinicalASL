@@ -139,18 +139,11 @@ def asl_extract_params_dicom(subject, context_tag):
     context_data['slicetime'] = slicetime
     context_data['NDYNS'] = ndyns
 
-    if subject['ASL scan'] == 'multi-delay variable-TR':
-        context_data['PLDS'] = subject['PLDs']  # provided in config for multi-delay variable-TR
-        context_data['NPLDS'] = len(subject['PLDs'])
-        context_data['NREPEATS'] = ndyns  # for multi-delay variable-TR, each dynamic is a control-label pair
-        context_data['TR_M0'] = subject['TR_M0']  # for multi-delay variable-TR, TR_M0 is provided in config
-        context_data['TIS'] = np.around(context_data['PLDS'] + context_data['tau'], 2).tolist()
-    else:
-        context_data['PLDS'] = plds          
-        context_data['NPLDS'] = nplds
-        context_data['NREPEATS'] = ndyns - 1
-        context_data['TIS'] = np.around(context_data['PLDS'] + context_data['tau'], 2).tolist()
-        context_data['TR_M0'] = round(context_data['TIS'][0], 2)
+    context_data['PLDS'] = plds
+    context_data['NPLDS'] = nplds
+    context_data['NREPEATS'] = ndyns - 1
+    context_data['TIS'] = np.around(context_data['PLDS'] + context_data['tau'], 2).tolist()
+    context_data['TR_M0'] = round(context_data['TIS'][0], 2)
 
     context_data['VOXELSIZE'] = voxelsize
     context_data['NSLICES'] = nslices

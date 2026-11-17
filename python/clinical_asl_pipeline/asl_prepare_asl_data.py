@@ -105,32 +105,7 @@ def asl_prepare_asl_data(subject, context_tag):
         save_data_nifti(PLD1to2, context_data['PLD1to2_controllabel_path'], context_data['sourceNIFTI_path'], 1, None, None)
         save_data_nifti(context_data['M0'], context_data['M0_path'] , context_data['sourceNIFTI_path'], 1, None, None)
 
-    elif subject['ASL scan'] == 'multi-delay variable-TR':
-        # Load source multidelay ASL nifti data context_data['sourceNIFTI_path'] relative to subject['NIFTIdir']
-        # shape [x, y, z, timepoints = control/label x NPLDS x NDYNS], in this order
-        nifti_path = os.path.join(subject['NIFTIdir'], context_data['sourceNIFTI_path'])
-        nifti_m0_path = os.path.join(subject['NIFTIdir'], context_data['sourceNIFTI_M0_path'])
-
-        img = nib.load(nifti_path)
-        slope = 1.0
-        intercept = img.dataobj.inter or 0.0
-        # Reverse the scaling to get raw data,  as nibabel nib.load.get_fdata consumes the slope and intercept: scaled = raw*slope + intercept 
-        raw = (img.get_fdata() - intercept) / slope
-        context_data['ASL_controllabel_allPLD'] = raw
-
-        img_m0 = nib.load(nifti_m0_path)
-        slope_m0 = 1.0
-        intercept_m0 = img_m0.dataobj.inter or 0.0
-        # Reverse the scaling to get raw data,  as nibabel nib.load.get_fdata consumes the slope and intercept: scaled = raw*slope + intercept
-        raw_m0 = (img_m0.get_fdata() - intercept_m0) / slope_m0
-
-        context_data['M0'] = np.mean(raw_m0, axis=3) # take average over dynamics if multiple volume  M0s are present
-        
-        logging.info("Saving ASL data interleaved label control: all PLDs for CBF and AAT")
-        logging.info("Saving ASL data interleaved label control: 1-to-5 PLDs for ATA")
-        logging.info("Saving M0 image")
-
-        save_data_nifti(context_data['ASL_controllabel_allPLD'] , context_data['PLDall_controllabel_path'], context_data['sourceNIFTI_path'], 'samescaling', None, None)  
-        save_data_nifti(context_data['M0'], context_data['M0_path'] , context_data['sourceNIFTI_M0_path'], 'samescaling', None, None)
+    else:
+        raise ValueError(f"Unsupported ASL scan type: {subject['ASL scan']} (only 'multi-delay Look-Locker')")
 
     return subject
