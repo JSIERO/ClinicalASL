@@ -13,7 +13,8 @@ Description:
     applies smoothing, and saves results as NIfTI, PNG, and DICOM files for further analysis and PACS export.
 
     Main steps:
-    - Load CBF, AAT, ATA, and mask images for both baseline and stimulus conditions.
+    - Load CBF, AAT, ATA, and mask images for both baseline and stimulus conditions
+      (single mode, --mode single: one scan, no stimulus/registration/CVR).
     - Prepare nanmasks to handle non-brain voxels and combine baseline/stimulus masks.
     - Compute CVR (Cerebrovascular Reactivity) as the difference between stimulus and baseline CBF.
     - Apply spatial smoothing to CVR and AAT maps, with method-dependent logic for AAT smoothing.
@@ -43,39 +44,46 @@ from clinical_asl_pipeline.utils.save_data_dicom_grayscale import save_data_dico
 from clinical_asl_pipeline.utils.save_data_dicom_color import save_data_dicom as save_data_dicom_color
 
 def asl_save_results_cbfaatcvr(subject):
+    # CVR mode: baseline + stimulus (pre/post ACZ). Single mode (--mode single): one scan, CBF/AAT/ATA only.
+    cvr = 'stimulus' in subject['ASL_CONTEXT']
+    has_ata = 'ATA' in subject['dicom_typetags_by_context']['baseline']
+
     # === Load data ===
     subject['baseline']['CBF'] = nib.load(subject['baseline']['QASL_CBF_path']).get_fdata()
-    subject['stimulus']['CBF'] = nib.load(subject['stimulus']['QASL_CBF_path']).get_fdata()
-    subject['stimulus']['CBF_2baseline'] = nib.load(subject['stimulus']['CBF_2baseline_path']).get_fdata()
     subject['baseline']['AAT'] = nib.load(subject['baseline']['QASL_AAT_path']).get_fdata()
-    subject['stimulus']['AAT'] = nib.load(subject['stimulus']['QASL_AAT_path']).get_fdata()
-    subject['stimulus']['AAT_2baseline'] = nib.load(subject['stimulus']['AAT_2baseline_path']).get_fdata()
-
-    if subject['dicom_typetags_by_context']['baseline'].__contains__('ATA'): # only if ATA is present in baseline
+    if has_ata:
         subject['baseline']['ATA'] = nib.load(subject['baseline']['QASL_ATA_path']).get_fdata()
-        subject['stimulus']['ATA'] = nib.load(subject['stimulus']['QASL_ATA_path']).get_fdata()
-        subject['stimulus']['ATA_2baseline'] = nib.load(subject['stimulus']['ATA_2baseline_path']).get_fdata()
-
     subject['baseline']['mask'] = nib.load(subject['baseline']['mask_path']).get_fdata()
-    subject['stimulus']['mask'] = nib.load(subject['stimulus']['mask_path']).get_fdata()
-    subject['stimulus']['mask_2baseline'] = nib.load(subject['stimulus']['mask_2baseline_path']).get_fdata()
     subject['baseline']['nanmask'] = np.where(subject['baseline']['mask'], 1.0, np.nan)
-    subject['stimulus']['nanmask'] = np.where(subject['stimulus']['mask_2baseline'], 1.0, np.nan)
 
-    # === Mask prep ===
-    subject['stimulus']['nanmask_2baseline'] = np.where(subject['stimulus']['mask_2baseline'], 1.0, np.nan)
-    subject['nanmask_combined'] = subject['baseline']['nanmask'] * subject['stimulus']['nanmask_2baseline']
+    if cvr:
+        subject['stimulus']['CBF'] = nib.load(subject['stimulus']['QASL_CBF_path']).get_fdata()
+        subject['stimulus']['CBF_2baseline'] = nib.load(subject['stimulus']['CBF_2baseline_path']).get_fdata()
+        subject['stimulus']['AAT'] = nib.load(subject['stimulus']['QASL_AAT_path']).get_fdata()
+        subject['stimulus']['AAT_2baseline'] = nib.load(subject['stimulus']['AAT_2baseline_path']).get_fdata()
+        if has_ata:
+            subject['stimulus']['ATA'] = nib.load(subject['stimulus']['QASL_ATA_path']).get_fdata()
+            subject['stimulus']['ATA_2baseline'] = nib.load(subject['stimulus']['ATA_2baseline_path']).get_fdata()
+        subject['stimulus']['mask'] = nib.load(subject['stimulus']['mask_path']).get_fdata()
+        subject['stimulus']['mask_2baseline'] = nib.load(subject['stimulus']['mask_2baseline_path']).get_fdata()
+        subject['stimulus']['nanmask'] = np.where(subject['stimulus']['mask_2baseline'], 1.0, np.nan)
 
-    # === Compute CVR ===
-    subject['CVR'] = subject['stimulus']['CBF_2baseline'] - subject['baseline']['CBF']
+        # === Mask prep ===
+        subject['stimulus']['nanmask_2baseline'] = np.where(subject['stimulus']['mask_2baseline'], 1.0, np.nan)
+        subject['nanmask_combined'] = subject['baseline']['nanmask'] * subject['stimulus']['nanmask_2baseline']
 
-    # === Compute CBF wholebrain ===
+        # === Compute CVR ===
+        subject['CVR'] = subject['stimulus']['CBF_2baseline'] - subject['baseline']['CBF']
+    else:
+        subject['nanmask_combined'] = subject['baseline']['nanmask']
 
-    subject['stimulus']['CBF_wholebrain'] = np.nanmedian(subject['stimulus']['CBF'] * subject['stimulus']['nanmask']) # median CBF in stimulus wholebrain mask
+    # === Compute CBF wholebrain (stimulus scan in CVR mode, the single scan otherwise) ===
+    cbf_ref = subject['stimulus'] if cvr else subject['baseline']
+    cbf_ref['CBF_wholebrain'] = np.nanmedian(cbf_ref['CBF'] * cbf_ref['nanmask']) # median CBF in wholebrain mask
 
-    # === Set range_cbf based on CBF wholebrain during stimulus===
+    # === Set range_cbf based on CBF wholebrain (stimulus scan in CVR mode) ===
     # Note we use a factor 1/0.8=1.25 to convert whole brain CBF to gray matter CBF  this factor is based on 100+ patients plotting WB CBF vs CBF GM
-    wb_cbf = subject['stimulus']['CBF_wholebrain']
+    wb_cbf = cbf_ref['CBF_wholebrain']
     gm_cbf = wb_cbf * 1.25  # WB → GM conversion factor (1/0.8)
 
     # Three ranges for GM CBF:
@@ -96,18 +104,21 @@ def asl_save_results_cbfaatcvr(subject):
         logging.info(f"GM CBF 60–80 → setting range {subject['range_cbf']} ml/100g/min.")
         
     # === Apply smoothing, use nanmask to preserve outside brain edges ===
-    subject['CVR_smth'] = asl_smooth_image(subject['CVR'] * subject['nanmask_combined'], 2, subject['FWHM'], subject['baseline']['VOXELSIZE'])
+    if cvr:
+        subject['CVR_smth'] = asl_smooth_image(subject['CVR'] * subject['nanmask_combined'], 2, subject['FWHM'], subject['baseline']['VOXELSIZE'])
 
     # do not smooth AAT when using QASL SSVB (inherently does spatial smoothing)
-    if subject['inference_method'] == 'ssvb':  
-        subject['baseline']['AAT_smth'] = subject['baseline']['AAT'] 
-        subject['stimulus']['AAT_smth'] = subject['stimulus']['AAT']
-        subject['stimulus']['AAT_2baseline_smth'] = subject['stimulus']['AAT_2baseline']
-    # do smooth AAT when using QASL VABY or BASIl 
+    if subject['inference_method'] == 'ssvb':
+        subject['baseline']['AAT_smth'] = subject['baseline']['AAT']
+        if cvr:
+            subject['stimulus']['AAT_smth'] = subject['stimulus']['AAT']
+            subject['stimulus']['AAT_2baseline_smth'] = subject['stimulus']['AAT_2baseline']
+    # do smooth AAT when using QASL VABY or BASIl
     else:
-        subject['baseline']['AAT_smth'] = asl_smooth_image(subject['baseline']['AAT'] * subject['baseline']['nanmask'], 2, subject['FWHM'], subject['stimulus']['VOXELSIZE'])
-        subject['stimulus']['AAT_smth'] = asl_smooth_image(subject['stimulus']['AAT'] * subject['stimulus']['nanmask'], 2, subject['FWHM'], subject['stimulus']['VOXELSIZE'])
-        subject['stimulus']['AAT_2baseline_smth'] = asl_smooth_image(subject['stimulus']['AAT_2baseline'] * subject['stimulus']['nanmask_2baseline'], 2, subject['FWHM'], subject['stimulus']['VOXELSIZE'])   
+        subject['baseline']['AAT_smth'] = asl_smooth_image(subject['baseline']['AAT'] * subject['baseline']['nanmask'], 2, subject['FWHM'], cbf_ref['VOXELSIZE'])
+        if cvr:
+            subject['stimulus']['AAT_smth'] = asl_smooth_image(subject['stimulus']['AAT'] * subject['stimulus']['nanmask'], 2, subject['FWHM'], subject['stimulus']['VOXELSIZE'])
+            subject['stimulus']['AAT_2baseline_smth'] = asl_smooth_image(subject['stimulus']['AAT_2baseline'] * subject['stimulus']['nanmask_2baseline'], 2, subject['FWHM'], subject['stimulus']['VOXELSIZE'])
 
     # === Define output lists ===
     # for all the context data, baseline, stimulus
@@ -130,6 +141,10 @@ def asl_save_results_cbfaatcvr(subject):
     def get_context_study_tag(context):
         idx = subject['ASL_CONTEXT'].index(context)
         return subject['context_study_tags'][idx]
+
+    # === Helper: map name, e.g. 'ASL CBF preACZ' / 'ASL_CBF_preACZ'; single mode has no study tag: 'ASL CBF' ===
+    def map_name(type_tag, context_study_tag, sep=' '):
+        return sep.join(x for x in ('ASL', type_tag, context_study_tag) if x)
 
     # === Helper: Save NIfTI + DICOM ===
     def save_nifti_and_dicom(context, fields, allow_dicom=True):
@@ -154,7 +169,7 @@ def asl_save_results_cbfaatcvr(subject):
                         if type_tag == 'CVR':
                             name = f'ASL {type_tag}'
                         else:
-                            name = f'ASL {type_tag} {context_study_tag}'
+                            name = map_name(type_tag, context_study_tag)
 
                         # Apply brain mask: non-brain voxels become 0, mapping to
                         # PALETTE COLOR LUT index 0 (black background)
@@ -196,8 +211,8 @@ def asl_save_results_cbfaatcvr(subject):
                     png_name = 'ASL_CVR'
                     title_name = 'ASL CVR [ClinicalASL, NOT CE MARKED]'
                 else:
-                    png_name = f'ASL_{type_tag}_{context_study_tag}'  # e.g., ASL_CBF_preACZ
-                    title_name = f"ASL {type_tag} {context_study_tag} [ClinicalASL, NOT CE MARKED]"  # e.g., ASL CBF preACZ
+                    png_name = map_name(type_tag, context_study_tag, '_')  # e.g., ASL_CBF_preACZ
+                    title_name = f"{map_name(type_tag, context_study_tag)} [ClinicalASL, NOT CE MARKED]"  # e.g., ASL CBF preACZ
                 
                 save_figure_to_png(data, subject['nanmask_combined'], subject[range_tag],
                                     subject['RESULTSdir'], png_name, title_name, type_tag, cmap)                
@@ -205,36 +220,40 @@ def asl_save_results_cbfaatcvr(subject):
                 logging.info(f"Saved PNG: {png_name}.png")
 
     # === Execute saves ===    
-    #   Save NIfTI and DICOM for baseline and stimulus
+    #   Save NIfTI and DICOM for baseline and stimulus (single mode: baseline only, no CVR)
     save_nifti_and_dicom('baseline', fields_main)
-    save_nifti_and_dicom('baseline', fields_cvr)
-    save_nifti_and_dicom('stimulus', fields_main)
-    save_nifti_and_dicom('stimulus', fields_2baseline, allow_dicom=False)
+    if cvr:
+        save_nifti_and_dicom('baseline', fields_cvr)
+        save_nifti_and_dicom('stimulus', fields_main)
+        save_nifti_and_dicom('stimulus', fields_2baseline, allow_dicom=False)
 
     # Save PNGs for baseline and stimulus
-    save_png('baseline', fields_main + fields_cvr)
-    save_png('stimulus', fields_2baseline)
+    save_png('baseline', fields_main + (fields_cvr if cvr else []))
+    if cvr:
+        save_png('stimulus', fields_2baseline)
         
     # Save PNG as DICOMs
     # Generate a unique SeriesInstanceUID for the DICOM PNG series
     series_instance_uid = generate_uid() 
 
-    png_name = 'ASL_CVR'
-    input_png_path =  os.path.join(subject['RESULTSdir'], f"{png_name}.png")
-    output_dcm_path = os.path.join(subject['DICOMoutputdir'], f"{png_name}.dcm")
-    dcm_source_path = subject['baseline']['sourceDCM_path']
-    series_description = f"ASL CVR" 
-    instance_number = 1  # first instance number for CVR
-    save_png_to_dicom(input_png_path, output_dcm_path, series_description, series_instance_uid, instance_number, dcm_source_path)
+    instance_number = 0
+    if cvr:
+        png_name = 'ASL_CVR'
+        input_png_path =  os.path.join(subject['RESULTSdir'], f"{png_name}.png")
+        output_dcm_path = os.path.join(subject['DICOMoutputdir'], f"{png_name}.dcm")
+        dcm_source_path = subject['baseline']['sourceDCM_path']
+        series_description = f"ASL CVR" 
+        instance_number = 1  # first instance number for CVR
+        save_png_to_dicom(input_png_path, output_dcm_path, series_description, series_instance_uid, instance_number, dcm_source_path)
 
     # Save PNGs as DICOM for each context and type_tag
     for _, _, type_tag, _, _ in fields_main:
         for context in subject['ASL_CONTEXT']:
             context_study_tag = get_context_study_tag(context)
-            png_name = f'ASL_{type_tag}_{context_study_tag}' # e.g., ASL_CBF_preACZ
+            png_name = map_name(type_tag, context_study_tag, '_') # e.g., ASL_CBF_preACZ
             input_png_path = os.path.join(subject['RESULTSdir'], f"{png_name}.png")
             output_dcm_path = os.path.join(subject['DICOMoutputdir'], f"{png_name}.dcm") # e.g., ASL_CBF_preACZ_PNG_999.dcm
-            series_description = f"ASL {type_tag} {context_study_tag}"  # e.g., ASL CBF preACZ
+            series_description = map_name(type_tag, context_study_tag)  # e.g., ASL CBF preACZ
             instance_number += 1
             if subject[context].get(type_tag) is not None:
                 try:

@@ -4,7 +4,7 @@
 **Author:** Jeroen Siero, UMC Utrecht  
 **Contact:** j.c.w.siero@umcutrecht.nl  
 **Release Date:** 2026-11-17  
-**Version:** v1.1.0 (see `python/clinical_asl_pipeline/__version__.py`)  
+**Version:** v1.2.0 (see `python/clinical_asl_pipeline/__version__.py`)  
 
 ## Description
 
@@ -40,7 +40,7 @@ You can supply your own `config.json` per acquisition protocol.
 example `config/config_default.json`:
 ```json
 {
-    "version": "v1.1-MRI_DIAMOX_MDLL_preACZ_postACZ-2025",
+    "version": "1.2.0",
     "ASL scan": "multi-delay Look-Locker",
     "tau": 2,
     "N_BS": 4,
@@ -56,6 +56,7 @@ example `config/config_default.json`:
     "range_ATA": [0, 125],
     "inference_method": "ssvb",
     "device": "cpu",
+    "mode": "cvr",
     "ASL_CONTEXT": ["baseline", "stimulus"],
     "context_study_tags": ["preACZ", "postACZ"],
     "dicomseries_description_patterns": ["*SOURCE*ASL*"]
@@ -106,11 +107,12 @@ Example command line:
 
 ```bash
 python run_pipeline.py /path/to/DICOM_INPUT /path/to/OUTPUT_FOLDER /path/to/WORKINGDIR \
+    [--mode cvr|single] \
     [--inference-method ssvb|vaby] \
     [--config /path/to/config.json]
 ```
 
-`WORKINGDIR` holds intermediate files. `--inference-method` overrides `inference_method` from the config (default `ssvb`); without it the config value is used.
+`WORKINGDIR` holds intermediate files. `--mode cvr` (default) processes the pre- and post-acetazolamide scans (CBF, AAT, ATA per scan and CVR); `--mode single` processes one multi-delay Look-Locker scan acquired without acetazolamide (CBF, AAT, ATA only; the newest SOURCE ASL series is used). In Docker add it after the three folders, e.g. `... /input /output /workingdir --mode single`. `--inference-method` overrides `inference_method` from the config (default `ssvb`); without it the config value is used.
 
 ## Output Structure
 The pipeline generates:

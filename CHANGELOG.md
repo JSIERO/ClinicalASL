@@ -10,6 +10,18 @@ ClinicalASL Pipeline — Changelog
 
 ---
 
+## v1.2.0 — 2026-11-17
+
+- New `--mode single` (Docker/CLI, also `export_results.py`; config key `mode`): processes one multi-delay
+  Look-Locker scan acquired without acetazolamide -> CBF, AAT, ATA (NIfTI, PNG, DICOM), no registration, no CVR.
+  Uses the newest SOURCE ASL series; series/PNG names without preACZ/postACZ (e.g. "ASL CBF"). Default `--mode cvr`
+  is unchanged.
+  Tested on ASLtest pre-ACZ scan only: 38 min, CBF/AAT/ATA as in CVR mode, dciodvfy errors only PatientOrientation.
+- Config: new key `"mode": "cvr"`; config `"version"` is now the app version ("1.2.0", was
+  "v1.1-MRI_DIAMOX_MDLL_preACZ_postACZ-2025").
+
+---
+
 ## v1.1.0 — 2026-11-17
 
 - ANTs motion correction and the stimulus->baseline rigid registration use a fixed random seed (`random_seed=1`).

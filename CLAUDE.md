@@ -7,7 +7,9 @@ Sister project: FetalSVR (same container pattern, `..\FetalSVR`).
 
 ## Layout
 - `python/run_pipeline.py`: entry (Look-Locker multi-delay, `config_default.json`). Args: `inputdir outputdir workingdir
-  [--inference-method ssvb|vaby] [--config cfg.json]`. `--inference-method` overrides the config's `inference_method`
+  [--mode cvr|single] [--inference-method ssvb|vaby] [--config cfg.json]`. `--mode single` (or config `mode`): one
+  Look-Locker scan without ACZ -> CBF/AAT/ATA only (`ASL_CONTEXT` = baseline, no study-tag filter = newest SOURCE
+  ASL series, no step 11, no CVR; set in `main_pipeline.apply_analysis_mode`). `--inference-method` overrides the config's `inference_method`
   (default `ssvb`) only when given.
 - `python/clinical_asl_pipeline/main_pipeline.py` `mri_diamox_umcu_clinicalasl_cvr()`: the steps, per context
   (`ASL_CONTEXT` baseline/stimulus <-> `context_study_tags` preACZ/postACZ):
@@ -24,6 +26,7 @@ Sister project: FetalSVR (same container pattern, `..\FetalSVR`).
 - External tools are called through `utils/run_command_with_logging.py` (shell=True, raises on non-zero exit).
 - Logging: `utils/setup_logging.py` -> stdout + `<outputdir>/clinicalasl.log`; `config_used.json` in outputdir.
 - Version: `python/clinical_asl_pipeline/__version__.py` (single source; the Docker build overwrites it with APP_VERSION).
+  Keep `"version"` in `config/config_default.json`, the README config example and the `load_parameters.py` fallback equal to it.
 - `matlab/`: original MATLAB implementation (+ Windows exe's elastix, bet2, dcm2niix). Reference only, not in the image.
 - `requirements.txt`: ClinicalASL deps on top of QASL. `antspyx==0.5.4` pinned (0.6.x registration is bad).
 
@@ -50,8 +53,8 @@ Sister project: FetalSVR (same container pattern, `..\FetalSVR`).
 
 ## Build / run
 ```
-docker build --secret id=qasl_key,src=G:\DATA\MOYAMOYA\IMAGER\qi-key-jeroen --build-arg APP_VERSION=1.1.0 -t jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:1.1.0 .
-docker run --rm --network none -v G:\DATA\MOYAMOYA\IMAGER\ASLtest:/input:ro -v G:\DATA\MOYAMOYA\IMAGER\outputfolder:/output -v G:\DATA\MOYAMOYA\IMAGER\workingdir:/workingdir jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:1.1.0 /input /output /workingdir --inference-method ssvb
+docker build --secret id=qasl_key,src=G:\DATA\MOYAMOYA\IMAGER\qi-key-jeroen --build-arg APP_VERSION=1.2.0 -t jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:1.2.0 .
+docker run --rm --network none -v G:\DATA\MOYAMOYA\IMAGER\ASLtest:/input:ro -v G:\DATA\MOYAMOYA\IMAGER\outputfolder:/output -v G:\DATA\MOYAMOYA\IMAGER\workingdir:/workingdir jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:1.2.0 /input /output /workingdir --inference-method ssvb
 ```
 Debug shell: `docker run --rm -it ... <image> bash`. On Linux hosts the output folder must be writable by the container
 user. Use PowerShell, not Git Bash, for docker runs with Windows paths.

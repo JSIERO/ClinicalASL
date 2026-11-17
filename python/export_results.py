@@ -7,7 +7,7 @@ DICOM/NIfTI in <workingdir>/DICOMORIG and NIFTI as templates, to regenerate the 
 For testing PNG/DICOM export changes in about a minute instead of a full pipeline run (~1 h).
 Overwrites the result NIfTIs/PNGs in <workingdir> (work on a copy to keep the original); DICOMs go to <outputdir>.
 
-Usage: python export_results.py <workingdir> <outputdir> [--inference-method ssvb|vaby] [--config cfg.json]
+Usage: python export_results.py <workingdir> <outputdir> [--mode cvr|single] [--inference-method ssvb|vaby] [--config cfg.json]
 """
 import argparse
 import glob
@@ -27,6 +27,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("workingdir", help="working directory of an earlier full run (ASL, NIFTI, DICOMORIG)")
     p.add_argument("outputdir", help="output directory for the DICOMs and log")
+    p.add_argument("--mode", choices=list(mp.ANALYSIS_MODES), default=None, help="as in run_pipeline.py (default: config, 'cvr')")
     p.add_argument("--inference-method", choices=["ssvb", "vaby"], default=None)
     p.add_argument("--config", default=os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                                      "clinical_asl_pipeline", "config", "config_default.json"))
@@ -35,6 +36,7 @@ def main():
     params = load_parameters(config_path=a.config)
     if a.inference_method:
         params["inference_method"] = a.inference_method
+    params = mp.apply_analysis_mode(params, a.mode)
     os.makedirs(a.outputdir, exist_ok=True)
     setup_logging(a.outputdir)
     logging.info(f"ClinicalASL v{__version__}: export only (step 12) from {a.workingdir}")

@@ -45,7 +45,7 @@ def format_config_for_display(config_dict):
     lines.append("-" * 50)
     return "\n".join(lines)
 
-def run_pipeline(inputdir, outputdir, workingdir, inference_method=None, config_path=None):
+def run_pipeline(inputdir, outputdir, workingdir, inference_method=None, config_path=None, mode=None):
     print(f"Running pipeline for subject in: {inputdir}")
 
     # Fallback default config if not supplied
@@ -62,6 +62,9 @@ def run_pipeline(inputdir, outputdir, workingdir, inference_method=None, config_
         # Override the config's inference_method with the user-provided value
         ANALYSIS_PARAMETERS["inference_method"] = inference_method
 
+    # Analysis mode: 'cvr' (pre/post ACZ, default) or 'single' (one scan, CBF/AAT/ATA only); CLI overrides config
+    ANALYSIS_PARAMETERS = main_pipeline.apply_analysis_mode(ANALYSIS_PARAMETERS, mode)
+
     # Setup logging (also save to output dir)
     setup_logging(outputdir)  
     log_pipeline_banner(TOOL_VERSION)
@@ -71,6 +74,7 @@ def run_pipeline(inputdir, outputdir, workingdir, inference_method=None, config_
     logging.info(f"Working Directory: {workingdir}")
     logging.info(f"Config used: {config_path}")
     logging.info(f"Inference method: {inference_method}")  # Log the chosen method
+    logging.info(f"Mode: {ANALYSIS_PARAMETERS['mode']} (contexts: {ANALYSIS_PARAMETERS['ASL_CONTEXT']})")
 
     # Format config for display and logging
     formatted_config = format_config_for_display(ANALYSIS_PARAMETERS)
@@ -96,6 +100,7 @@ def main():
     python run_pipeline.py /input /output /working
     python run_pipeline.py /input /output /working --inference-method ssvb --config /path/to/config.json
     python run_pipeline.py /input /output /working --inference-method vaby for BASIL-like output
+    python run_pipeline.py /input /output /working --mode single   (one scan without acetazolamide: CBF/AAT/ATA, no CVR)
     """
     )
     
@@ -109,6 +114,10 @@ def main():
                         default=None,
                         choices=["ssvb", "vaby"],
                         help="Optional input to choose inference method for fitting: 'ssvb' or 'vaby'. If not provided, uses the value from config.json.")
+    parser.add_argument("--mode", type=str, default=None, choices=list(main_pipeline.ANALYSIS_MODES),
+                        help="'cvr': pre/post acetazolamide scans -> CBF/AAT/ATA + CVR; 'single': one multi-delay "
+                             "Look-Locker scan without acetazolamide -> CBF/AAT/ATA (newest SOURCE ASL series). "
+                             "If not provided, uses 'mode' from config.json (default 'cvr').")
     parser.add_argument("--config", type=str, default=None,
                         help="Optional path to config.json with processing parameters")
     parser.add_argument("--version", action="version", version=f"ClinicalASL {TOOL_VERSION}")
@@ -118,7 +127,7 @@ def main():
     try:
         run_pipeline(args.inputdir, args.outputdir, args.workingdir,
                     inference_method=args.inference_method, 
-                    config_path=args.config)
+                    config_path=args.config, mode=args.mode)
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)

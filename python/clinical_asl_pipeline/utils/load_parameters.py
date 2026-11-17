@@ -25,7 +25,7 @@ def load_parameters(config_path=None):
     if not os.path.exists(config_path):
         logging.warning(f"Config file '{config_path}' not found. Using hardcoded defaults.")
         hardcoded_defaults =  {
-        "version": "v1.1-MRI_DIAMOX_MDLL_preACZ_postACZ-2025",
+        "version": "1.2.0",
         "ASL scan": "multi-delay Look-Locker",
         "tau": 2,
         "N_BS": 4,
@@ -41,6 +41,7 @@ def load_parameters(config_path=None):
         "range_ATA": [0, 125],
         "inference_method": "ssvb",
         "device": "cpu",
+        "mode": "cvr",
         "ASL_CONTEXT": ["baseline", "stimulus"],
         "context_study_tags": ["preACZ", "postACZ"],
         "dicomseries_description_patterns": ["*SOURCE*ASL*"]

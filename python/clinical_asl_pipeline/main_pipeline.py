@@ -33,6 +33,22 @@ from clinical_asl_pipeline.asl_registration_stimulus_to_baseline import asl_regi
 from clinical_asl_pipeline.asl_save_results_cbfaatcvr import asl_save_results_cbfaatcvr
 from clinical_asl_pipeline.utils.run_bet_mask import run_bet_mask
 
+ANALYSIS_MODES = ('cvr', 'single')
+
+def apply_analysis_mode(params, mode=None):
+    # Set the analysis mode in the parameters (CLI --mode overrides the config's 'mode', default 'cvr').
+    #   'cvr'   : baseline + stimulus scans (pre/post acetazolamide) -> CBF, AAT, ATA per scan + CVR
+    #   'single': one multi-delay Look-Locker scan (no acetazolamide) -> CBF, AAT, ATA; uses the newest SOURCE ASL
+    #             series, without the preACZ/postACZ filter; no stimulus->baseline registration, no CVR
+    mode = mode or params.get('mode', 'cvr')
+    if mode not in ANALYSIS_MODES:
+        raise ValueError(f"Unknown mode '{mode}', choose from {ANALYSIS_MODES}")
+    params['mode'] = mode
+    if mode == 'single':
+        params['ASL_CONTEXT'] = ['baseline']
+        params['context_study_tags'] = ['']
+    return params
+
 def prepare_subject_paths(subject, inputdir, outputdir, workingdir):
     # Prepare output folder structure for subject.
     #
@@ -282,8 +298,9 @@ def mri_diamox_umcu_clinicalasl_cvr(inputdir, outputdir, workingdir, ANALYSIS_PA
                         'artoff'
                         )
 
-    ###### Step 11: register post-ACZ ASL data to pre-ACZ ASL data using Elastix 
-    asl_registration_stimulus_to_baseline(subject)
+    ###### Step 11: register post-ACZ ASL data to pre-ACZ ASL data using ANTsPy (CVR mode only)
+    if 'stimulus' in subject['ASL_CONTEXT']:
+        asl_registration_stimulus_to_baseline(subject)
 
     ###### Step 12: Generate CBF/AAT/ATA/CVR results (nifti, dicom PACS, .pngs) for pre- and postACZ, including registration of postACZ to preACZ as reference data, and target for computed CVR map
     asl_save_results_cbfaatcvr(subject)

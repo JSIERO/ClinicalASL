@@ -10,7 +10,7 @@ case "${1:-}" in
 esac
 
 if [ $# -lt 3 ]; then
-  echo "Usage: docker run ... <image> <inputdir> <outputdir> <workingdir> [--inference-method ssvb|vaby] [--config cfg.json]" >&2
+  echo "Usage: docker run ... <image> <inputdir> <outputdir> <workingdir> [--mode cvr|single] [--inference-method ssvb|vaby] [--config cfg.json]" >&2
   echo "   or: docker run -it ... <image> bash" >&2
   exit 1
 fi
