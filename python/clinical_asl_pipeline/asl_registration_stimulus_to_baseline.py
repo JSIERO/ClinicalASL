@@ -42,7 +42,7 @@ def asl_registration_stimulus_to_baseline(subject):
     moving = ants.image_read(subject['stimulus']['M0_path'])
     
     # Run registration
-    reg = ants.registration(fixed=fixed, moving=moving, type_of_transform='Rigid', metric='Mattes', reg_iterations=(1000, 500, 250, 100)) 
+    reg = ants.registration(fixed=fixed, moving=moving, type_of_transform='Rigid', metric='Mattes', reg_iterations=(1000, 500, 250, 100), random_seed=1)  # fixed seed: repeatable
     interpolator = 'bSpline'
     # Save transformed moving image
     ants.image_write(reg['warpedmovout'], subject['stimulus']['M0_2baseline_path'])

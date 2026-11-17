@@ -79,6 +79,7 @@ def asl_motioncorrection_ants(inputdata, refdata, outputdata):
         aff_metric="mattes",
         smoothing_in_mm=True,
         singleprecision=True,
+        random_seed=1,  # fixed seed: repeat runs much closer (not identical with multiple ITK threads)
         verbose=True
     )
     ants.image_write(results_dict["motion_corrected"], outputdata)

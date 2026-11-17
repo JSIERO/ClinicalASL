@@ -12,6 +12,9 @@ ClinicalASL Pipeline — Changelog
 
 ## v1.1.0 — 2026-11-17
 
+- ANTs motion correction and the stimulus->baseline rigid registration use a fixed random seed (`random_seed=1`).
+  On ASLtest, repeat runs differ much less: motion-corrected data mean |d| 0.35 instead of 0.90 (signal ~334),
+  registration 0.006 instead of 3.2. Not fully identical (multithreaded ITK); 1 thread would be, but ~3x slower.
 - Brain mask: HD-BET on M0 + all control/label (see Fix below). On the test case the mask is ~1.5% larger (a
   1-voxel cortical rim, Dice 0.99); CBF/CVR agree with the M0-only mask at r 0.995/0.994.
 - DICOM (dciodvfy clean of errors except PatientOrientation on the colour series): RealWorldValueMapping now has

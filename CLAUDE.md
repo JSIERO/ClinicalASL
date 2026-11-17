@@ -13,9 +13,9 @@ Sister project: FetalSVR (same container pattern, `..\FetalSVR`).
   (`ASL_CONTEXT` baseline/stimulus <-> `context_study_tags` preACZ/postACZ):
   1 paths, 2 dcm2niix (rename + convert; `asl_convert_dicom_to_nifti.py`), 3 newest SOURCE series per tag
   (`dicomseries_description_patterns`), 4 DICOM params, 5 Look-Locker correction, 6 control/label interleave,
-  7 HD-BET brain mask (`utils/run_bet_mask.py`, CLI `hd-bet`), 8 ANTsPy motion correction, 9 outlier removal,
+  7 HD-BET brain mask (`utils/run_bet_mask.py`, CLI `hd-bet`), 8 ANTsPy motion correction (`random_seed=1`), 9 outlier removal,
   10 three QASL fits (`asl_qasl_analysis.py`, CLI `qasl`): all PLDs -> AAT, PLD 2..last -> CBF, PLD 1-2 artoff -> ATA,
-  11 ANTsPy rigid stimulus->baseline, 12 results + CVR (`asl_save_results_cbfaatcvr.py`).
+  11 ANTsPy rigid stimulus->baseline (`random_seed=1`), 12 results + CVR (`asl_save_results_cbfaatcvr.py`).
 - DICOM export: `utils/save_data_dicom_grayscale.py` / `save_data_dicom_color.py` (Enhanced MR multi-frame /
   MR Image Storage; RealWorldValueMapping set from the derived map's own scaling, CVR stored as int16),
   `utils/save_png_to_dicom.py` (Secondary Capture, series 999, one SeriesDescription, map name in ImageComments).
