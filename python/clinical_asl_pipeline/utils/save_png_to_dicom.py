@@ -77,8 +77,8 @@ def save_png_to_dicom(png_path, output_path, series_description, series_instance
     ds.SeriesNumber = 999  # Secondary Capture images typically have a fixed series number, here 999 is used as a placeholder
     ds.InstanceNumber = instance_number
     # All PNG captures share one series (999): one SeriesDescription for the series, the map name per image
-    ds.SeriesDescription = "ASL results (RESEARCH ONLY, NOT CE MARKED)"
-    ds.ImageComments = f"{series_description} - RESEARCH ONLY, NOT CE MARKED"
+    ds.SeriesDescription = "ASL results (ClinicalASL, NOT CE MARKED)"
+    ds.ImageComments = f"{series_description} - ClinicalASL, NOT CE MARKED"
     
     # 2) Copy StudyID exactly as your site uses it; enforce SH (<=12 ASCII)
     raw_sid = getattr(template_ds, 'StudyID', None)

@@ -147,8 +147,8 @@ def set_common_metadata(ds, name, unit_str, type_tag, TOOL_VERSION):
     ds.ContentTime = now.strftime('%H%M%S.%f')
     ds.ContentLabel = type_tag.upper()
     ds.ContentDescription = f"ClinicalASL-Siero: {type_tag.upper()} [{unit_str}]"
-    ds.SeriesDescription = f"{name} (RESEARCH ONLY, NOT CE MARKED)"
-    ds.DerivationDescription =  f"RESEARCH ONLY, NOT CE MARKED - ClinicalASL-Siero: {type_tag.upper()}"
+    ds.SeriesDescription = f"{name} (ClinicalASL, NOT CE MARKED)"
+    ds.DerivationDescription =  f"NOT CE MARKED - ClinicalASL-Siero: {type_tag.upper()}"
     
     # Document the derivation as post-processing in the DICOM metadata. This is important for traceability and to ensure that the DICOM files are correctly identified as derived products in PACS and other DICOM viewers.
     code_item = Dataset()
@@ -160,7 +160,7 @@ def set_common_metadata(ds, name, unit_str, type_tag, TOOL_VERSION):
     ds.SoftwareVersions = f'ClinicalASL v{TOOL_VERSION}, https://github.com/JSIERO/ClinicalASL'
     ds.InstitutionName = getattr(ds, 'InstitutionName', 'University Medical Center Utrecht')
     ds.Manufacturer = f"ClinicalASL v{TOOL_VERSION}, https://github.com/JSIERO/ClinicalASL"
-    ds.ImageComments = "FOR RESEARCH PURPOSES ONLY - NOT CE MARKED"
+    ds.ImageComments = "ClinicalASL, NOT CE MARKED"
     ds.ConversionType = "WSD"  # SC Equipment module, Type 1 (the source's empty value would be copied otherwise)
 
     ds.SeriesDescription = ds.SeriesDescription[:64]  # VR LO max length
