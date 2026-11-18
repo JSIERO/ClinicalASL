@@ -16,7 +16,9 @@ ClinicalASL Pipeline — Changelog
   Look-Locker scan acquired without acetazolamide -> CBF, AAT, ATA (NIfTI, PNG, DICOM), no registration, no CVR.
   Uses the newest SOURCE ASL series; series/PNG names without preACZ/postACZ (e.g. "ASL CBF"). Default `--mode cvr`
   is unchanged.
-  Tested on ASLtest pre-ACZ scan only: 38 min, CBF/AAT/ATA as in CVR mode, dciodvfy errors only PatientOrientation.
+  Image validated on ASLtest: single mode on the pre-ACZ scan (28.6 min, 99 DICOMs in 7 series) and CVR mode on the
+  full exam (63 min, same 231 DICOMs in 15 series as 1.1.0; masks identical, map differences within ANTs
+  run-to-run noise, e.g. CBF median |d| 0.9 ml/100g/min). dciodvfy errors only PatientOrientation on colour series.
 - Config: new key `"mode": "cvr"`; config `"version"` is now the app version ("1.2.0", was
   "v1.1-MRI_DIAMOX_MDLL_preACZ_postACZ-2025").
 
