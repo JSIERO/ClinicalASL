@@ -69,6 +69,7 @@ def asl_qasl_analysis(
     # Extract parameter values and convert to string
     T1t = str(ANALYSIS_PARAMETERS['T1t'])
     T1b = str(ANALYSIS_PARAMETERS['T1b'])
+    pct = str(ANALYSIS_PARAMETERS.get('lambda', 0.9))  # blood/tissue partition coefficient (QASL --pct, default 0.9)
     readout = str(ANALYSIS_PARAMETERS['readout']) # 2D or 3D
     alpha = str(round(subject['alpha'],2))
     TR_M0 = str(subject['TR_M0'])
@@ -87,9 +88,10 @@ def asl_qasl_analysis(
             f"{artoff_string} "
             f"--bolus={tau_string} "
             f"--slicedt={slicetime} "
-            f"--t1={T1t} "
+            f"--t1={T1t} "   # --t1 and --t1t are the same QASL option (tissue T1), as in Alsop et al. MRM 2015
             f"--t1b={T1b} "
             f"--t1t={T1t} "
+            f"--pct={pct} "
             f"--plds={pld_string} "
             f"--tr={TR_M0} "
             f"--alpha={alpha} "

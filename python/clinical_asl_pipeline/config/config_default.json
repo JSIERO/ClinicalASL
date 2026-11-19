@@ -1,5 +1,5 @@
 {
-    "version": "1.2.0",
+    "version": "1.2.1",
     "ASL scan": "multi-delay Look-Locker",
     "tau": [2.0],
     "N_BS": 4,

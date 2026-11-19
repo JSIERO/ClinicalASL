@@ -73,8 +73,8 @@ cd ../..
 ## Docker Installation (Optional)
 The image contains QASL, HD-BET (with parameters), dcm2niix and ClinicalASL. The QASL key is passed as a BuildKit secret and is never stored in the image.
 ```bash
-docker build --secret id=qasl_key,src=/path/to/qasl-key --build-arg APP_VERSION=1.2.0 -t jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:1.2.0 .
-docker run --rm --network none -v /path/to/input:/input:ro -v /path/to/output:/output -v /path/to/workingdir:/workingdir jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:1.2.0 /input /output /workingdir
+docker build --secret id=qasl_key,src=/path/to/qasl-key --build-arg APP_VERSION=1.2.1 -t jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:1.2.1 .
+docker run --rm --network none -v /path/to/input:/input:ro -v /path/to/output:/output -v /path/to/workingdir:/workingdir jeroensnl/mri_diamox_umcu_clinicalasl_cvr_imager:1.2.1 /input /output /workingdir
 ```
 ## Verification
 ```bash

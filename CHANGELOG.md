@@ -10,6 +10,24 @@ ClinicalASL Pipeline — Changelog
 
 ---
 
+## v1.2.1 — 2026-11-19 (minor; verification in the nightly run, image not built yet)
+
+- Logging: one line per DICOM series instead of five header lines per file; no PatientID, StudyID, StudyDate/Time
+  or StudyInstanceUID in `clinicalasl.log` any more. Step 2 logs one line per skipped SeriesDescription instead of
+  every skipped file path. A CVR log goes from ~1700 to ~300 lines.
+- Failures: a fatal error is logged with its traceback in `clinicalasl.log`; a failing external command (dcm2niix,
+  hd-bet, qasl) logs its last 40 stderr lines.
+- DICOM/PNG export errors now stop the run with a non-zero exit (were logged and skipped, exit 0, series missing).
+  An all-zero map is stored as zeros with a warning instead of failing on the scaling.
+- QASL: config `lambda` is now passed as `--pct` (partition coefficient). Same value as the QASL default (0.9), so
+  results do not change.
+- Code: shared DICOM export code in `utils/dicom_common.py` (grayscale/colour modules 956 -> 507 lines incl. the
+  shared module), same output intended; removed unused `asl_t1_from_m0.py`; `load_parameters` default config path fixed.
+- Repo: `tools/` with run comparison and DICOM validation scripts (`compare_dicom.py`, `nightly_verify.ps1`, ...);
+  `AGENTS.md` (instructions for AI coding tools, CLAUDE.md imports it); `.gitignore` excludes DICOM/NIfTI.
+
+---
+
 ## v1.2.0 — 2026-11-17
 
 - New `--mode single` (Docker/CLI, also `export_results.py`; config key `mode`): processes one multi-delay

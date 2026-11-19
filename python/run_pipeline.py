@@ -129,6 +129,8 @@ def main():
                     inference_method=args.inference_method, 
                     config_path=args.config, mode=args.mode)
     except Exception as e:
+        # full traceback to stdout and clinicalasl.log (if logging is set up), then non-zero exit for IMAGR
+        logging.exception(f"ClinicalASL pipeline failed: {e}")
         print(f"Error: {e}")
         sys.exit(1)
 

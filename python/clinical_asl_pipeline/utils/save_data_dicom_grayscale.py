@@ -10,372 +10,109 @@ Institution: UMCU (University Medical Center Utrecht), The Netherlands
 Contact: j.c.w.siero@umcutrecht.nl
 
 Description:
-    Utility function to save data as DICOM files using header information from a template file.
-    Uses MONOCHROME2 photometric interpretation for quantitative grayscale output.
+    Saves a quantitative ASL map (CBF, AAT, ATA, CVR) as grayscale DICOM using a source ASL DICOM as template:
+    Enhanced MR multi-frame for a multi-frame template, MR Image Storage per slice for a single-frame (PACS) template.
+    Real values = stored x RescaleSlope (RealWorldValueMapping set from the map's own scaling). Shared helpers in
+    dicom_common.py.
 
 License: BSD 3-Clause License
 """
-import os
-import logging
 import numpy as np
 import pydicom
-import datetime
 from pydicom.uid import generate_uid
-from pydicom.uid import ExplicitVRLittleEndian
 from pydicom.sequence import Sequence
 from pydicom.dataset import Dataset
 from pydicom.dataelem import DataElement
 from pydicom.tag import Tag
-from clinical_asl_pipeline.__version__ import __version__ as TOOL_VERSION
+from clinical_asl_pipeline.utils import dicom_common as dc
 
-def set_common_metadata(ds, name, unit_str, type_tag, TOOL_VERSION):
-    now = datetime.datetime.now()
-    ds.ContentDate = now.strftime('%Y%m%d')
-    ds.ContentTime = now.strftime('%H%M%S.%f')
-    ds.ContentLabel = type_tag.upper()
-    ds.ContentDescription = f"ClinicalASL-Siero: {type_tag.upper()} [{unit_str}]"
-    ds.SeriesDescription = f"{name} (ClinicalASL, NOT CE MARKED)"
-    ds.DerivationDescription =  f"NOT CE MARKED - ClinicalASL-Siero: {type_tag.upper()}"
-    
-    # Document the derivation as post-processing in the DICOM metadata. This is important for traceability and to ensure that the DICOM files are correctly identified as derived products in PACS and other DICOM viewers.
-    code_item = Dataset()
-    code_item.CodeValue = "126302"  # DCM:126302 identifies this image as a post-processed derivative.: Perfusion analysis by Arterial Spin Labeling (ASL) MR techniques, see DICOM PS3.16 2026b, Table D-1
-    code_item.CodingSchemeDesignator = "DCM"
-    code_item.CodeMeaning = "Post-processing"
+ENHANCED_MR = "1.2.840.10008.5.1.4.1.1.4.1"  # Enhanced MR Image Storage (multi-frame)
+MR_IMAGE = "1.2.840.10008.5.1.4.1.1.4"  # MR Image Storage (single-frame)
+CVR_SERIES_NUMBER = 888
 
-    ds.DerivationCodeSequence = Sequence([code_item])
-    ds.SoftwareVersions = f'ClinicalASL v{TOOL_VERSION}, https://github.com/JSIERO/ClinicalASL'
-    ds.InstitutionName = getattr(ds, 'InstitutionName', 'University Medical Center Utrecht')
-    ds.Manufacturer = f"ClinicalASL v{TOOL_VERSION}, https://github.com/JSIERO/ClinicalASL"
-    ds.ImageComments = "ClinicalASL, NOT CE MARKED"
-
-    ds.SeriesDescription = ds.SeriesDescription[:64]
-    ds.Manufacturer = ds.Manufacturer[:64]
-    ds.SoftwareVersions = ds.SoftwareVersions[:64]
-    ds.InstitutionName = ds.InstitutionName[:64]
-
-    ds.ProtocolName = name
-
-def add_source_dicom_reference(ds, source_dicom_path):
-    try:
-        ref_ds = pydicom.dcmread(source_dicom_path, stop_before_pixels=True)
-
-        ref_series_uid = getattr(ref_ds, 'SeriesInstanceUID', None)
-        ref_instance_uid = getattr(ref_ds, 'SOPInstanceUID', None)
-        ref_sop_class_uid = getattr(ref_ds, 'SOPClassUID', None)
-
-        if ref_series_uid and ref_instance_uid and ref_sop_class_uid:
-            referenced_instance = Dataset()
-            referenced_instance.ReferencedSOPClassUID = ref_sop_class_uid
-            referenced_instance.ReferencedSOPInstanceUID = ref_instance_uid
-
-            referenced_series = Dataset()
-            referenced_series.SeriesInstanceUID = ref_series_uid
-            referenced_series.ReferencedInstanceSequence = Sequence([referenced_instance])
-
-            ds.ReferencedSeriesSequence = Sequence([referenced_series])
-            ds.ReferencedSOPInstanceUID = ref_instance_uid
-            ds.ReferencedSOPClassUID = ref_sop_class_uid
-            
-        else:
-            logging.warning("Source DICOM missing UID fields, skipping ReferencedSeriesSequence.")
-    except Exception as e:
-        logging.warning(f"Failed to add ReferencedSeriesSequence: {e}")
 
 def set_real_world_value_mapping(ds, type_tag, unit_str):
-    """Replace inherited Philips Real World Value mapping (RWV) with correct mapping for derived ASL maps.
-    Uses RescaleSlope/Intercept already set on ds for the slope/intercept values."""
+    """Real World Value mapping for the derived map (replaces the inherited Philips RWVM of the source data).
+    Uses RescaleSlope/Intercept already set on ds."""
     mu = Dataset()
-    mu.CodeValue = unit_str        # close enough for PACS display
+    mu.CodeValue = unit_str
     mu.CodingSchemeDesignator = "UCUM"
     mu.CodeMeaning = unit_str
 
     rwv = Dataset()
-    # Range depends on PixelRepresentation: signed [-32768, 32767] vs unsigned [0, 65535]
-    if ds.PixelRepresentation == 1:  # signed (CVR)
-        rwv.RealWorldValueFirstValueMapped = -(2 ** (ds.BitsStored - 1))       # -32768
-        rwv.RealWorldValueLastValueMapped = 2 ** (ds.BitsStored - 1) - 1       # 32767
-    else:  # unsigned (CBF, AAT, ATA)
+    if ds.PixelRepresentation == 1:  # signed (CVR): [-32768, 32767]
+        rwv.RealWorldValueFirstValueMapped = -(2 ** (ds.BitsStored - 1))
+        rwv.RealWorldValueLastValueMapped = 2 ** (ds.BitsStored - 1) - 1
+    else:  # unsigned (CBF, AAT, ATA): [0, 65535]
         rwv.RealWorldValueFirstValueMapped = 0
-        rwv.RealWorldValueLastValueMapped = 2 ** ds.BitsStored - 1             # 65535
+        rwv.RealWorldValueLastValueMapped = 2 ** ds.BitsStored - 1
     rwv.RealWorldValueSlope = float(ds.RescaleSlope)
     rwv.RealWorldValueIntercept = float(ds.RescaleIntercept)
     rwv.MeasurementUnitsCodeSequence = Sequence([mu])
     rwv.LUTExplanation = f"{type_tag.upper()} [{unit_str}]"
     rwv.LUTLabel = type_tag.upper()  # Type 1 in the RWV Mapping Item Macro (SH, max 16 chars)
-
     ds.RealWorldValueMappingSequence = Sequence([rwv])
 
+
 def save_data_dicom(image, source_dicom_path, output_dicom_dir, name, value_range, type_tag, series_number_incr):
-    template_dicom_path = source_dicom_path
+    unit_str = dc.unit_for(type_tag)
+    signed = type_tag.upper() == 'CVR'
+    image_scaled, scalingfactor = dc.scale_image(image, signed)
+    slope = f"{1.0 / scalingfactor:.10g}"
+    center, width = f"{np.mean(value_range):.10g}", f"{np.ptp(value_range):.10g}"
 
-    if not type_tag:
-        raise ValueError("Please supply a type_tag such as 'CBF', 'CVR', 'AAT', or 'ATA'")
-    
-    IMPLEMENTATION_UID_ROOT = "1.3.6.1.4.1.54321.1.1" # Unique root for ClinicalASL implementation, replace with your own registered root if needed
+    ds = pydicom.dcmread(source_dicom_path, force=True)
 
-    use_signed = type_tag.upper() == 'CVR'
-    unit_str = {
-        'CBF': 'ml/100g/min',
-        'CVR': 'ml/100g/min',
-        'ATA': 'ml/100g/min',
-        'AAT': 's'
-    }.get(type_tag.upper(), '')
-
-    image = np.nan_to_num(image, nan=0.0)
-
-    if use_signed:
-        abs_max = np.max(np.abs(image))
-        scalingfactor = (2**15 - 1) / abs_max
-        image_scaled = (image * scalingfactor).clip(-2**15, 2**15 - 1).astype(np.int16)
-    else:
-        scalingfactor = (2**16 - 1) / np.nanmax(image)
-        image_scaled = (image * scalingfactor).clip(0, 2**16 - 1).astype(np.uint16)
-
-    ds = pydicom.dcmread(template_dicom_path, force=True)
-    is_multiframe = hasattr(ds, 'PerFrameFunctionalGroupsSequence')
-    logging.info(f"Template DICOM is {'multiframe' if is_multiframe else 'single-frame'}.")
-
-    if is_multiframe:
-        if not hasattr(ds, "file_meta") or not hasattr(ds.file_meta, "TransferSyntaxUID"):
-            ds.file_meta = ds.file_meta or pydicom.dataset.FileMetaDataset()
-            ds.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
-
-        try:
-            private_seq = ds.PerFrameFunctionalGroupsSequence[0].get((0x2005, 0x140f))
-            nplds = int(ds.get((0x2001, 0x1017)).value)
-            ndyns = int(private_seq[0].get((0x0020, 0x0105)).value)
-            nslices = int(ds.get((0x2001, 0x1018)).value)
-            total_frames = int(ds.NumberOfFrames)
-            nconditions = total_frames // (nplds * ndyns * nslices)
-
-            logging.info(f"Template structure: {nslices} slices x {nplds} PLDs x {ndyns} dynamics x {nconditions} conditions")
-        except Exception as e:
-            raise ValueError(f"Failed to extract dimensions from private tags: {e}")
-        
-        def get_frame_indices(pld, dynamic, condition, nslices, ndyns, nplds):
-            return [
-                condition * nslices * ndyns * nplds + s * ndyns * nplds + dynamic * nplds + pld
-                for s in range(nslices)
-            ]
-        selected_indices = get_frame_indices(pld=0, dynamic=0, condition=0, nslices=nslices, ndyns=ndyns, nplds=nplds)
-
-        image_fordicom = np.flip(np.transpose(image_scaled, (2, 1, 0)), axis=1)
-        ds.PixelData = image_fordicom.tobytes()
-        ds.NumberOfFrames = nslices
-
-        original_pffs = ds.PerFrameFunctionalGroupsSequence
-
-        ds.PerFrameFunctionalGroupsSequence = pydicom.sequence.Sequence(
-            [original_pffs[i] for i in selected_indices]
-        )
-    
-        first_frame = ds.PerFrameFunctionalGroupsSequence[0]
-        try:
-            spacing = first_frame.PixelMeasuresSequence[0].PixelSpacing
-            ds.PixelSpacing = [float(spacing[0]), float(spacing[1])]
-        except Exception as e:
-            logging.warning(f"Failed to extract PixelSpacing: {e}")
-            ds.PixelSpacing = [1.0, 1.0]
-
-        try:
-            thickness = first_frame.PixelMeasuresSequence[0].SliceThickness
-            ds.SliceThickness = float(thickness)
-        except Exception:
-            ds.SliceThickness = 1.0
-
-        ds.SeriesInstanceUID = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
-        uid = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
-        ds.file_meta = ds.file_meta or pydicom.dataset.FileMetaDataset()
-        ds.file_meta.MediaStorageSOPInstanceUID = uid
-        ds.file_meta.MediaStorageSOPClassUID = pydicom.uid.UID("1.2.840.10008.5.1.4.1.1.4.1") # multiframe Enhanced MR Image Storage
-        ds.file_meta.FileMetaInformationVersion = b'\x00\x01'
-        ds.file_meta.ImplementationClassUID = IMPLEMENTATION_UID_ROOT
-        ds.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
-
-        ds.SOPInstanceUID = uid
-        ds.SOPClassUID = pydicom.uid.UID("1.2.840.10008.5.1.4.1.1.4.1") #  multiframe Enhanced MR Image Storage   
-        ds.StudyInstanceUID = getattr(ds, 'StudyInstanceUID', generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.'))
-        ds.StudyID = getattr(ds, 'StudyID', 'Unknown')
-        ds.PatientName = getattr(ds, 'PatientName', 'Anonymous^Patient')
-        ds.PatientID = getattr(ds, 'PatientID', '000000')
-        ds.PatientBirthDate = getattr(ds, 'PatientBirthDate', '')
-        ds.PatientSex = getattr(ds, 'PatientSex', '')
-        ds.ReferringPhysicianName = getattr(ds, 'ReferringPhysicianName', 'Unknown^Referring Physician')  
-        ds.StudyDate = getattr(ds, 'StudyDate', '')
-        ds.StudyTime = getattr(ds, 'StudyTime', '')
-        ds.AccessionNumber = getattr(ds, 'AccessionNumber', '') 
-
-        ds.SeriesNumber = int(getattr(ds, 'SeriesNumber', 0)) + 10 + series_number_incr
-        if type_tag.upper() == 'CVR':
-            ds.SeriesNumber = 888
-
-        ds.ImageType = ['DERIVED', 'SECONDARY', 'QUANTITATIVE']        
-        ds.BitsAllocated = 16
-        ds.BitsStored = 16
-        ds.HighBit = 15
-        ds.PixelRepresentation = 1 if use_signed else 0
-
-        ds.SamplesPerPixel = 1
-        ds.PhotometricInterpretation = "MONOCHROME2"        
-        smallest = int(np.min(image_scaled))
-        largest = int(np.max(image_scaled))
-        vr = 'SS' if use_signed else 'US'
-        ds[Tag(0x0028, 0x0106)] = DataElement(Tag(0x0028, 0x0106), vr, smallest)
-        ds[Tag(0x0028, 0x0107)] = DataElement(Tag(0x0028, 0x0107), vr, largest)
-
-        set_common_metadata(ds, name, unit_str, type_tag, TOOL_VERSION)
-        add_source_dicom_reference(ds, source_dicom_path)
-
+    if hasattr(ds, 'PerFrameFunctionalGroupsSequence'):  # --- MULTIFRAME (Enhanced MR) ---
+        dc.select_multiframe_frames(ds)
+        ds.PixelData = dc.multiframe_pixels(image_scaled)
+        ds.SeriesInstanceUID = generate_uid(prefix=dc.UID_PREFIX)
+        dc.set_instance_uids(ds, ENHANCED_MR)
+        ds.SeriesNumber = dc.series_number(ds, series_number_incr, type_tag, CVR_SERIES_NUMBER)
+        dc.set_16bit_pixels(ds, signed)
+        ds.PhotometricInterpretation = "MONOCHROME2"
+        vr = 'SS' if signed else 'US'
+        ds[Tag(0x0028, 0x0106)] = DataElement(Tag(0x0028, 0x0106), vr, int(np.min(image_scaled)))  # Smallest
+        ds[Tag(0x0028, 0x0107)] = DataElement(Tag(0x0028, 0x0107), vr, int(np.max(image_scaled)))  # Largest
+        dc.set_common_metadata(ds, name, unit_str, type_tag)
+        dc.add_source_dicom_reference(ds, source_dicom_path)
         for frame in ds.PerFrameFunctionalGroupsSequence:
             if hasattr(frame, "PixelValueTransformationSequence"):
-                frame.PixelValueTransformationSequence[0].RescaleSlope = f"{1.0 / scalingfactor:.10g}"
+                frame.PixelValueTransformationSequence[0].RescaleSlope = slope
                 frame.PixelValueTransformationSequence[0].RescaleIntercept = f"{0.0:.10g}"
             if hasattr(frame, "FrameVOILUTSequence"):
-                frame.FrameVOILUTSequence[0].WindowCenter = f"{np.mean(value_range):.10g}"
-                frame.FrameVOILUTSequence[0].WindowWidth = f"{np.ptp(value_range):.10g}"
-            if 'CardiacSynchronizationSequence' in frame:
-                cs_seq = frame.CardiacSynchronizationSequence
-                for item in cs_seq:
-                    if 'TriggerTime' in item:
-                        del item.TriggerTime
-            if 'MRVelocityEncodingSequence' in frame:
-                for item in frame.MRVelocityEncodingSequence:
-                    if 'VelocityEncodingDirection' in item:
-                        delattr(item, 'VelocityEncodingDirection')
-            # Remove inherited Philips RWReal World Value mapping (RWVM) (refers to original acquisition, not derived map)
-            if 'RealWorldValueMappingSequence' in frame:
-                del frame.RealWorldValueMappingSequence
-
-        # Set correct Real World Value mapping (RWVM) for derived ASL map (replaces inherited, wrong as based on source data, Philips RWVM)
+                frame.FrameVOILUTSequence[0].WindowCenter = center
+                frame.FrameVOILUTSequence[0].WindowWidth = width
+            dc.clean_frame_timing(frame)
         set_real_world_value_mapping(ds, type_tag, unit_str)
+        ds.save_as(dc.output_path(output_dicom_dir, name, ds, singleframe=False), enforce_file_format=True)
+        dc.log_series_saved('multi-frame grayscale', name, ds, 1)
+        return
 
-        output_filename = f"{name.replace(' ', '_')}_{ds.SeriesNumber}.dcm"
-        output_path = os.path.join(output_dicom_dir, f"{output_filename}")
-
-        ds.save_as(output_path, enforce_file_format=True)
-        logging.info(f"Saved multi-frame DICOM: {output_path}")
-
-    else:
-        # --- SINGLEFRAME EXPORT ---
-
-        num_slices_needed = image.shape[2]
-
-        template_dir = os.path.dirname(template_dicom_path)
-        template_prefix = os.path.basename(template_dicom_path).rsplit('_', 1)[0] + '_'
-
-        template_files = [
-            f for f in os.listdir(template_dir)
-            if f.startswith(template_prefix) and os.path.isfile(os.path.join(template_dir, f))
-        ]
-
-        file_slice_pairs = []
-        for f in template_files:
-            path = os.path.join(template_dir, f)
-            try:
-                ds = pydicom.dcmread(path, force=True)
-                temporal_pos = getattr(ds, 'TemporalPositionIdentifier', None)
-                phase_number = ds.get((0x2001, 0x1008), None).value
-                if temporal_pos == 1 and phase_number == 1:
-                    image_position = getattr(ds, 'ImagePositionPatient', None)
-                    image_z_coord = image_position[2]
-                    if image_z_coord is not None:
-                        file_slice_pairs.append((f, image_z_coord))
-                    else:
-                        logging.warning(f"Template DICOM {f} missing SliceLocation.")
-            except Exception as e:
-                logging.error(f"Error reading DICOM {f}: {e}")
-
-        unique_slices = {}
-        for f, image_z_coord in file_slice_pairs:
-            if image_z_coord not in unique_slices:
-                unique_slices[image_z_coord] = f
-        template_files_sorted = [
-            unique_slices[loc] for loc in sorted(unique_slices.keys())
-        ][:num_slices_needed]
-
-        series_instance_uid = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
-
-        for i, fname in enumerate(template_files_sorted):
-            template_file = os.path.join(template_dir, fname)
-            ds = pydicom.dcmread(template_file, force=True)
-            ds.decompress()
-            ds.SeriesInstanceUID = series_instance_uid
-            
-            uid = generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.')
-            ds.file_meta = ds.file_meta or pydicom.dataset.FileMetaDataset()
-            ds.file_meta.MediaStorageSOPInstanceUID = uid
-            ds.file_meta.MediaStorageSOPClassUID = pydicom.uid.UID("1.2.840.10008.5.1.4.1.1.4") # singleframe  MR Image Storage
-            ds.file_meta.FileMetaInformationVersion = b'\x00\x01'
-            ds.file_meta.ImplementationClassUID = IMPLEMENTATION_UID_ROOT
-            ds.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
-            
-            ds.SOPInstanceUID = uid
-            ds.SOPClassUID = pydicom.uid.UID("1.2.840.10008.5.1.4.1.1.4") # singleframe MR Image Storage
-            ds.StudyInstanceUID = getattr(ds, 'StudyInstanceUID', generate_uid(prefix=IMPLEMENTATION_UID_ROOT + '.'))
-            ds.StudyID = getattr(ds, 'StudyID', 'Unknown')
-            ds.PatientName = getattr(ds, 'PatientName', 'Anonymous^Patient')
-            ds.PatientID = getattr(ds, 'PatientID', '000000')
-            ds.PatientBirthDate = getattr(ds, 'PatientBirthDate', '')
-            ds.PatientSex = getattr(ds, 'PatientSex', '')
-            ds.ReferringPhysicianName = getattr(ds, 'ReferringPhysicianName', 'Unknown^Referring Physician')
-            ds.StudyDate = getattr(ds, 'StudyDate', '')
-            ds.StudyTime = getattr(ds, 'StudyTime', '')
-            ds.AccessionNumber = getattr(ds, 'AccessionNumber', '') 
-            ds.ImageType = ['DERIVED', 'SECONDARY', 'QUANTITATIVE']
-
-            ds.SeriesNumber = int(getattr(ds, 'SeriesNumber', 0)) + 10 + series_number_incr
-            if type_tag.upper() == 'CVR':
-                ds.SeriesNumber = 888
-
-            if 'TriggerTime' in ds: 
-                del ds.TriggerTime
-
-            private_tag = Tag(0x2005, 0x140f)
-            velocity_tag = Tag(0x0018, 0x9090)
-            if private_tag in ds:
-                sequence = ds[private_tag].value
-                for item in sequence:
-                    if velocity_tag in item:
-                        del item[velocity_tag]
-
-            if 'NumberOfTemporalPositions' in ds:
-                ds.NumberOfTemporalPositions = 1
-            if Tag(0x2001, 0x1081) in ds:
-                ds[Tag(0x2001, 0x1081)] = DataElement(Tag(0x2001, 0x1081), 'IS', 1)
-            if 'TemporalPositionIdentifier' in ds:
-                ds.TemporalPositionIdentifier = 1
-
-            ds.InstanceNumber = i + 1
-            ds.RescaleSlope = f"{1.0 / scalingfactor:.10g}"
-            ds.RescaleIntercept = 0.0
-            ds.BitsAllocated = 16
-            ds.BitsStored = 16
-            ds.HighBit = 15
-            ds.PixelRepresentation = 1 if use_signed else 0
-            ds.PixelSpacing = getattr(ds, 'PixelSpacing', [1.0, 1.0])
-            ds.SliceThickness = getattr(ds, 'SliceThickness', 1.0)
-            ds.SamplesPerPixel = 1
-            ds.PhotometricInterpretation = "MONOCHROME2"
-            ds.WindowCenter = f"{np.mean(value_range):.10g}"
-            ds.WindowWidth = f"{np.ptp(value_range):.10g}"
-
-            slice_img = np.flipud(image_scaled[:, :, i].T)
-            ds.Rows, ds.Columns = slice_img.shape
-            ds.PixelData = slice_img.tobytes()
-
-            set_common_metadata(ds, name, unit_str, type_tag, TOOL_VERSION)
-            add_source_dicom_reference(ds, source_dicom_path)
-            # Set correct Real World Value mapping (RWVM) for derived ASL map (replaces inherited, wrong as based on source data, Philips RWVM)
-            set_real_world_value_mapping(ds, type_tag, unit_str)
-
-            output_filename = f"{name.replace(' ', '_')}_{ds.SeriesNumber}_{ds.InstanceNumber}.dcm"
-            output_path = os.path.join(output_dicom_dir, output_filename)
-            
-            ds.save_as(output_path, enforce_file_format=True)
-            logging.info(f"Saved single-frame DICOM: {output_path}")
-            logging.info(f"StudyID singleframe-derived DICOM: {ds.StudyID}")
-            logging.info(f"StudyInstanceUID singleframe-derived DICOM: {ds.StudyInstanceUID}")
-            logging.info(f"PatientID singleframe-derived DICOM: {ds.PatientID}")
-            logging.info(f"StudyDate singleframe-derived DICOM: {ds.StudyDate}")
-            logging.info(f"StudyTime singleframe-derived DICOM: {ds.StudyTime}")
+    # --- SINGLEFRAME (MR Image Storage, one file per slice) ---
+    templates = dc.select_singleframe_templates(source_dicom_path, image.shape[2])
+    series_instance_uid = generate_uid(prefix=dc.UID_PREFIX)
+    for i, template_file in enumerate(templates):
+        ds = pydicom.dcmread(template_file, force=True)
+        ds.decompress()
+        ds.SeriesInstanceUID = series_instance_uid
+        dc.set_instance_uids(ds, MR_IMAGE)
+        ds.SeriesNumber = dc.series_number(ds, series_number_incr, type_tag, CVR_SERIES_NUMBER)
+        dc.clean_singleframe_timing(ds)
+        ds.InstanceNumber = i + 1
+        ds.RescaleSlope = slope
+        ds.RescaleIntercept = 0.0
+        dc.set_16bit_pixels(ds, signed)
+        ds.PixelSpacing = getattr(ds, 'PixelSpacing', [1.0, 1.0])
+        ds.SliceThickness = getattr(ds, 'SliceThickness', 1.0)
+        ds.PhotometricInterpretation = "MONOCHROME2"
+        ds.WindowCenter = center
+        ds.WindowWidth = width
+        slice_img = dc.singleframe_pixels(image_scaled[:, :, i])
+        ds.Rows, ds.Columns = slice_img.shape
+        ds.PixelData = slice_img.tobytes()
+        dc.set_common_metadata(ds, name, unit_str, type_tag)
+        dc.add_source_dicom_reference(ds, source_dicom_path)
+        set_real_world_value_mapping(ds, type_tag, unit_str)
+        ds.save_as(dc.output_path(output_dicom_dir, name, ds, singleframe=True), enforce_file_format=True)
+    dc.log_series_saved('single-frame grayscale', name, ds, len(templates))

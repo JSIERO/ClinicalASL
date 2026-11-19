@@ -4,7 +4,7 @@
 **Author:** Jeroen Siero, UMC Utrecht  
 **Contact:** j.c.w.siero@umcutrecht.nl  
 **Release Date:** 2026-11-17  
-**Version:** v1.2.0 (see `python/clinical_asl_pipeline/__version__.py`)  
+**Version:** v1.2.1 (see `python/clinical_asl_pipeline/__version__.py`)  
 
 ## Description
 
@@ -40,7 +40,7 @@ You can supply your own `config.json` per acquisition protocol.
 example `config/config_default.json`:
 ```json
 {
-    "version": "1.2.0",
+    "version": "1.2.1",
     "ASL scan": "multi-delay Look-Locker",
     "tau": 2,
     "N_BS": 4,

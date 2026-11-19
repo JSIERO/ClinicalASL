@@ -200,6 +200,7 @@ def asl_save_results_cbfaatcvr(subject):
                         ) # e.g., "ASL_CBF_postACZ_1015_1.dcm"
                     except Exception as e:
                         logging.error(f"Failed to save DICOM for {type_tag} ({context_study_tag}): {e}")
+                        raise  # a missing series must fail the run (non-zero exit for IMAGR)
 
     # === Helper: Save PNG ===
     def save_png(context, fields):
@@ -262,7 +263,7 @@ def asl_save_results_cbfaatcvr(subject):
                     save_png_to_dicom(input_png_path, output_dcm_path, series_description, series_instance_uid, instance_number, dcm_source_path )
                 except Exception as e:
                     logging.error(f"Failed to save PNG as DICOM for {type_tag} {context_study_tag}: {e}")
-                    continue  # Skip to the next one
+                    raise  # a missing PNG DICOM must fail the run (non-zero exit for IMAGR)
 
     # === Final log ===
     logging.info(f"Results complete: PACS-ready DICOMS, NIFTI, .png's saved for subject {subject['SUBJECTdir']}")
