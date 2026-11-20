@@ -7,6 +7,8 @@ Sister project: FetalSVR (same container pattern, `..\FetalSVR`).
 
 Detailed process files (pipeline internals, quantification, DICOM export, running/debugging, run comparison,
 release): `.claude/agents/*.md` and `.claude/skills/*/SKILL.md`. Read the one that matches the task, not all.
+Current state (open PRs, pending runs, release steps): `HANDOFF.md` if present (not in git). Read it at the start
+of a session; overwrite it at the end when the state changed (~20 lines, no patient data).
 
 ## Layout
 - `python/run_pipeline.py`: entry (Look-Locker multi-delay, `config_default.json`). Args: `inputdir outputdir workingdir

@@ -77,3 +77,6 @@ _logs/
 *.nii
 *.nii.gz
 *.mat.bak
+
+# Session state for AI coding tools (local only)
+HANDOFF.md
