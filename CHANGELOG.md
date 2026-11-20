@@ -23,7 +23,8 @@ ClinicalASL Pipeline — Changelog
   results do not change.
 - Code: shared DICOM export code in `utils/dicom_common.py` (grayscale/colour modules 956 -> 507 lines incl. the
   shared module), same output intended; removed unused `asl_t1_from_m0.py`; `load_parameters` default config path fixed.
-- Repo: `tools/` with run comparison and DICOM validation scripts (`compare_dicom.py`, `nightly_verify.ps1`, ...);
+- Repo: `tools/` with run comparison and DICOM validation scripts (`compare_dicom.py`, `nightly_verify.ps1`, ...;
+  `compare_maps.py` also reports median |d|, the QMS V4 criterion);
   `AGENTS.md` (instructions for AI coding tools, CLAUDE.md imports it); `.gitignore` excludes DICOM/NIfTI.
 
 ---

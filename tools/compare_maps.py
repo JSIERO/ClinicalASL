@@ -1,4 +1,5 @@
-"""Compare CBF/CVR (and AAT/ATA) NIfTI maps between two ClinicalASL runs. Usage: compare_maps.py <dirA> <dirB>"""
+"""Compare CBF/CVR (and AAT/ATA) NIfTI maps between two ClinicalASL runs (median |d| = QMS V4 criterion, voxels
+nonzero in either map). Usage: compare_maps.py <dirA> <dirB>"""
 import sys, os, glob, re
 import numpy as np, nibabel as nib
 
@@ -17,7 +18,7 @@ A, B = rel_files(a_root), rel_files(b_root)
 print(f"maps: A {len(A)}, B {len(B)}, common {len(set(A) & set(B))}")
 for r in sorted(set(A) ^ set(B)):
     print("  only in", "A" if r in A else "B", r)
-print(f"{'file':<60} {'shape':>14} {'voxels':>8} {'identical%':>10} {'max|d|':>10} {'mean|d|':>10} {'meanA':>9} {'meanB':>9} {'r':>8}")
+print(f"{'file':<60} {'shape':>14} {'voxels':>8} {'identical%':>10} {'max|d|':>10} {'mean|d|':>10} {'median|d|':>10} {'meanA':>9} {'meanB':>9} {'r':>8}")
 for r in sorted(set(A) & set(B)):
     a = nib.load(A[r]).get_fdata(); b = nib.load(B[r]).get_fdata()
     if a.shape != b.shape:
@@ -29,4 +30,4 @@ for r in sorted(set(A) & set(B)):
     d = np.abs(a[m] - b[m])
     ident = 100.0 * np.mean(d == 0)
     rr = np.corrcoef(a[m], b[m])[0, 1] if np.std(a[m]) > 0 and np.std(b[m]) > 0 else float("nan")
-    print(f"{r:<60} {str(a.shape):>14} {n:>8} {ident:>10.2f} {d.max():>10.4g} {d.mean():>10.4g} {a[m].mean():>9.4g} {b[m].mean():>9.4g} {rr:>8.5f}")
+    print(f"{r:<60} {str(a.shape):>14} {n:>8} {ident:>10.2f} {d.max():>10.4g} {d.mean():>10.4g} {np.median(d):>10.4g} {a[m].mean():>9.4g} {b[m].mean():>9.4g} {rr:>8.5f}")

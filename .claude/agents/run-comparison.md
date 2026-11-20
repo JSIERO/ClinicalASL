@@ -18,7 +18,7 @@ compare from `ASL/` onward. Output DICOM names: `ASL_<MAP>_<tag>[_COLOR]_<Series
 ## Tools (repo `tools\`; host python has numpy/nibabel/pydicom; run with `python <script> A B`)
 - `compare_all.py A B`: where do two runs start to differ? all non-QASL work NIfTIs, QASL first-level maps, DICOM
   series counts. Expects `A\work` and `A\output`.
-- `compare_maps.py dirA dirB`: CBF/CVR/AAT/ATA maps: identical %, max/mean |d|, means, r.
+- `compare_maps.py dirA dirB`: CBF/CVR/AAT/ATA maps: identical %, max/mean/median |d| (median = QMS V4), means, r.
 - `compare_dicom.py outA outB`: per-file header + pixel comparison, UIDs/times ignored, prints tag keywords only.
 - `tests\_scripts\compare_masks.py`: HD-BET mask variants (runs inside the image, see its docstring).
 - `tools\nightly_verify.ps1` runs these automatically and writes `tests\<name>\summary.txt`: read that first.
