@@ -23,6 +23,7 @@ from clinical_asl_pipeline.__version__ import __version__ as TOOL_VERSION
 from pydicom.dataset import FileDataset, FileMetaDataset
 from pydicom.uid import generate_uid, ExplicitVRLittleEndian, SecondaryCaptureImageStorage
 from PIL import Image
+from clinical_asl_pipeline.utils.dicom_common import IMPLEMENTATION_UID_ROOT
 
 def save_png_to_dicom(png_path, output_path, series_description, series_instance_uid,  instance_number=1, source_dicom_path=None):
     #   Convert a PNG image to DICOM format.
@@ -39,7 +40,6 @@ def save_png_to_dicom(png_path, output_path, series_description, series_instance
     #      None: The function saves the DICOM file to the specified output path. 
 
     now = datetime.datetime.now()
-    IMPLEMENTATION_UID_ROOT = "1.3.6.1.4.1.54321.1.1" # Example root UID for ClinicalASL, fake PEN
 
     # Load PNG image
     img = Image.open(png_path)
@@ -144,10 +144,6 @@ def save_png_to_dicom(png_path, output_path, series_description, series_instance
     new_output_path = f"{base}_{ds.SeriesNumber}_PNG{ext}"
     ds.save_as(new_output_path, enforce_file_format=True)
 
-    # logging of key metadata
-    logging.info(f"StudyID PNG-derived DICOM: {ds.StudyID}")
-    logging.info(f"StudyInstanceUID PNG-derived DICOM: {ds.StudyInstanceUID}")
-    logging.info(f"PatientID PNG-derived DICOM: {ds.PatientID}")
-    logging.info(f"StudyDate PNG-derived DICOM: {ds.StudyDate}")
-    logging.info(f"StudyTime PNG-derived DICOM: {ds.StudyTime}")
+    # one line per file, no patient or study identifiers in the log
+    logging.info(f"Saved PNG DICOM (series {ds.SeriesNumber}, instance {ds.InstanceNumber}): {os.path.basename(new_output_path)}")
 

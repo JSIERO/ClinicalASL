@@ -69,3 +69,14 @@ python/run_for_Vstudio_testing_pipeline.py
 # QASL license key and local build/run logs (never commit)
 qi-key*
 _logs/
+
+# Imaging data (never commit: patient data)
+*.dcm
+*.DCM
+*.IMA
+*.nii
+*.nii.gz
+*.mat.bak
+
+# Session state for AI coding tools (local only)
+HANDOFF.md

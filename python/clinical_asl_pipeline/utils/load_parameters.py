@@ -19,13 +19,13 @@ import json
 def load_parameters(config_path=None):
     # If no config_path provided, use default
     if not config_path:
-        config_path = os.path.join(os.path.dirname(__file__), 'config', 'config_default.json')
+        config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', 'config_default.json')
 
     # Now safe to check if exists
     if not os.path.exists(config_path):
         logging.warning(f"Config file '{config_path}' not found. Using hardcoded defaults.")
         hardcoded_defaults =  {
-        "version": "1.2.0",
+        "version": "1.2.1",
         "ASL scan": "multi-delay Look-Locker",
         "tau": 2,
         "N_BS": 4,

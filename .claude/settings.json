@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-Content *)",
+      "PowerShell(Select-String *)",
+      "PowerShell(Get-ChildItem *)",
+      "mcp__1a59c906-04da-521d-bda7-7f71b9f9e01c__read"
+    ]
+  }
+}

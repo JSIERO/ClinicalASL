@@ -20,6 +20,7 @@ import logging
 import shutil
 import pydicom
 import fnmatch
+from collections import Counter
 from clinical_asl_pipeline.utils.run_command_with_logging import run_command_with_logging
 from glob import glob
 
@@ -91,15 +92,14 @@ def asl_convert_dicom_to_nifti(subject):
                     logging.error(f"DICOM read error at {src_path}: {e}")
                     raise RuntimeError(f"Critical error reading DICOM file: {src_path}") from e
 
-        for skipped_file, desc in skipped_files:
-            logging.info(f"Skipped file (SeriesDescription did not match): {skipped_file} [SeriesDescription: {desc}]")
+        # one line per skipped SeriesDescription (no per-file paths in the log)
+        for desc, n in sorted(Counter(desc for _, desc in skipped_files).items()):
+            logging.info(f"Skipped {n} file(s), SeriesDescription did not match: '{desc}'")
 
         if copied_count == 0:
             logging.error("No matching ASL DICOMs found.")
             raise RuntimeError("DICOM conversion aborted: no matching ASL series found.")
-        else:
-            logging.info(f"Done. Total files copied: {copied_count}")
-            logging.info(f"Destination directory:  Total files copied: {copied_count}")
+        logging.info(f"Total files copied to {dst_dir}: {copied_count}")
 
         return matched_files
 
